@@ -333,3 +333,92 @@ body {
 .nav-item.active span { color: var(--zspm-blue); }
 .bell-btn svg { stroke-width: 1.9; }
 @media (max-width: 760px) { .nav-item svg { width: 21px; height: 21px; } }
+
+
+/* Profile interactions: likes, comments and contact requests */
+.profile-social {
+  margin: 16px 0 14px;
+  padding-top: 13px;
+  border-top: 1px solid var(--zspm-border);
+}
+.profile-social-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.social-like {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--zspm-border);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: var(--zspm-blue-soft);
+  color: var(--zspm-text);
+  font-size: 12px;
+  font-weight: 650;
+}
+.social-like svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.social-like.liked { color: var(--zspm-blue); }
+.social-like.liked svg { fill: currentColor; }
+.profile-comment-count, .no-comments {
+  color: var(--zspm-muted);
+  font-size: 11px;
+}
+.profile-comments {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+}
+.profile-comment {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 9px 11px;
+  border-radius: 11px;
+  background: var(--zspm-panel-2);
+  color: var(--zspm-text);
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.profile-comment strong { color: var(--zspm-blue); }
+.profile-comment-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.profile-comment-form input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--zspm-border);
+  border-radius: 999px;
+  padding: 10px 13px;
+  background: var(--zspm-input);
+  color: var(--zspm-text);
+  font-size: 12px;
+}
+.profile-comment-form button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0 14px;
+  background: var(--zspm-blue-2);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 650;
+}
+.profile-social + .btn-row .accept-btn { min-height: 42px; }
+@media (max-width: 380px) {
+  .profile-social-actions { align-items: flex-start; flex-direction: column; }
+  .profile-comment-form button { padding: 0 11px; }
+}
