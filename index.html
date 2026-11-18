@@ -1,0 +1,2565 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#100b1d">
+<title>ZSPM Dating App</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #100b1d;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+}
+
+button, input { font: inherit; }
+button { cursor: pointer; }
+.hidden { display: none !important; }
+
+.container {
+  width: 100%;
+  max-width: 440px;
+  min-height: 100vh;
+  margin: auto;
+  padding: 22px 20px;
+}
+
+.logo {
+  text-align: center;
+  padding: 35px 0;
+}
+
+.logo-icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 24px;
+  margin: auto auto 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 35px;
+  background: linear-gradient(135deg,#c084fc,#6d28d9);
+  box-shadow: 0 0 35px #9333ea55;
+}
+
+.logo h1 {
+  font-size: 26px;
+  letter-spacing: .5px;
+}
+
+.logo p {
+  color: #a99bbd;
+  font-size: 13px;
+  margin-top: 9px;
+}
+
+.card {
+  background: #1b1428;
+  border: 1px solid #382747;
+  border-radius: 20px;
+  padding: 23px;
+}
+
+.card h2 {
+  font-size: 23px;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #a99bbd;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 23px;
+}
+
+.field { margin-bottom: 17px; }
+
+.field label {
+  display: block;
+  font-size: 13px;
+  color: #dfd2ed;
+  margin-bottom: 9px;
+}
+
+.field input {
+  width: 100%;
+  padding: 15px;
+  background: #100b1d;
+  border: 1px solid #49325e;
+  border-radius: 12px;
+  color: white;
+  outline: none;
+}
+
+.field input:focus { border-color: #b46af5; }
+
+.main-btn {
+  width: 100%;
+  padding: 16px;
+  margin-top: 8px;
+  background: linear-gradient(135deg,#a855f7,#6d28d9);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.main-btn:active { transform: scale(.98); }
+
+.main-btn:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.switch {
+  text-align: center;
+  color: #a99bbd;
+  font-size: 13px;
+  margin-top: 22px;
+}
+
+.switch button {
+  color: #c084fc;
+  background: none;
+  border: none;
+  font-weight: bold;
+}
+
+.notice {
+  text-align: center;
+  color: #95869f;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 20px;
+}
+
+.message {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0 0 16px;
+  padding: 11px;
+  border-radius: 10px;
+  display: none;
+}
+
+.message.error {
+  display: block;
+  color: #ffb4c4;
+  background: #471d32;
+}
+
+.message.success {
+  display: block;
+  color: #b8f3d1;
+  background: #173d30;
+}
+
+/* MENU */
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0 25px;
+}
+
+.small-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.small-logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg,#a855f7,#6d28d9);
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #38234f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.welcome { margin: 15px 0 25px; }
+
+.welcome h2 {
+  font-size: 25px;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+
+.welcome p {
+  color: #a99bbd;
+  font-size: 13px;
+}
+
+.hero {
+  background: linear-gradient(135deg,#54258b,#25133e);
+  border: 1px solid #7940a9;
+  border-radius: 20px;
+  padding: 23px;
+  margin-bottom: 26px;
+}
+
+.hero h3 {
+  font-size: 19px;
+  margin-bottom: 10px;
+}
+
+.hero p {
+  color: #e2d4f0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.section-title {
+  font-size: 17px;
+  margin-bottom: 15px;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.menu-item {
+  background: #1b1428;
+  border: 1px solid #382747;
+  padding: 19px 15px;
+  border-radius: 17px;
+  color: white;
+  text-align: left;
+  min-width: 0;
+}
+
+.menu-item:active {
+  background: #352047;
+  transform: scale(.97);
+}
+
+.menu-icon {
+  font-size: 27px;
+  margin-bottom: 13px;
+}
+
+.menu-item h3 {
+  font-size: 14px;
+  margin-bottom: 7px;
+}
+
+.menu-item p {
+  color: #a99bbd;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  justify-content: space-around;
+  background: #1b1428;
+  border-top: 1px solid #382747;
+  padding: 13px 5px calc(13px + env(safe-area-inset-bottom));
+  z-index: 10;
+}
+
+.nav-item {
+  background: none;
+  border: none;
+  color: #9585a7;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 55px;
+}
+
+.nav-item span { font-size: 21px; }
+
+.nav-item.active { color: #c084fc; }
+
+.page { padding-bottom: 100px; }
+
+.page-content {
+  background: #1b1428;
+  border: 1px solid #382747;
+  border-radius: 17px;
+  padding: 20px;
+  margin-bottom: 13px;
+}
+
+.page-content p {
+  color: #a99bbd;
+  font-size: 13px;
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+.logout {
+  background: #3b1b35;
+  border: 1px solid #78365d;
+  color: #ffb5d0;
+  padding: 14px;
+  border-radius: 12px;
+  width: 100%;
+  margin-top: 15px;
+}
+
+/* PROFILE */
+
+.demo-note {
+  color: #c084fc;
+  font-size: 12px;
+  margin-top: 9px;
+  line-height: 1.5;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 480px) {
+  .profile-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.profile-card {
+  background: #1b1428;
+  border: 1px solid #382747;
+  border-radius: 17px;
+  padding: 18px;
+}
+
+.profile-card.own {
+  border-color: #7940a9;
+}
+
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 12px;
+}
+
+.profile-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#54258b,#25133e);
+  border: 1px solid #7940a9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+}
+
+.profile-nick {
+  font-size: 16px;
+  font-weight: bold;
+  overflow-wrap: anywhere;
+}
+
+.profile-klasa {
+  color: #a99bbd;
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.profile-bio {
+  color: #dfd2ed;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.profile-interests {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 13px;
+}
+
+.interest-tag {
+  background: #2a1d3d;
+  border: 1px solid #49325e;
+  color: #dfd2ed;
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 99px;
+}
+
+.you-badge {
+  background: #6d28d9;
+  color: #fff;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 99px;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+.report-btn {
+  width: 100%;
+  background: #3b1b35;
+  border: 1px solid #78365d;
+  color: #ffb5d0;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.report-btn:disabled {
+  opacity: .7;
+  cursor: default;
+}
+
+.field textarea {
+  width: 100%;
+  padding: 13px;
+  background: #100b1d;
+  border: 1px solid #49325e;
+  border-radius: 12px;
+  color: white;
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  font: inherit;
+}
+
+.field textarea:focus { border-color: #b46af5; }
+
+.emoji-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.emoji-option {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #100b1d;
+  border: 1px solid #49325e;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emoji-option.selected {
+  border-color: #c084fc;
+  background: #2a1d3d;
+  box-shadow: 0 0 10px #9333ea55;
+}
+
+.switch-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid #2e2140;
+}
+
+.switch-row:last-child { border-bottom: none; }
+
+.switch-row .switch-label {
+  font-size: 13px;
+  color: #dfd2ed;
+}
+
+.switch-row .switch-hint {
+  font-size: 11px;
+  color: #95869f;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.toggle {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  margin: 0;
+  cursor: pointer;
+}
+
+.toggle .slider {
+  position: absolute;
+  inset: 0;
+  background: #382747;
+  border-radius: 99px;
+  transition: background .2s;
+  pointer-events: none;
+}
+
+.toggle .slider::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #a99bbd;
+  top: 3px;
+  left: 3px;
+  transition: transform .2s, background .2s;
+}
+
+.toggle input:checked + .slider { background: #6d28d9; }
+
+.toggle input:checked + .slider::before {
+  transform: translateX(22px);
+  background: #fff;
+}
+
+@media (max-width: 350px) {
+  .container {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .menu-item { padding: 15px 10px; }
+}
+
+/* FRIENDS */
+
+.bell-btn {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #1b1428;
+  border: 1px solid #382747;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bell-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: #e0357b;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.accept-btn {
+  width: 100%;
+  background: linear-gradient(135deg,#a855f7,#6d28d9);
+  border: none;
+  color: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.accept-btn:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
+.pill-btn {
+  width: 100%;
+  background: #2a1d3d;
+  border: 1px solid #49325e;
+  color: #a99bbd;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.pill-btn:disabled { cursor: default; }
+
+.section-sub {
+  color: #a99bbd;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* CHAT */
+
+.conv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.conv-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: #1b1428;
+  border: 1px solid #382747;
+  padding: 14px;
+  border-radius: 16px;
+  color: white;
+  text-align: left;
+}
+
+.conv-item:active {
+  background: #352047;
+  transform: scale(.99);
+}
+
+.conv-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#54258b,#25133e);
+  border: 1px solid #7940a9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 23px;
+  flex-shrink: 0;
+}
+
+.conv-avatar.small {
+  width: 42px;
+  height: 42px;
+  font-size: 20px;
+}
+
+.conv-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.conv-nick {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.conv-last {
+  color: #a99bbd;
+  font-size: 12px;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: #1b1428;
+  border: 1px solid #382747;
+  border-radius: 17px;
+  padding: 12px 14px;
+  margin-bottom: 13px;
+}
+
+.chat-back {
+  background: none;
+  border: none;
+  color: #c084fc;
+  font-size: 26px;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.chat-head-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-head-nick {
+  font-weight: bold;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.chat-head-status {
+  color: #a99bbd;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.chat-block-btn {
+  background: #3b1b35;
+  border: 1px solid #78365d;
+  color: #ffb5d0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.chat-block-btn:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
+.chat-msgs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 170px;
+}
+
+.chat-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.chat-row.mine {
+  justify-content: flex-end;
+}
+
+.msg-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#54258b,#25133e);
+  border: 1px solid #49325e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.bubble {
+  max-width: 82%;
+  background: #1b1428;
+  border: 1px solid #382747;
+  border-radius: 16px;
+  border-bottom-left-radius: 6px;
+  padding: 10px 13px 7px;
+  min-width: 0;
+}
+
+.chat-row.mine .bubble {
+  background: linear-gradient(135deg,#54258b,#3b1a5e);
+  border-color: #7940a9;
+  border-radius: 16px;
+  border-bottom-right-radius: 6px;
+}
+
+.bubble-author {
+  font-size: 11px;
+  font-weight: bold;
+  color: #c084fc;
+  margin-bottom: 4px;
+}
+
+.bubble-text {
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.bubble-time {
+  font-size: 10px;
+  color: #95869f;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.bubble-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.msg-action {
+  background: none;
+  border: none;
+  color: #ffb5d0;
+  font-size: 10px;
+  padding: 2px 0;
+}
+
+.chat-reported {
+  color: #95869f;
+  font-size: 10px;
+}
+
+.composer-wrap {
+  position: fixed;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
+  padding: 12px 16px 4px;
+  background: linear-gradient(to top, #100b1d 72%, transparent);
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.chat-composer {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input {
+  flex: 1;
+  min-width: 0;
+  background: #1b1428;
+  border: 1px solid #49325e;
+  border-radius: 99px;
+  padding: 12px 17px;
+  color: white;
+  outline: none;
+  font: inherit;
+  font-size: 14px;
+}
+
+.chat-input:focus { border-color: #b46af5; }
+
+.chat-send {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg,#a855f7,#6d28d9);
+  color: white;
+  font-size: 17px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-send:active { transform: scale(.94); }
+
+.chat-send:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.char-hint {
+  font-size: 10px;
+  color: #95869f;
+  text-align: right;
+  padding: 0 8px;
+}
+</style>
+  <meta property="og:image" content="https://bolt.new/static/og_default.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
+</head>
+
+<body>
+
+<!-- REJESTRACJA I LOGOWANIE -->
+
+<div id="auth" class="container">
+
+  <div class="logo">
+    <div class="logo-icon">💜</div>
+    <h1>ZSPM Dating App</h1>
+    <p>Twoja społeczność szkolna</p>
+  </div>
+
+  <div class="card">
+
+    <div id="register-form">
+
+      <h2>Utwórz konto</h2>
+      <p class="subtitle">Dołącz do społeczności swojej szkoły!</p>
+
+      <div id="register-message" class="message"></div>
+
+      <form id="register">
+
+        <div class="field">
+          <label>Pseudonim</label>
+          <input id="reg-name"
+            type="text"
+            maxlength="25"
+            placeholder="Twój pseudonim"
+            autocomplete="nickname"
+            required>
+        </div>
+
+        <div class="field">
+          <label>Adres e-mail</label>
+          <input id="reg-email"
+            type="email"
+            placeholder="twoj@email.com"
+            autocomplete="email"
+            required>
+        </div>
+
+        <div class="field">
+          <label>Hasło</label>
+          <input id="reg-password"
+            type="password"
+            minlength="8"
+            placeholder="Minimum 8 znaków"
+            autocomplete="new-password"
+            required>
+        </div>
+
+        <button class="main-btn" type="submit">
+          Utwórz konto →
+        </button>
+
+      </form>
+
+      <div class="switch">
+        Masz już konto?
+        <button type="button" id="go-login">Zaloguj się</button>
+      </div>
+
+    </div>
+
+    <div id="login-form" class="hidden">
+
+      <h2>Witaj ponownie!</h2>
+      <p class="subtitle">Zaloguj się na swoje konto.</p>
+
+      <div id="login-message" class="message"></div>
+
+      <form id="login">
+
+        <div class="field">
+          <label>Adres e-mail</label>
+          <input id="login-email"
+            type="email"
+            placeholder="twoj@email.com"
+            autocomplete="email"
+            required>
+        </div>
+
+        <div class="field">
+          <label>Hasło</label>
+          <input id="login-password"
+            type="password"
+            placeholder="Twoje hasło"
+            autocomplete="current-password"
+            required>
+        </div>
+
+        <button class="main-btn" type="submit">
+          Zaloguj się →
+        </button>
+
+      </form>
+
+      <div class="switch">
+        Nie masz jeszcze konta?
+        <button type="button" id="go-register">Zarejestruj się</button>
+      </div>
+
+    </div>
+
+    <p class="notice">
+      Wersja demonstracyjna. Nie używaj prawdziwych haseł
+      ani danych osobowych.
+    </p>
+
+  </div>
+</div>
+
+
+<!-- APLIKACJA -->
+
+<div id="app" class="container hidden">
+
+  <div class="page">
+
+    <div id="home-page">
+
+      <div class="topbar">
+        <div class="small-logo">
+          <div class="small-logo-icon">💜</div>
+          ZSPM Dating App
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button type="button" class="bell-btn" id="notif-bell" aria-label="Powiadomienia">
+            🔔
+            <span class="bell-badge hidden" id="notif-badge"></span>
+          </button>
+          <div class="avatar">👤</div>
+        </div>
+      </div>
+
+      <div class="welcome">
+        <h2>Cześć, <span id="user-name">Uczeń</span>! 👋</h2>
+        <p>Witamy w społeczności Twojej szkoły.</p>
+      </div>
+
+      <div class="hero">
+        <h3>Witaj w ZSPM! 💜</h3>
+        <p>
+          Poznawaj nowych ludzi, nawiązuj przyjaźnie
+          i integruj się ze społecznością szkolną.
+        </p>
+      </div>
+
+      <h3 class="section-title">Odkryj aplikację</h3>
+
+      <div class="menu-grid">
+
+        <button class="menu-item" data-page="profiles">
+          <div class="menu-icon">👥</div>
+          <h3>Profile uczniów</h3>
+          <p>Poznaj swoją społeczność</p>
+        </button>
+
+        <button class="menu-item" data-page="my-profile">
+          <div class="menu-icon">🙂</div>
+          <h3>Mój profil</h3>
+          <p>Twój profil w społeczności</p>
+        </button>
+
+        <button class="menu-item" data-page="chat">
+          <div class="menu-icon">💬</div>
+          <h3>Czat szkolny</h3>
+          <p>Rozmawiaj z uczniami</p>
+        </button>
+
+        <button class="menu-item" data-page="friends">
+          <div class="menu-icon">👫</div>
+          <h3>Znajomi</h3>
+          <p>Zaproszenia i znajomi</p>
+        </button>
+
+        <button class="menu-item" data-page="settings">
+          <div class="menu-icon">⚙️</div>
+          <h3>Ustawienia</h3>
+          <p>Zarządzaj swoim kontem</p>
+        </button>
+
+        <button class="menu-item" data-page="support">
+          <div class="menu-icon">💜</div>
+          <h3>Wesprzyj twórcę</h3>
+          <p>Wspieraj rozwój projektu</p>
+        </button>
+
+      </div>
+
+    </div>
+
+    <div id="other-page" class="hidden">
+
+      <div class="welcome">
+        <h2 id="page-title">Strona</h2>
+        <p id="page-subtitle">Społeczność ZSPM</p>
+      </div>
+
+      <div id="page-content"></div>
+
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav">
+
+    <button class="nav-item active" data-page="home">
+      <span>🏠</span>Główna
+    </button>
+
+    <button class="nav-item" data-page="profiles">
+      <span>👥</span>Profile
+    </button>
+
+    <button class="nav-item" data-page="my-profile">
+      <span>🙂</span>Profil
+    </button>
+
+    <button class="nav-item" data-page="chat">
+      <span>💬</span>Czat
+    </button>
+
+    <button class="nav-item" data-page="friends">
+      <span>👫</span>Znajomi
+    </button>
+
+    <button class="nav-item" data-page="settings">
+      <span>⚙️</span>Ustawienia
+    </button>
+
+  </nav>
+
+</div>
+
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+const STORAGE_KEY = "zspm_demo_accounts";
+const SESSION_KEY = "zspm_demo_session";
+const PROFILES_KEY = "zspm_demo_profiles";
+const REPORTS_KEY = "zspm_demo_reports";
+
+const AVATAR_OPTIONS = [
+  "🙂", "😀", "🦊", "🐼", "🐺", "🦉",
+  "🐬", "🐝", "🦄", "🐱", "🦁", "🐧"
+];
+
+const DEMO_PROFILES = [
+  {
+    id: "demo-1",
+    avatar: "🦊",
+    nickname: "SzybkiLis",
+    klasa: "2B",
+    bio: "Uwielbiam matematykę i gry planszowe. Zawsze chętny do wspólnego rozwiązywania zadań.",
+    interests: ["Matematyka", "Gry planszowe", "Szachy"]
+  },
+  {
+    id: "demo-2",
+    avatar: "🐼",
+    nickname: "KreatywnaAnia",
+    klasa: "3A",
+    bio: "Pasjonatka sztuki. Rysuję portrety i projektuję plakaty na szkolne wydarzenia.",
+    interests: ["Sztuka", "Rysowanie", "Fotografia"]
+  },
+  {
+    id: "demo-3",
+    avatar: "🐺",
+    nickname: "WilkSportowy",
+    klasa: "1C",
+    bio: "Piłka nożna to moje życie. Gram w szkolnej drużynie na pozycji napastnika.",
+    interests: ["Sport", "Piłka nożna", "Bieganie"]
+  },
+  {
+    id: "demo-4",
+    avatar: "🦉",
+    nickname: "NocnyCzytelnik",
+    klasa: "2A",
+    bio: "Zaczytany do granic możliwości. Fantastyka, kryminały i książki popularnonaukowe.",
+    interests: ["Czytanie", "Fantastyka", "Nauka"]
+  },
+  {
+    id: "demo-5",
+    avatar: "🐬",
+    nickname: "MelaKoduje",
+    klasa: "3B",
+    bio: "Uczę się programowania i tworzę proste gry. Szukam ludzi do projektu na konkurs.",
+    interests: ["Programowanie", "Gry", "Technologie"]
+  },
+  {
+    id: "demo-6",
+    avatar: "🐝",
+    nickname: "PracowityBartek",
+    klasa: "1B",
+    bio: "Muzyka i rower. Po szkole można mnie spotkać na szkolnych wydarzeniach.",
+    interests: ["Muzyka", "Rower", "Podróże"]
+  }
+];
+
+let currentUser = null;
+
+function showMessage(id, text, type = "error") {
+  const element = $(id);
+  element.textContent = text;
+  element.className = "message " + type;
+}
+
+function clearMessage(id) {
+  const element = $(id);
+  element.textContent = "";
+  element.className = "message";
+}
+
+function showLogin() {
+  clearMessage("login-message");
+  $("register-form").classList.add("hidden");
+  $("login-form").classList.remove("hidden");
+}
+
+function showRegister() {
+  clearMessage("register-message");
+  $("login-form").classList.add("hidden");
+  $("register-form").classList.remove("hidden");
+}
+
+function getAccounts() {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+async function hashPassword(password) {
+  if (!window.crypto || !window.crypto.subtle) {
+    throw new Error("Wymagane jest bezpieczne połączenie HTTPS.");
+  }
+
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+
+  return Array.from(new Uint8Array(hash))
+    .map(byte => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+$("go-login").addEventListener("click", showLogin);
+$("go-register").addEventListener("click", showRegister);
+
+
+// REJESTRACJA
+
+$("register").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  clearMessage("register-message");
+
+  const name = $("reg-name").value.trim();
+  const email = $("reg-email").value.trim().toLowerCase();
+  const password = $("reg-password").value;
+
+  if (name.length < 2) {
+    showMessage("register-message", "Pseudonim musi mieć co najmniej 2 znaki.");
+    return;
+  }
+
+  if (password.length < 8) {
+    showMessage("register-message", "Hasło musi mieć co najmniej 8 znaków.");
+    return;
+  }
+
+  const accounts = getAccounts();
+
+  if (accounts.some(account => account.email === email)) {
+    showMessage("register-message", "Ten adres e-mail jest już zarejestrowany. Zaloguj się.");
+    return;
+  }
+
+  const button = $("register").querySelector("button[type=submit]");
+  button.disabled = true;
+  button.textContent = "Tworzenie konta...";
+
+  try {
+    const passwordHash = await hashPassword(password);
+
+    accounts.push({
+      name,
+      email,
+      passwordHash
+    });
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+
+    currentUser = { name, email };
+
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+
+    enterApp();
+
+  } catch (error) {
+    showMessage(
+      "register-message",
+      error.message || "Wystąpił błąd. Spróbuj ponownie."
+    );
+  } finally {
+    button.disabled = false;
+    button.textContent = "Utwórz konto →";
+  }
+});
+
+
+// LOGOWANIE
+
+$("login").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  clearMessage("login-message");
+
+  const email = $("login-email").value.trim().toLowerCase();
+  const password = $("login-password").value;
+
+  const accounts = getAccounts();
+  const account = accounts.find(item => item.email === email);
+
+  if (!account) {
+    showMessage("login-message", "Nie znaleziono konta. Zarejestruj się najpierw.");
+    return;
+  }
+
+  try {
+    const passwordHash = await hashPassword(password);
+
+    if (passwordHash !== account.passwordHash) {
+      showMessage("login-message", "Nieprawidłowe hasło. Spróbuj ponownie.");
+      return;
+    }
+
+    currentUser = {
+      name: account.name,
+      email: account.email
+    };
+
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+
+    enterApp();
+
+  } catch (error) {
+    showMessage("login-message", "Nie udało się zalogować. Spróbuj ponownie.");
+  }
+});
+
+
+// OTWARCIE APLIKACJI
+
+function enterApp() {
+  if (!currentUser) return;
+
+  $("auth").classList.add("hidden");
+  $("app").classList.remove("hidden");
+
+  $("user-name").textContent = currentUser.name;
+
+  updateNotifBadge();
+
+  openPage("home");
+}
+
+
+// NAWIGACJA
+
+const pages = {
+  profiles: {
+    title: "Profile uczniów 👥",
+    subtitle: "Poznaj społeczność swojej szkoły",
+    content: ""
+  },
+
+  "my-profile": {
+    title: "Mój profil 🙂",
+    subtitle: "Twój profil w społeczności",
+    content: ""
+  },
+
+  chat: {
+    title: "Czat szkolny 💬",
+    subtitle: "Rozmawiaj ze społecznością",
+    content: ""
+  },
+
+  friends: {
+    title: "Znajomi 👫",
+    subtitle: "Zaproszenia i Twoi znajomi",
+    content: ""
+  },
+
+  settings: {
+    title: "Ustawienia ⚙️",
+    subtitle: "Zarządzaj swoim kontem",
+    content: ""
+  },
+
+  support: {
+    title: "Wesprzyj twórcę 💜",
+    subtitle: "Pomóż rozwijać projekt",
+    content: `
+      <div class="page-content">
+        <h3>Wesprzyj ZSPM Dating App</h3>
+        <p>Dziękujemy za wsparcie naszego projektu!</p>
+        <p>Możliwości wsparcia zostaną dodane później.</p>
+      </div>
+    `
+  }
+};
+
+function openPage(page) {
+  const home = $("home-page");
+  const other = $("other-page");
+
+  if (page === "home") {
+    home.classList.remove("hidden");
+    other.classList.add("hidden");
+  } else {
+    const selected = pages[page];
+
+    if (!selected) return;
+
+    home.classList.add("hidden");
+    other.classList.remove("hidden");
+
+    $("page-title").textContent = selected.title;
+    $("page-subtitle").textContent = selected.subtitle;
+
+    if (page === "profiles") {
+      $("page-content").innerHTML = renderProfilesPage();
+      bindProfilesPage();
+    } else if (page === "my-profile") {
+      renderMyProfilePage();
+    } else if (page === "chat") {
+      renderChatList();
+    } else if (page === "friends") {
+      renderFriendsPage();
+    } else if (page === "settings") {
+      renderSettingsPage();
+    } else {
+      $("page-content").innerHTML = selected.content;
+    }
+  }
+
+  document.querySelectorAll(".nav-item").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.dataset.page === page
+    );
+  });
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+
+// PROFILE UCZNIÓW
+
+const DEFAULT_PRIVACY = {
+  visible: true,
+  showClass: true,
+  showInterests: true
+};
+
+function getUserProfiles() {
+  try {
+    const data = localStorage.getItem(PROFILES_KEY);
+    const parsed = data ? JSON.parse(data) : {};
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function saveUserProfiles(profiles) {
+  localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+}
+
+function getMyProfile() {
+  if (!currentUser) return null;
+  const profiles = getUserProfiles();
+  return profiles[currentUser.email] || null;
+}
+
+function saveMyProfile(profile) {
+  const profiles = getUserProfiles();
+  profiles[currentUser.email] = profile;
+  saveUserProfiles(profiles);
+}
+
+function getReports() {
+  try {
+    const data = localStorage.getItem(REPORTS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function addReport(profileId) {
+  const reports = getReports();
+  if (!reports.includes(profileId)) {
+    reports.push(profileId);
+    localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+  }
+}
+
+function renderInterests(p, privacy) {
+  if (!p.interests || !p.interests.length) return "";
+  if (privacy && privacy.showInterests === false) return "";
+  const tags = p.interests
+    .map(item => `<span class="interest-tag">${escapeHTML(item)}</span>`)
+    .join("");
+  return `<div class="profile-interests">${tags}</div>`;
+}
+
+function profileCardHTML(profile, own) {
+  const privacy = own ? (profile.privacy || DEFAULT_PRIVACY) : null;
+  const klasa = (!privacy || privacy.showClass !== false)
+    ? `<div class="profile-klasa">Klasa ${escapeHTML(profile.klasa)}</div>`
+    : "";
+
+  const badge = own ? `<span class="you-badge">Twój profil</span>` : "";
+
+  const action = own
+    ? `<button class="report-btn" data-action="edit-profile">Edytuj swój profil</button>`
+    : `<button class="report-btn" data-action="report" data-profile-id="${escapeHTML(profile.id)}">Zgłoś profil</button>`;
+
+  const friendAction = own ? "" : friendButtonHTML(profile);
+
+  return `
+    <div class="profile-card${own ? " own" : ""}">
+      <div class="profile-head">
+        <div class="profile-avatar">${escapeHTML(profile.avatar)}</div>
+        <div>
+          <div class="profile-nick">${escapeHTML(profile.nickname)}${badge}</div>
+          ${klasa}
+        </div>
+      </div>
+      <div class="profile-bio">${escapeHTML(profile.bio)}</div>
+      ${renderInterests(profile, privacy)}
+      <div class="btn-row">
+        ${friendAction}
+        ${action}
+      </div>
+    </div>
+  `;
+}
+
+function renderProfilesPage() {
+  const reports = getReports();
+  const myProfile = getMyProfile();
+  const myVisible = myProfile && (myProfile.privacy || DEFAULT_PRIVACY).visible !== false;
+
+  const cards = [];
+
+  if (myProfile && myVisible) {
+    cards.push(profileCardHTML({ ...myProfile, id: "own" }, true));
+  }
+
+  DEMO_PROFILES
+    .filter(profile => !myProfile || profile.nickname !== myProfile.nickname)
+    .forEach(profile => {
+      const reported = reports.includes(profile.id);
+      const card = profileCardHTML(profile, false)
+        .replace(
+          `<button class="report-btn" data-action="report" data-profile-id="${profile.id}">Zgłoś profil</button>`,
+          reported
+            ? `<button class="report-btn" disabled>Zgłoszono profil</button>`
+            : `<button class="report-btn" data-action="report" data-profile-id="${profile.id}">Zgłoś profil</button>`
+        );
+      cards.push(card);
+    });
+
+  return `
+    <div class="page-content">
+      <h3>Profile uczniów</h3>
+      <p>Poznaj społeczność swojej szkoły.</p>
+      <p class="demo-note">⚠️ Profile oznaczone jako demonstracyjne nie przedstawiają prawdziwych uczniów.</p>
+    </div>
+    <div class="profile-grid">${cards.join("")}</div>
+  `;
+}
+
+function bindProfilesPage() {
+  const container = $("page-content");
+
+  const rerenderProfiles = () => {
+    $("page-content").innerHTML = renderProfilesPage();
+    bindProfilesPage();
+    updateNotifBadge();
+  };
+
+  container.querySelectorAll("[data-action='edit-profile']").forEach(button => {
+    button.addEventListener("click", () => openPage("my-profile"));
+  });
+
+  container.querySelectorAll("[data-action='add-friend']").forEach(button => {
+    button.addEventListener("click", () => {
+      sendFriendInvite(button.dataset.personId);
+      rerenderProfiles();
+    });
+  });
+
+  container.querySelectorAll("[data-action='cancel-invite']").forEach(button => {
+    button.addEventListener("click", () => {
+      cancelFriendInvite(button.dataset.personId);
+      rerenderProfiles();
+    });
+  });
+
+  container.querySelectorAll("[data-action='accept-invite']").forEach(button => {
+    button.addEventListener("click", () => {
+      acceptFriendInvite(button.dataset.personId);
+      rerenderProfiles();
+    });
+  });
+
+  container.querySelectorAll("[data-action='unblock']").forEach(button => {
+    button.addEventListener("click", () => {
+      unblockUser(button.dataset.personId);
+      rerenderProfiles();
+    });
+  });
+
+  container.querySelectorAll("[data-action='report']").forEach(button => {
+    button.addEventListener("click", () => {
+      const profileId = button.dataset.profileId;
+      addReport(profileId);
+      button.disabled = true;
+      button.textContent = "Zgłoszono profil";
+    });
+  });
+}
+
+
+// MÓJ PROFIL
+
+function renderMyProfilePage() {
+  const myProfile = getMyProfile();
+  const avatar = myProfile?.avatar || AVATAR_OPTIONS[0];
+  const nickname = myProfile?.nickname || currentUser.name;
+  const klasa = myProfile?.klasa || "";
+  const bio = myProfile?.bio || "";
+  const interests = myProfile?.interests ? myProfile.interests.join(", ") : "";
+
+  const avatarButtons = AVATAR_OPTIONS
+    .map(option => `
+      <button type="button"
+        class="emoji-option${option === avatar ? " selected" : ""}"
+        data-avatar="${option}">${option}</button>
+    `)
+    .join("");
+
+  $("page-content").innerHTML = `
+    <div id="my-profile-message" class="message"></div>
+
+    <form id="my-profile-form">
+      <div class="page-content">
+        <h3>Edytuj profil</h3>
+
+        <div class="field">
+          <label>Pseudonim</label>
+          <input id="my-nick" type="text" maxlength="25"
+            placeholder="Twój pseudonim" value="${escapeHTML(nickname)}" required>
+        </div>
+
+        <div class="field">
+          <label>Klasa</label>
+          <input id="my-klasa" type="text" maxlength="6"
+            placeholder="np. 2B" value="${escapeHTML(klasa)}" required>
+        </div>
+
+        <div class="field">
+          <label>Krótki opis</label>
+          <textarea id="my-bio" maxlength="200"
+            placeholder="Napisz w kilku zdaniach, czym się interesujesz...">${escapeHTML(bio)}</textarea>
+        </div>
+
+        <div class="field">
+          <label>Zainteresowania (oddzielone przecinkami)</label>
+          <input id="my-interests" type="text" maxlength="120"
+            placeholder="np. sport, muzyka, gry" value="${escapeHTML(interests)}">
+        </div>
+
+        <div class="field">
+          <label>Wybierz awatar</label>
+          <div class="emoji-picker" id="avatar-picker">${avatarButtons}</div>
+        </div>
+
+        <button class="main-btn" type="submit">Zapisz zmiany</button>
+      </div>
+    </form>
+  `;
+
+  bindMyProfilePage(avatar);
+}
+
+function bindMyProfilePage(initialAvatar) {
+  let selectedAvatar = initialAvatar;
+
+  const picker = $("avatar-picker");
+
+  picker.querySelectorAll(".emoji-option").forEach(button => {
+    button.addEventListener("click", () => {
+      picker.querySelectorAll(".emoji-option").forEach(item => {
+        item.classList.remove("selected");
+      });
+      button.classList.add("selected");
+      selectedAvatar = button.dataset.avatar;
+    });
+  });
+
+  $("my-profile-form").addEventListener("submit", event => {
+    event.preventDefault();
+
+    const nickname = $("my-nick").value.trim();
+    const klasa = $("my-klasa").value.trim();
+    const bio = $("my-bio").value.trim();
+    const interests = $("my-interests").value
+      .split(",")
+      .map(item => item.trim())
+      .filter(Boolean)
+      .slice(0, 6);
+
+    if (nickname.length < 2) {
+      showMessage("my-profile-message", "Pseudonim musi mieć co najmniej 2 znaki.");
+      return;
+    }
+
+    if (!klasa) {
+      showMessage("my-profile-message", "Podaj swoją klasę, np. 2B.");
+      return;
+    }
+
+    const existing = getMyProfile();
+
+    saveMyProfile({
+      nickname,
+      klasa,
+      bio,
+      interests,
+      avatar: selectedAvatar,
+      privacy: existing?.privacy || { ...DEFAULT_PRIVACY }
+    });
+
+    $("user-name").textContent = nickname;
+
+    showMessage("my-profile-message", "Profil został zapisany.", "success");
+  });
+}
+
+
+// USTAWIENIA
+
+function renderSettingsPage() {
+  const myProfile = getMyProfile();
+  const privacy = myProfile?.privacy || { ...DEFAULT_PRIVACY };
+
+  const safeName = escapeHTML(currentUser.name);
+  const safeEmail = escapeHTML(currentUser.email);
+
+  $("page-content").innerHTML = `
+    <div class="page-content">
+      <h3>Twoje konto</h3>
+      <p>Pseudonim: ${safeName}</p>
+      <p>E-mail: ${safeEmail} (widoczny tylko dla Ciebie)</p>
+    </div>
+
+    <div class="page-content">
+      <h3>Prywatność</h3>
+      <p>Twoje dane są zapisywane tylko na tym urządzeniu.</p>
+
+      <div class="switch-row">
+        <div>
+          <div class="switch-label">Profil widoczny na liście</div>
+          <div class="switch-hint">Gdy wyłączysz, Twój profil nie będzie wyświetlany w sekcji „Profile uczniów".</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="privacy-visible" ${privacy.visible !== false ? "checked" : ""}>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="switch-row">
+        <div>
+          <div class="switch-label">Pokazuj moją klasę</div>
+          <div class="switch-hint">Ukrywa numer klasy na Twoim profilu publicznym.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="privacy-class" ${privacy.showClass !== false ? "checked" : ""}>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="switch-row">
+        <div>
+          <div class="switch-label">Pokazuj zainteresowania</div>
+          <div class="switch-hint">Ukrywa Twoje zainteresowania na profilu publicznym.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="privacy-interests" ${privacy.showInterests !== false ? "checked" : ""}>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <button class="logout" id="logout-button">
+      Wyloguj się
+    </button>
+  `;
+
+  const privacyInputs = {
+    visible: $("privacy-visible"),
+    showClass: $("privacy-class"),
+    showInterests: $("privacy-interests")
+  };
+
+  Object.keys(privacyInputs).forEach(key => {
+    privacyInputs[key].addEventListener("change", () => {
+      const existing = getMyProfile();
+
+      saveMyProfile({
+        nickname: existing?.nickname || currentUser.name,
+        klasa: existing?.klasa || "",
+        bio: existing?.bio || "",
+        interests: existing?.interests || [],
+        avatar: existing?.avatar || AVATAR_OPTIONS[0],
+        privacy: {
+          visible: privacyInputs.visible.checked,
+          showClass: privacyInputs.showClass.checked,
+          showInterests: privacyInputs.showInterests.checked
+        }
+      });
+    });
+  });
+
+  $("logout-button").addEventListener("click", logout);
+}
+
+
+// ZNAJOMI I POWIADOMIENIA
+
+const FRIENDS_KEY = "zspm_demo_friends_data";
+
+function getFriendsData() {
+  if (!currentUser) {
+    return { outgoing: [], incoming: [], friends: [], seenInvites: 0 };
+  }
+
+  try {
+    const raw = localStorage.getItem(FRIENDS_KEY);
+    const all = raw ? JSON.parse(raw) : {};
+    const data = all[currentUser.email];
+
+    if (!data || typeof data !== "object") {
+      return {
+        outgoing: [],
+        incoming: ["demo-3", "demo-5"],
+        friends: ["demo-2"],
+        seenInvites: 0
+      };
+    }
+
+    return {
+      outgoing: Array.isArray(data.outgoing) ? data.outgoing : [],
+      incoming: Array.isArray(data.incoming) ? data.incoming : [],
+      friends: Array.isArray(data.friends) ? data.friends : [],
+      seenInvites: typeof data.seenInvites === "number" ? data.seenInvites : 0
+    };
+  } catch (error) {
+    return { outgoing: [], incoming: [], friends: [], seenInvites: 0 };
+  }
+}
+
+function saveFriendsData(data) {
+  let all = {};
+
+  try {
+    const raw = localStorage.getItem(FRIENDS_KEY);
+    all = raw ? JSON.parse(raw) : {};
+  } catch (error) {
+    all = {};
+  }
+
+  all[currentUser.email] = data;
+  localStorage.setItem(FRIENDS_KEY, JSON.stringify(all));
+}
+
+function demoPersonById(personId) {
+  return DEMO_PROFILES.find(profile => profile.id === personId) || null;
+}
+
+function unreadInvitesCount() {
+  const data = getFriendsData();
+  return Math.max(0, data.incoming.length - data.seenInvites);
+}
+
+function updateNotifBadge() {
+  const badge = $("notif-badge");
+  if (!badge) return;
+
+  const count = unreadInvitesCount();
+
+  if (count > 0) {
+    badge.textContent = count > 9 ? "9+" : String(count);
+    badge.classList.remove("hidden");
+  } else {
+    badge.classList.add("hidden");
+  }
+}
+
+function unblockUser(personId) {
+  const blocked = getBlockedUsers().filter(id => id !== personId);
+  localStorage.setItem(BLOCK_KEY, JSON.stringify(blocked));
+}
+
+function sendFriendInvite(personId) {
+  if (!demoPersonById(personId)) return "Nieprawidłowa osoba.";
+
+  const data = getFriendsData();
+
+  if (data.friends.includes(personId)) {
+    return "Ta osoba jest już Twoim znajomym.";
+  }
+
+  if (data.outgoing.includes(personId)) {
+    return "Zaproszenie zostało już wysłane.";
+  }
+
+  if (data.incoming.includes(personId)) {
+    return "Ta osoba już Cię zaprosiła. Zaakceptuj zaproszenie.";
+  }
+
+  if (isBlocked(personId)) {
+    return "Najpierw odblokuj tego użytkownika.";
+  }
+
+  data.outgoing.push(personId);
+  saveFriendsData(data);
+  return null;
+}
+
+function acceptFriendInvite(personId) {
+  const data = getFriendsData();
+
+  if (!data.incoming.includes(personId)) return;
+
+  if (!data.friends.includes(personId)) data.friends.push(personId);
+  data.incoming = data.incoming.filter(id => id !== personId);
+  data.seenInvites = data.incoming.length;
+  saveFriendsData(data);
+}
+
+function rejectFriendInvite(personId) {
+  const data = getFriendsData();
+  data.incoming = data.incoming.filter(id => id !== personId);
+  data.seenInvites = data.incoming.length;
+  saveFriendsData(data);
+}
+
+function cancelFriendInvite(personId) {
+  const data = getFriendsData();
+  data.outgoing = data.outgoing.filter(id => id !== personId);
+  saveFriendsData(data);
+}
+
+function removeFriend(personId) {
+  const data = getFriendsData();
+  data.friends = data.friends.filter(id => id !== personId);
+  saveFriendsData(data);
+}
+
+function friendButtonHTML(profile) {
+  if (isBlocked(profile.id)) {
+    return `<button class="pill-btn" data-action="unblock" data-person-id="${escapeHTML(profile.id)}">Odblokuj użytkownika</button>`;
+  }
+
+  const data = getFriendsData();
+
+  if (data.friends.includes(profile.id)) {
+    return `<button class="pill-btn" disabled>Już jesteście znajomymi ✓</button>`;
+  }
+
+  if (data.incoming.includes(profile.id)) {
+    return `<button class="accept-btn" data-action="accept-invite" data-person-id="${escapeHTML(profile.id)}">Zaakceptuj zaproszenie</button>`;
+  }
+
+  if (data.outgoing.includes(profile.id)) {
+    return `<button class="report-btn" data-action="cancel-invite" data-person-id="${escapeHTML(profile.id)}">Anuluj zaproszenie</button>`;
+  }
+
+  return `<button class="accept-btn" data-action="add-friend" data-person-id="${escapeHTML(profile.id)}">Dodaj do znajomych</button>`;
+}
+
+function personCardHTML(profile, buttonsHTML) {
+  return `
+    <div class="profile-card">
+      <div class="profile-head">
+        <div class="profile-avatar">${escapeHTML(profile.avatar)}</div>
+        <div>
+          <div class="profile-nick">${escapeHTML(profile.nickname)}</div>
+          <div class="profile-klasa">Klasa ${escapeHTML(profile.klasa)}</div>
+        </div>
+      </div>
+      <div class="btn-row">${buttonsHTML}</div>
+    </div>
+  `;
+}
+
+function renderFriendsPage() {
+  const data = getFriendsData();
+
+  data.seenInvites = data.incoming.length;
+  saveFriendsData(data);
+  updateNotifBadge();
+
+  const incomingHTML = data.incoming
+    .map(id => demoPersonById(id))
+    .filter(Boolean)
+    .map(profile => personCardHTML(profile, `
+      <button class="accept-btn" data-action="accept-invite" data-person-id="${escapeHTML(profile.id)}">Zaakceptuj</button>
+      <button class="report-btn" data-action="reject-invite" data-person-id="${escapeHTML(profile.id)}">Odrzuć zaproszenie</button>
+    `))
+    .join("");
+
+  const outgoingHTML = data.outgoing
+    .map(id => demoPersonById(id))
+    .filter(Boolean)
+    .map(profile => personCardHTML(profile, `
+      <button class="report-btn" data-action="cancel-invite" data-person-id="${escapeHTML(profile.id)}">Anuluj zaproszenie</button>
+    `))
+    .join("");
+
+  const friendsHTML = data.friends
+    .map(id => demoPersonById(id))
+    .filter(Boolean)
+    .map(profile => {
+      const blocked = isBlocked(profile.id);
+
+      return personCardHTML(profile, `
+        <button class="report-btn" data-action="remove-friend" data-person-id="${escapeHTML(profile.id)}">Usuń ze znajomych</button>
+        ${blocked
+          ? `<button class="pill-btn" data-action="unblock" data-person-id="${escapeHTML(profile.id)}">Odblokuj użytkownika</button>`
+          : `<button class="report-btn" data-action="block-person" data-person-id="${escapeHTML(profile.id)}">Blokuj</button>
+             <button class="report-btn" data-action="report-person" data-person-id="${escapeHTML(profile.id)}">Zgłoś</button>`}
+      `);
+    })
+    .join("");
+
+  $("page-content").innerHTML = `
+    <div class="page-content">
+      <h3>Znajomi i zaproszenia</h3>
+      <p>Zarządzaj zaproszeniami i listą znajomych.</p>
+      <p class="demo-note">⚠️ Wersja demonstracyjna — zaproszenia i znajomi zapisują się tylko na tym urządzeniu.</p>
+    </div>
+
+    <div class="page-content">
+      <h3>Zaproszenia (${data.incoming.length})</h3>
+      ${incomingHTML || `<p class="section-sub">Brak nowych zaproszeń.</p>`}
+    </div>
+
+    ${data.outgoing.length ? `
+      <div class="page-content">
+        <h3>Wysłane zaproszenia (${data.outgoing.length})</h3>
+        ${outgoingHTML}
+      </div>` : ""}
+
+    <div class="page-content">
+      <h3>Moi znajomi (${data.friends.length})</h3>
+      ${friendsHTML || `<p class="section-sub">Nie masz jeszcze znajomych. Dodaj kogoś z sekcji „Profile uczniów”.</p>`}
+    </div>
+  `;
+
+  bindFriendsPage();
+}
+
+function bindFriendsPage() {
+  const container = $("page-content");
+
+  const rerender = () => renderFriendsPage();
+
+  container.querySelectorAll("[data-action='accept-invite']").forEach(button => {
+    button.addEventListener("click", () => {
+      acceptFriendInvite(button.dataset.personId);
+      rerender();
+    });
+  });
+
+  container.querySelectorAll("[data-action='reject-invite']").forEach(button => {
+    button.addEventListener("click", () => {
+      rejectFriendInvite(button.dataset.personId);
+      rerender();
+    });
+  });
+
+  container.querySelectorAll("[data-action='cancel-invite']").forEach(button => {
+    button.addEventListener("click", () => {
+      cancelFriendInvite(button.dataset.personId);
+      rerender();
+    });
+  });
+
+  container.querySelectorAll("[data-action='remove-friend']").forEach(button => {
+    button.addEventListener("click", () => {
+      removeFriend(button.dataset.personId);
+      rerender();
+    });
+  });
+
+  container.querySelectorAll("[data-action='block-person']").forEach(button => {
+    button.addEventListener("click", () => {
+      blockUser(button.dataset.personId);
+      rerender();
+    });
+  });
+
+  container.querySelectorAll("[data-action='unblock']").forEach(button => {
+    button.addEventListener("click", () => {
+      unblockUser(button.dataset.personId);
+      rerender();
+    });
+  });
+
+  container.querySelectorAll("[data-action='report-person']").forEach(button => {
+    button.addEventListener("click", () => {
+      addReport(button.dataset.personId);
+      button.disabled = true;
+      button.textContent = "Zgłoszono";
+    });
+  });
+}
+
+$("notif-bell").addEventListener("click", () => openPage("friends"));
+
+
+// CZAT
+
+const CHAT_KEY = "zspm_demo_chat";
+const CHAT_REPORTS_KEY = "zspm_demo_chat_reports";
+const BLOCK_KEY = "zspm_demo_blocked";
+const MAX_MESSAGE_LENGTH = 500;
+
+const CHAT_PEOPLE = {
+  lis: { id: "demo-1", avatar: "🦊", nickname: "SzybkiLis" },
+  ania: { id: "demo-2", avatar: "🐼", nickname: "KreatywnaAnia" },
+  wilk: { id: "demo-3", avatar: "🐺", nickname: "WilkSportowy" },
+  mela: { id: "demo-5", avatar: "🐬", nickname: "MelaKoduje" }
+};
+
+const CONVERSATIONS = [
+  {
+    id: "school",
+    type: "group",
+    name: "Czat szkolny",
+    avatar: "🏫",
+    members: ["ania", "wilk", "lis", "mela"]
+  },
+  {
+    id: "demo-lis",
+    type: "direct",
+    person: "lis"
+  },
+  {
+    id: "demo-mela",
+    type: "direct",
+    person: "mela"
+  }
+];
+
+function minutesAgo(minutes) {
+  return Date.now() - minutes * 60000;
+}
+
+const SEED_MESSAGES = {
+  school: [
+    { id: "seed-s1", from: "ania", text: "Cześć wszystkim! Ktoś już widział nowy plan lekcji?", time: minutesAgo(240) },
+    { id: "seed-s2", from: "wilk", text: "Ja! Trening piłki nożnej w środę o 16:00, kto się zapisuje?", time: minutesAgo(180) },
+    { id: "seed-s3", from: "lis", text: "Ja wpadam po treningu 😄", time: minutesAgo(150) },
+    { id: "seed-s4", from: "mela", text: "Szukam jeszcze osoby do projektu na konkurs programistyczny. Chętni? 💻", time: minutesAgo(60) }
+  ],
+  "demo-lis": [
+    { id: "seed-l1", from: "lis", text: "Hej! Widziałem, że grasz w szachy. Chętny do partii w przerwie?", time: minutesAgo(120) },
+    { id: "seed-l2", from: "me", text: "Cześć! Jasne, mogę w czwartek 🙂", time: minutesAgo(110) }
+  ],
+  "demo-mela": [
+    { id: "seed-m1", from: "mela", text: "Cześć! Pomożesz mi przetestować mini-grę, którą robię?", time: minutesAgo(45) }
+  ]
+};
+
+function getChatData() {
+  try {
+    const data = localStorage.getItem(CHAT_KEY);
+    const parsed = data ? JSON.parse(data) : null;
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function getConversationMessages(convId) {
+  const data = getChatData();
+
+  if (!data[convId]) {
+    data[convId] = SEED_MESSAGES[convId] ? [...SEED_MESSAGES[convId]] : [];
+    localStorage.setItem(CHAT_KEY, JSON.stringify(data));
+  }
+
+  return data[convId];
+}
+
+function saveConversationMessages(convId, messages) {
+  const data = getChatData();
+  data[convId] = messages;
+  localStorage.setItem(CHAT_KEY, JSON.stringify(data));
+}
+
+function getChatReports() {
+  try {
+    const data = localStorage.getItem(CHAT_REPORTS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function addChatReport(messageId) {
+  const reports = getChatReports();
+  if (!reports.includes(messageId)) {
+    reports.push(messageId);
+    localStorage.setItem(CHAT_REPORTS_KEY, JSON.stringify(reports));
+  }
+}
+
+function getBlockedUsers() {
+  try {
+    const data = localStorage.getItem(BLOCK_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function blockUser(personId) {
+  const blocked = getBlockedUsers();
+  if (!blocked.includes(personId)) {
+    blocked.push(personId);
+    localStorage.setItem(BLOCK_KEY, JSON.stringify(blocked));
+  }
+}
+
+function isBlocked(personId) {
+  return getBlockedUsers().includes(personId);
+}
+
+function formatTime(timestamp) {
+  return new Date(timestamp).toLocaleTimeString("pl-PL", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function myDisplayInfo() {
+  const myProfile = getMyProfile();
+  return {
+    nickname: myProfile?.nickname || currentUser.name,
+    avatar: myProfile?.avatar || "🙂"
+  };
+}
+
+function renderChatList() {
+  const items = CONVERSATIONS.map(conv => {
+    const person = conv.type === "direct" ? CHAT_PEOPLE[conv.person] : null;
+    const name = person ? person.nickname : conv.name;
+    const avatar = person ? person.avatar : conv.avatar;
+
+    const messages = getConversationMessages(conv.id);
+    const last = messages[messages.length - 1];
+
+    let preview = "Brak wiadomości";
+
+    if (last) {
+      const author = last.from === "me"
+        ? "Ty"
+        : (CHAT_PEOPLE[last.from]?.nickname || "Uczeń");
+      preview = author + ": " + last.text;
+    }
+
+    return `
+      <button type="button" class="conv-item" data-conv="${escapeHTML(conv.id)}">
+        <div class="conv-avatar">${escapeHTML(avatar)}</div>
+        <div class="conv-info">
+          <div class="conv-nick">${escapeHTML(name)}</div>
+          <div class="conv-last">${escapeHTML(preview)}</div>
+        </div>
+      </button>
+    `;
+  }).join("");
+
+  $("page-content").innerHTML = `
+    <div class="page-content">
+      <h3>Rozmowy</h3>
+      <p>Wybierz rozmowę, aby dołączyć do dyskusji.</p>
+      <p class="demo-note">⚠️ Czat jest demonstracyjny. Wiadomości zapisują się tylko na tym urządzeniu i nie są wysyłane przez internet.</p>
+    </div>
+    <div class="conv-list">${items}</div>
+  `;
+
+  $("page-content").querySelectorAll("[data-conv]").forEach(button => {
+    button.addEventListener("click", () => {
+      openChat(button.dataset.conv);
+    });
+  });
+}
+
+function messageBubbleHTML(msg) {
+  if (msg.from !== "me") {
+    const person = CHAT_PEOPLE[msg.from];
+    if (person && isBlocked(person.id)) return "";
+  }
+
+  const mine = msg.from === "me";
+  const myInfo = myDisplayInfo();
+  const nick = mine ? myInfo.nickname : CHAT_PEOPLE[msg.from].nickname;
+  const avatar = mine ? myInfo.avatar : CHAT_PEOPLE[msg.from].avatar;
+  const reported = getChatReports().includes(msg.id);
+
+  const actions = mine ? "" : `
+    <div class="bubble-actions">
+      ${reported
+        ? `<span class="chat-reported">Zgłoszono ✓</span>`
+        : `<button type="button" class="msg-action" data-action="report-msg" data-msg-id="${escapeHTML(msg.id)}">Zgłoś</button>`}
+      <button type="button" class="msg-action" data-action="block-person" data-person-id="${escapeHTML(CHAT_PEOPLE[msg.from].id)}">Blokuj</button>
+    </div>
+  `;
+
+  return `
+    <div class="chat-row${mine ? " mine" : ""}">
+      ${mine ? "" : `<div class="msg-avatar">${escapeHTML(avatar)}</div>`}
+      <div class="bubble">
+        ${mine ? "" : `<div class="bubble-author">${escapeHTML(nick)}</div>`}
+        <div class="bubble-text" data-msg-id="${escapeHTML(msg.id)}"></div>
+        <div class="bubble-time">${formatTime(msg.time)}</div>
+        ${actions}
+      </div>
+    </div>
+  `;
+}
+
+function renderMessages(conv, messages) {
+  const container = $("chat-msgs");
+  if (!container) return;
+
+  const visible = messages.map(msg => messageBubbleHTML(msg)).filter(Boolean);
+
+  container.innerHTML = visible.length
+    ? visible.join("")
+    : `<div class="page-content"><p>Brak wiadomości. Napisz pierwszą!</p></div>`;
+
+  messages.forEach(msg => {
+    const element = container.querySelector(`.bubble-text[data-msg-id="${CSS.escape(msg.id)}"]`);
+    if (element) element.textContent = msg.text;
+  });
+
+  container.querySelectorAll("[data-action='report-msg']").forEach(button => {
+    button.addEventListener("click", () => {
+      addChatReport(button.dataset.msgId);
+      const span = document.createElement("span");
+      span.className = "chat-reported";
+      span.textContent = "Zgłoszono ✓";
+      button.replaceWith(span);
+    });
+  });
+
+  container.querySelectorAll("[data-action='block-person']").forEach(button => {
+    button.addEventListener("click", () => {
+      blockUser(button.dataset.personId);
+      openChat(conv.id);
+    });
+  });
+
+  requestAnimationFrame(() => {
+    window.scrollTo(0, document.body.scrollHeight);
+  });
+}
+
+function openChat(convId) {
+  const conv = CONVERSATIONS.find(item => item.id === convId);
+
+  if (!conv) {
+    renderChatList();
+    return;
+  }
+
+  const person = conv.type === "direct" ? CHAT_PEOPLE[conv.person] : null;
+  const blocked = person && isBlocked(person.id);
+  const title = person ? person.nickname : conv.name;
+  const avatar = person ? person.avatar : conv.avatar;
+
+  $("page-content").innerHTML = `
+    <div class="chat-head">
+      <button type="button" class="chat-back" id="chat-back" aria-label="Powrót do rozmów">‹</button>
+      <div class="conv-avatar small">${escapeHTML(avatar)}</div>
+      <div class="chat-head-info">
+        <div class="chat-head-nick">${escapeHTML(title)}</div>
+        <div class="chat-head-status">wersja demonstracyjna</div>
+      </div>
+      ${person ? `
+        <button type="button" class="chat-block-btn" id="chat-block" ${blocked ? "disabled" : ""}>
+          ${blocked ? "Zablokowany" : "Blokuj"}
+        </button>` : ""}
+    </div>
+
+    <div class="chat-msgs" id="chat-msgs"></div>
+
+    ${blocked ? `
+      <div class="page-content">
+        <p>Ten użytkownik jest zablokowany. Nie wyświetlasz jego wiadomości i nie możesz wysyłać nowych.</p>
+      </div>` : `
+      <div class="composer-wrap">
+        <form class="chat-composer" id="chat-form">
+          <input id="chat-input" class="chat-input" type="text"
+            maxlength="500" placeholder="Napisz wiadomość..." autocomplete="off">
+          <button class="chat-send" type="submit" aria-label="Wyślij">➤</button>
+        </form>
+        <div class="char-hint" id="char-hint">0 / ${MAX_MESSAGE_LENGTH}</div>
+      </div>`}
+  `;
+
+  $("chat-back").addEventListener("click", () => {
+    renderChatList();
+    window.scrollTo(0, 0);
+  });
+
+  if (person) {
+    $("chat-block").addEventListener("click", () => {
+      blockUser(person.id);
+      openChat(conv.id);
+    });
+  }
+
+  const messages = getConversationMessages(conv.id);
+  renderMessages(conv, messages);
+
+  if (!blocked) {
+    bindComposer(conv, messages);
+  }
+}
+
+function bindComposer(conv, messages) {
+  const form = $("chat-form");
+  const input = $("chat-input");
+  const hint = $("char-hint");
+
+  input.addEventListener("input", () => {
+    hint.textContent = input.value.length + " / " + MAX_MESSAGE_LENGTH;
+  });
+
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    if (text.length > MAX_MESSAGE_LENGTH) {
+      input.value = text.slice(0, MAX_MESSAGE_LENGTH);
+      hint.textContent = MAX_MESSAGE_LENGTH + " / " + MAX_MESSAGE_LENGTH;
+      return;
+    }
+
+    messages.push({
+      id: "u-" + Date.now() + "-" + Math.floor(Math.random() * 10000),
+      from: "me",
+      text,
+      time: Date.now()
+    });
+
+    saveConversationMessages(conv.id, messages);
+
+    input.value = "";
+    hint.textContent = "0 / " + MAX_MESSAGE_LENGTH;
+
+    renderMessages(conv, messages);
+    input.focus();
+  });
+}
+
+
+// OBSŁUGA PRZYCISKÓW
+
+document.querySelectorAll("[data-page]").forEach(button => {
+  button.addEventListener("click", () => {
+    openPage(button.dataset.page);
+  });
+});
+
+
+// WYLOGOWANIE
+
+function logout() {
+  currentUser = null;
+
+  sessionStorage.removeItem(SESSION_KEY);
+
+  $("app").classList.add("hidden");
+  $("auth").classList.remove("hidden");
+
+  $("register").reset();
+  $("login").reset();
+
+  showRegister();
+}
+
+
+// PRZYWRACANIE SESJI
+
+try {
+  const savedSession = sessionStorage.getItem(SESSION_KEY);
+
+  if (savedSession) {
+    currentUser = JSON.parse(savedSession);
+
+    if (
+      currentUser &&
+      typeof currentUser.name === "string" &&
+      typeof currentUser.email === "string"
+    ) {
+      enterApp();
+    } else {
+      currentUser = null;
+      sessionStorage.removeItem(SESSION_KEY);
+    }
+  }
+} catch (error) {
+  sessionStorage.removeItem(SESSION_KEY);
+}
+</script>
+
+</body>
+</html>
