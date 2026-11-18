@@ -1171,11 +1171,6 @@ const PROFILES_KEY = "zspm_demo_profiles";
 const REPORTS_KEY = "zspm_demo_reports";
 const PROFILE_SOCIAL_KEY = "zspm_demo_profile_social";
 
-const AVATAR_OPTIONS = [
-  "🙂", "😀", "🦊", "🐼", "🐺", "🦉",
-  "🐬", "🐝", "🦄", "🐱", "🦁", "🐧"
-];
-
 const DEMO_PROFILES = [
   {
     id: "demo-1",
@@ -1615,7 +1610,7 @@ function profileAvatarHTML(profile, className = "profile-avatar") {
     ? profile.photo : "";
   return photo
     ? `<div class="${className} has-photo"><img src="${escapeHTML(photo)}" alt="Zdjęcie profilu"></div>`
-    : `<div class="${className}">${escapeHTML(profile.avatar || AVATAR_OPTIONS[0])}</div>`;
+    : `<div class="${className} profile-avatar-placeholder" aria-label="Brak zdjęcia"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>`;
 }
 
 function profileCardHTML(profile, own) {
@@ -2049,7 +2044,7 @@ function renderSettingsPage() {
         klasa: existing?.klasa || "",
         bio: existing?.bio || "",
         interests: existing?.interests || [],
-        avatar: existing?.avatar || AVATAR_OPTIONS[0],
+        avatar: "",
         privacy: {
           visible: privacyInputs.visible.checked,
           showClass: privacyInputs.showClass.checked,
