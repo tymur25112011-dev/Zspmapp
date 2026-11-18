@@ -2192,6 +2192,7 @@ function renderFriendsPage() {
       const blocked = isBlocked(profile.id);
 
       return personCardHTML(profile, `
+        <button class="accept-btn" data-action="open-friend-chat" data-person-id="${escapeHTML(profile.id)}">Napisz wiadomość</button>
         <button class="report-btn" data-action="remove-friend" data-person-id="${escapeHTML(profile.id)}">Usuń ze znajomych</button>
         ${blocked
           ? `<button class="pill-btn" data-action="unblock" data-person-id="${escapeHTML(profile.id)}">Odblokuj użytkownika</button>`
@@ -2254,6 +2255,12 @@ function bindFriendsPage() {
     });
   });
 
+  container.querySelectorAll("[data-action='open-friend-chat']").forEach(button => {
+    button.addEventListener("click", () => {
+      openFriendConversation(button.dataset.personId);
+    });
+  });
+
   container.querySelectorAll("[data-action='remove-friend']").forEach(button => {
     button.addEventListener("click", () => {
       removeFriend(button.dataset.personId);
@@ -2300,6 +2307,32 @@ const CHAT_PEOPLE = {
   wilk: { id: "demo-3", avatar: "🐺", nickname: "WilkSportowy" },
   mela: { id: "demo-5", avatar: "🐬", nickname: "MelaKoduje" }
 };
+
+
+function openFriendConversation(personId) {
+  const profile = demoPersonById(personId);
+  if (!profile || isBlocked(personId)) return;
+
+  const personKey = "friend_" + profile.id;
+  const conversationId = "friend-" + profile.id;
+  CHAT_PEOPLE[personKey] = {
+    id: profile.id,
+    avatar: profile.avatar,
+    nickname: profile.nickname
+  };
+
+  if (!CONVERSATIONS.some(item => item.id === conversationId)) {
+    CONVERSATIONS.push({
+      id: conversationId,
+      type: "direct",
+      person: personKey
+    });
+  }
+
+  openPage("chat");
+  openChat(conversationId);
+  window.scrollTo(0, 0);
+}
 
 const CONVERSATIONS = [
   {
