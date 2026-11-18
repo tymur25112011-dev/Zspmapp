@@ -1169,6 +1169,7 @@ const STORAGE_KEY = "zspm_demo_accounts";
 const SESSION_KEY = "zspm_demo_session";
 const PROFILES_KEY = "zspm_demo_profiles";
 const REPORTS_KEY = "zspm_demo_reports";
+const PROFILE_SOCIAL_KEY = "zspm_demo_profile_social";
 
 const AVATAR_OPTIONS = [
   "🙂", "😀", "🦊", "🐼", "🐺", "🦉",
@@ -1547,6 +1548,58 @@ function addReport(profileId) {
   }
 }
 
+
+function getProfileSocialData() {
+  if (!currentUser) return {};
+  try {
+    const all = JSON.parse(localStorage.getItem(PROFILE_SOCIAL_KEY) || "{}");
+    const data = all[currentUser.email];
+    return data && typeof data === "object" ? data : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function saveProfileSocialData(data) {
+  if (!currentUser) return;
+  let all = {};
+  try {
+    all = JSON.parse(localStorage.getItem(PROFILE_SOCIAL_KEY) || "{}");
+  } catch (error) {
+    all = {};
+  }
+  all[currentUser.email] = data;
+  localStorage.setItem(PROFILE_SOCIAL_KEY, JSON.stringify(all));
+}
+
+function profileSocialHTML(profile) {
+  const data = getProfileSocialData();
+  const item = data[profile.id] && typeof data[profile.id] === "object"
+    ? data[profile.id] : { liked: false, likes: 0, comments: [] };
+  const liked = item.liked === true;
+  const likes = Math.max(0, Number(item.likes) || 0);
+  const comments = Array.isArray(item.comments) ? item.comments : [];
+  const commentsHTML = comments.map(comment =>
+    '<div class="profile-comment"><strong>' + escapeHTML(comment.author || "Uczeń") +
+    '</strong><span>' + escapeHTML(comment.text || "") + '</span></div>'
+  ).join("");
+
+  return '<div class="profile-social">' +
+    '<div class="profile-social-actions">' +
+    '<button type="button" class="social-like' + (liked ? ' liked' : '') +
+    '" data-action="toggle-like" data-profile-id="' + escapeHTML(profile.id) +
+    '" aria-pressed="' + (liked ? 'true' : 'false') + '">' +
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.7c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11A4.7 4.7 0 0 1 12 6.1a4.7 4.7 0 0 1 8.8 2.6Z"/></svg>' +
+    (liked ? 'Lubisz' : 'Lubię to') + ' <span>' + likes + '</span></button>' +
+    '<span class="profile-comment-count">' + comments.length + ' komentarzy</span></div>' +
+    '<div class="profile-comments">' +
+    (commentsHTML || '<p class="no-comments">Jeszcze nie ma komentarzy.</p>') +
+    '</div><form class="profile-comment-form" data-profile-id="' +
+    escapeHTML(profile.id) + '">' +
+    '<input type="text" name="comment" maxlength="240" placeholder="Napisz komentarz..." aria-label="Napisz komentarz" required>' +
+    '<button type="submit">Dodaj</button></form></div>';
+}
+
 function renderInterests(p, privacy) {
   if (!p.interests || !p.interests.length) return "";
   if (privacy && privacy.showInterests === false) return "";
@@ -1581,6 +1634,7 @@ function profileCardHTML(profile, own) {
       </div>
       <div class="profile-bio">${escapeHTML(profile.bio)}</div>
       ${renderInterests(profile, privacy)}
+      ${profileSocialHTML(profile)}
       <div class="btn-row">
         ${friendAction}
         ${action}
@@ -1616,9 +1670,9 @@ function renderProfilesPage() {
 
   return `
     <div class="page-content">
-      <h3>Profile uczniów</h3>
-      <p>Poznaj społeczność swojej szkoły.</p>
-      <p class="demo-note">⚠️ Profile oznaczone jako demonstracyjne nie przedstawiają prawdziwych uczniów.</p>
+      <h3>Odkryj uczniów</h3>
+      <p>Przeglądaj ankiety, poznawaj osoby o podobnych zainteresowaniach i nawiązuj znajomości.</p>
+      <p class="demo-note">Wersja demonstracyjna: reakcje i komentarze zapisują się tylko w tej przeglądarce. Przykładowe profile nie przedstawiają prawdziwych uczniów.</p>
     </div>
     <div class="profile-grid">${cards.join("")}</div>
   `;
@@ -1661,6 +1715,49 @@ function bindProfilesPage() {
   container.querySelectorAll("[data-action='unblock']").forEach(button => {
     button.addEventListener("click", () => {
       unblockUser(button.dataset.personId);
+      rerenderProfiles();
+    });
+  });
+
+
+  container.querySelectorAll("[data-action='toggle-like']").forEach(button => {
+    button.addEventListener("click", () => {
+      const data = getProfileSocialData();
+      const id = button.dataset.profileId;
+      const item = data[id] && typeof data[id] === "object"
+        ? data[id] : { liked: false, likes: 0, comments: [] };
+      const wasLiked = item.liked === true;
+      item.liked = !wasLiked;
+      item.likes = Math.max(0, Number(item.likes) || 0) + (wasLiked ? -1 : 1);
+      item.comments = Array.isArray(item.comments) ? item.comments : [];
+      data[id] = item;
+      saveProfileSocialData(data);
+      rerenderProfiles();
+    });
+  });
+
+  container.querySelectorAll(".profile-comment-form").forEach(form => {
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const input = form.querySelector("input[name='comment']");
+      const value = input.value.trim();
+      if (!value) return;
+      const data = getProfileSocialData();
+      const id = form.dataset.profileId;
+      const item = data[id] && typeof data[id] === "object"
+        ? data[id] : { liked: false, likes: 0, comments: [] };
+      item.comments = Array.isArray(item.comments) ? item.comments : [];
+      if (item.comments.length >= 50) {
+        alert("Osiągnięto limit komentarzy dla tej ankiety.");
+        return;
+      }
+      item.comments.push({
+        author: myDisplayInfo().nickname,
+        text: value.slice(0, 240),
+        time: Date.now()
+      });
+      data[id] = item;
+      saveProfileSocialData(data);
       rerenderProfiles();
     });
   });
@@ -2039,14 +2136,14 @@ function friendButtonHTML(profile) {
   }
 
   if (data.incoming.includes(profile.id)) {
-    return `<button class="accept-btn" data-action="accept-invite" data-person-id="${escapeHTML(profile.id)}">Zaakceptuj zaproszenie</button>`;
+    return `<button class="accept-btn" data-action="accept-invite" data-person-id="${escapeHTML(profile.id)}">Zaakceptuj prośbę</button>`;
   }
 
   if (data.outgoing.includes(profile.id)) {
-    return `<button class="report-btn" data-action="cancel-invite" data-person-id="${escapeHTML(profile.id)}">Anuluj zaproszenie</button>`;
+    return `<button class="report-btn" data-action="cancel-invite" data-person-id="${escapeHTML(profile.id)}">Anuluj prośbę</button>`;
   }
 
-  return `<button class="accept-btn" data-action="add-friend" data-person-id="${escapeHTML(profile.id)}">Dodaj do znajomych</button>`;
+  return `<button class="accept-btn" data-action="add-friend" data-person-id="${escapeHTML(profile.id)}">Poproś o kontakt</button>`;
 }
 
 function personCardHTML(profile, buttonsHTML) {
@@ -2107,12 +2204,12 @@ function renderFriendsPage() {
   $("page-content").innerHTML = `
     <div class="page-content">
       <h3>Znajomi i zaproszenia</h3>
-      <p>Zarządzaj zaproszeniami i listą znajomych.</p>
+      <p>Akceptuj prośby o kontakt i zarządzaj listą znajomych.</p>
       <p class="demo-note">⚠️ Wersja demonstracyjna — zaproszenia i znajomi zapisują się tylko na tym urządzeniu.</p>
     </div>
 
     <div class="page-content">
-      <h3>Zaproszenia (${data.incoming.length})</h3>
+      <h3>Prośby o kontakt (${data.incoming.length})</h3>
       ${incomingHTML || `<p class="section-sub">Brak nowych zaproszeń.</p>`}
     </div>
 
