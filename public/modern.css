@@ -322,3 +322,14 @@ body {
   box-shadow: 0 8px 24px rgba(36,111,209,.22);
 }
 .bell-btn { display: grid; place-items: center; }
+
+
+/* Icon clarity pass: consistent Lucide-like outline icons */
+.menu-icon { width: 46px; height: 46px; border-radius: 13px; margin-bottom: 14px; }
+.menu-icon svg { width: 24px; height: 24px; stroke-width: 1.9; }
+.nav-item span { width: 28px; height: 25px; display: grid; place-items: center; }
+.nav-item svg { width: 22px; height: 22px; stroke-width: 1.9; }
+.nav-item { gap: 6px; font-weight: 600; }
+.nav-item.active span { color: var(--zspm-blue); }
+.bell-btn svg { stroke-width: 1.9; }
+@media (max-width: 760px) { .nav-item svg { width: 21px; height: 21px; } }
