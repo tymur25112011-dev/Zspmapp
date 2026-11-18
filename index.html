@@ -2,9 +2,10 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="stylesheet" href="/modern.css">
 <meta name="theme-color" content="#100b1d">
-<title>ZSPM Dating App</title>
+<title>ZSPM Community</title>
 
 <style>
 * {
@@ -912,7 +913,7 @@ button { cursor: pointer; }
 
   <div class="logo">
     <div class="logo-icon">💜</div>
-    <h1>ZSPM Dating App</h1>
+    <h1>ZSPM Community</h1>
     <p>Twoja społeczność szkolna</p>
   </div>
 
@@ -1010,8 +1011,9 @@ button { cursor: pointer; }
     </div>
 
     <p class="notice">
-      Wersja demonstracyjna. Nie używaj prawdziwych haseł
-      ani danych osobowych.
+      Wersja demonstracyjna. Nie używaj prawdziwych haseł,
+      prawdziwych adresów e-mail ani danych osobowych.
+      Konta i wiadomości są przechowywane wyłącznie w tej przeglądarce.
     </p>
 
   </div>
@@ -1029,7 +1031,7 @@ button { cursor: pointer; }
       <div class="topbar">
         <div class="small-logo">
           <div class="small-logo-icon">💜</div>
-          ZSPM Dating App
+          ZSPM Community
         </div>
 
         <div style="display:flex;gap:10px;align-items:center;">
@@ -1417,7 +1419,7 @@ const pages = {
     subtitle: "Pomóż rozwijać projekt",
     content: `
       <div class="page-content">
-        <h3>Wesprzyj ZSPM Dating App</h3>
+        <h3>Wesprzyj ZSPM Community</h3>
         <p>Dziękujemy za wsparcie naszego projektu!</p>
         <p>Możliwości wsparcia zostaną dodane później.</p>
       </div>
@@ -1880,8 +1882,8 @@ function getFriendsData() {
     if (!data || typeof data !== "object") {
       return {
         outgoing: [],
-        incoming: ["demo-3", "demo-5"],
-        friends: ["demo-2"],
+        incoming: [],
+        friends: [],
         seenInvites: 0
       };
     }
@@ -2338,15 +2340,15 @@ function renderChatList() {
 }
 
 function messageBubbleHTML(msg) {
-  if (msg.from !== "me") {
-    const person = CHAT_PEOPLE[msg.from];
-    if (person && isBlocked(person.id)) return "";
-  }
-
   const mine = msg.from === "me";
+  const person = mine ? null : CHAT_PEOPLE[msg.from];
+
+  // Ignore malformed or unknown senders instead of crashing the whole chat view.
+  if (!mine && (!person || isBlocked(person.id))) return "";
+
   const myInfo = myDisplayInfo();
-  const nick = mine ? myInfo.nickname : CHAT_PEOPLE[msg.from].nickname;
-  const avatar = mine ? myInfo.avatar : CHAT_PEOPLE[msg.from].avatar;
+  const nick = mine ? myInfo.nickname : person.nickname;
+  const avatar = mine ? myInfo.avatar : person.avatar;
   const reported = getChatReports().includes(msg.id);
 
   const actions = mine ? "" : `
