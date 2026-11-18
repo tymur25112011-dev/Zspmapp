@@ -566,3 +566,63 @@ body {
     padding: 0 12px !important;
   }
 }
+
+
+/* Profile photo upload and preview */
+.profile-photo-editor {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.profile-photo-preview {
+  width: 88px;
+  height: 88px;
+  flex: 0 0 88px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 2px solid var(--zspm-blue);
+  background: var(--zspm-blue-soft);
+  color: var(--zspm-muted);
+  font-size: 11px;
+}
+.profile-photo-preview img,
+.profile-avatar.has-photo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+.profile-photo-controls {
+  flex: 1 1 190px;
+  min-width: 0;
+  display: grid;
+  gap: 9px;
+}
+.profile-photo-controls input[type="file"] {
+  width: 100%;
+  max-width: 100%;
+  color: var(--zspm-muted);
+  font-size: 12px;
+}
+.profile-photo-controls input[type="file"]::file-selector-button {
+  margin-right: 9px;
+  padding: 9px 12px;
+  border: 1px solid var(--zspm-border);
+  border-radius: 10px;
+  background: var(--zspm-blue-soft);
+  color: var(--zspm-text);
+  font-weight: 600;
+}
+.profile-photo-controls .pill-btn {
+  width: fit-content;
+  min-width: 110px;
+}
+.profile-photo-controls .pill-btn:disabled { opacity: .45; }
+.profile-avatar.has-photo {
+  padding: 0;
+  overflow: hidden;
+  font-size: 0;
+}
