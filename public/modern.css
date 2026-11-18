@@ -422,3 +422,147 @@ body {
   .profile-social-actions { align-items: flex-start; flex-direction: column; }
   .profile-comment-form button { padding: 0 11px; }
 }
+
+
+/* Final polish: compact, readable profile actions */
+#page-content .profile-card .profile-social {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+#page-content .profile-card .profile-social-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+#page-content .profile-card .profile-social .social-like {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100%;
+  min-height: 36px !important;
+  height: 36px !important;
+  margin: 0;
+  padding: 0 13px !important;
+  border: 1px solid var(--zspm-blue-2) !important;
+  border-radius: 999px !important;
+  background: var(--zspm-blue-2) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 650;
+  line-height: 1 !important;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+#page-content .profile-card .profile-social .social-like:hover {
+  background: var(--zspm-blue) !important;
+  border-color: var(--zspm-blue) !important;
+  transform: translateY(-1px);
+}
+#page-content .profile-card .profile-social .social-like svg {
+  display: block;
+  flex: 0 0 17px;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  stroke: currentColor;
+}
+#page-content .profile-card .profile-social .social-like.liked {
+  background: #174f98 !important;
+  border-color: #4d9dff !important;
+  color: #fff !important;
+}
+#page-content .profile-card .profile-social .social-like span {
+  display: inline-block;
+  min-width: 1ch;
+  margin: 0;
+  color: inherit;
+  font-size: 12px;
+  line-height: 1;
+}
+#page-content .profile-card .profile-social .profile-comment-count {
+  display: inline-block;
+  flex: 0 1 auto;
+  min-width: 0;
+  line-height: 1.4;
+}
+#page-content .profile-card .profile-comment-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+}
+#page-content .profile-card .profile-comment-form input {
+  display: block;
+  flex: 1 1 auto;
+  width: 1%;
+  min-width: 0;
+  height: 40px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  background: var(--zspm-input);
+  color: var(--zspm-text);
+  line-height: 1.3;
+}
+#page-content .profile-card .profile-comment-form input::placeholder {
+  color: var(--zspm-muted);
+  opacity: .9;
+}
+#page-content .profile-card .profile-comment-form button {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  min-width: 76px;
+  min-height: 40px !important;
+  height: 40px !important;
+  margin: 0;
+  padding: 0 16px !important;
+  border: 1px solid var(--zspm-blue-2) !important;
+  border-radius: 12px !important;
+  background: var(--zspm-blue-2) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 650;
+  line-height: 1 !important;
+  white-space: nowrap;
+}
+#page-content .profile-card .profile-comment-form button:hover {
+  background: var(--zspm-blue) !important;
+  border-color: var(--zspm-blue) !important;
+  transform: translateY(-1px);
+}
+#page-content .profile-card .profile-comment-form button:active,
+#page-content .profile-card .profile-social .social-like:active {
+  transform: scale(.98);
+}
+@media (max-width: 380px) {
+  #page-content .profile-card .profile-social-actions {
+    flex-direction: row;
+    align-items: center;
+  }
+  #page-content .profile-card .profile-comment-form {
+    gap: 7px;
+  }
+  #page-content .profile-card .profile-comment-form button {
+    min-width: 68px;
+    padding: 0 12px !important;
+  }
+}
