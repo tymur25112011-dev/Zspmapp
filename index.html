@@ -1678,9 +1678,15 @@ function renderProfilesPage() {
     });
 
   return `
-    <div class="page-content">
-      <h3>Odkryj uczniów</h3>
-      <p>Przeglądaj ankiety, poznawaj osoby o podobnych zainteresowaniach i nawiązuj znajomości.</p>
+    <div class="profiles-page-header">
+      <div class="page-content">
+        <h3>Odkryj uczniów</h3>
+        <p>Przeglądaj ankiety, poznawaj osoby o podobnych zainteresowaniach i nawiązuj znajomości.</p>
+      </div>
+      <button type="button" class="main-btn create-profile-btn" data-action="create-profile">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Utwórz ankietę
+      </button>
       <p class="demo-note">Wersja demonstracyjna: reakcje i komentarze zapisują się tylko w tej przeglądarce. Przykładowe profile nie przedstawiają prawdziwych uczniów.</p>
     </div>
     <div class="profile-grid">${cards.join("")}</div>
@@ -1696,7 +1702,7 @@ function bindProfilesPage() {
     updateNotifBadge();
   };
 
-  container.querySelectorAll("[data-action='edit-profile']").forEach(button => {
+  container.querySelectorAll("[data-action='create-profile'], [data-action='edit-profile']").forEach(button => {
     button.addEventListener("click", () => openPage("my-profile"));
   });
 
@@ -1786,20 +1792,11 @@ function bindProfilesPage() {
 
 function renderMyProfilePage() {
   const myProfile = getMyProfile();
-  const avatar = myProfile?.avatar || AVATAR_OPTIONS[0];
   const photo = myProfile?.photo || "";
   const nickname = myProfile?.nickname || currentUser.name;
   const klasa = myProfile?.klasa || "";
   const bio = myProfile?.bio || "";
   const interests = myProfile?.interests ? myProfile.interests.join(", ") : "";
-
-  const avatarButtons = AVATAR_OPTIONS
-    .map(option => `
-      <button type="button"
-        class="emoji-option${option === avatar ? " selected" : ""}"
-        data-avatar="${option}">${option}</button>
-    `)
-    .join("");
 
   $("page-content").innerHTML = `
     <div id="my-profile-message" class="message"></div>
@@ -1844,17 +1841,12 @@ function renderMyProfilePage() {
             placeholder="np. sport, muzyka, gry" value="${escapeHTML(interests)}">
         </div>
 
-        <div class="field">
-          <label>Wybierz awatar</label>
-          <div class="emoji-picker" id="avatar-picker">${avatarButtons}</div>
-        </div>
-
         <button class="main-btn" type="submit">Zapisz zmiany</button>
       </div>
     </form>
   `;
 
-  bindMyProfilePage(avatar);
+  bindMyProfilePage();
 }
 
 function compressProfilePhoto(file) {
@@ -1896,8 +1888,7 @@ function compressProfilePhoto(file) {
   });
 }
 
-function bindMyProfilePage(initialAvatar) {
-  let selectedAvatar = initialAvatar;
+function bindMyProfilePage() {
   const existing = getMyProfile();
   let selectedPhoto = existing?.photo || "";
   const photoInput = $("my-photo");
@@ -1930,18 +1921,6 @@ function bindMyProfilePage(initialAvatar) {
     updatePhotoPreview();
   });
 
-  const picker = $("avatar-picker");
-
-  picker.querySelectorAll(".emoji-option").forEach(button => {
-    button.addEventListener("click", () => {
-      picker.querySelectorAll(".emoji-option").forEach(item => {
-        item.classList.remove("selected");
-      });
-      button.classList.add("selected");
-      selectedAvatar = button.dataset.avatar;
-    });
-  });
-
   $("my-profile-form").addEventListener("submit", event => {
     event.preventDefault();
 
@@ -1971,7 +1950,6 @@ function bindMyProfilePage(initialAvatar) {
       klasa,
       bio,
       interests,
-      avatar: selectedAvatar,
       photo: selectedPhoto,
       privacy: existing?.privacy || { ...DEFAULT_PRIVACY }
     });
