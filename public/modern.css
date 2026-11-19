@@ -3162,3 +3162,9 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
 #app .idea-vote svg { width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 #app .idea-delete { display:grid; place-items:center; width:34px; height:34px; border-radius:10px; }
 #app .idea-delete svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+
+/* Small alignment and profile social polish */
+.menu-item .menu-icon { margin-left: auto; margin-right: auto; }
+.profile-own-likes { display: inline-flex; align-items: center; gap: 6px; color: var(--zspm-muted); font-size: 13px; font-weight: 700; }
+.profile-own-likes > span { color: var(--zspm-text); }
