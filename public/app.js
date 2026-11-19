@@ -2086,7 +2086,7 @@ async function openGlobalChat() {
   if (globalChatChannel) { await supabaseClient.removeChannel(globalChatChannel); globalChatChannel = null; }
   activeConversationId = null;
   const { data, error } = await supabaseClient.from("global_chat_messages")
-    .select("id,sender_id,content,created_at").order("created_at", {ascending:false}).limit(100);
+    .select("id,sender_id,content,created_at,edited_at,reply_to_id").order("created_at", {ascending:false}).limit(100);
   if (error) {
     console.error("Global chat load error:", error);
     $("page-content").innerHTML = '<div class="page-content"><p>Nie udało się załadować czatu ogólnego. Odśwież stronę.</p></div>';
@@ -2094,17 +2094,34 @@ async function openGlobalChat() {
   }
   const messages = (data || []).reverse();
   await loadProfilesByIds(messages.map(item => item.sender_id));
+  const ids = messages.map(item => item.id);
+  const {data: likeRows} = ids.length
+    ? await supabaseClient.from("global_chat_message_likes").select("message_id,user_id").in("message_id",ids)
+    : {data:[]};
+  const likeMap = new Map();
+  (likeRows || []).forEach(row => {
+    const item = likeMap.get(row.message_id) || {count:0,liked:false};
+    item.count++; if (row.user_id === currentUser.id) item.liked = true;
+    likeMap.set(row.message_id,item);
+  });
+  const byId = new Map(messages.map(item => [item.id,item]));
   const rows = messages.map(item => {
     const mine = item.sender_id === currentUser.id;
     const profile = mine ? getMyProfile() : getProfileById(item.sender_id);
     const nickname = profile?.nickname || "Użytkownik";
     const role = (mine ? isAdmin : profile?.isAdmin) ? '<span class="user-role-badge admin-role">ADMIN</span>' :
       profile?.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : "";
-    return '<article class="global-message' + (mine ? ' own' : '') + '"><div class="global-message-meta"><strong>' +
-      escapeHTML(nickname) + '</strong>' + role + '<time>' + escapeHTML(formatTime(item.created_at)) +
-      '</time></div><p>' + escapeHTML(item.content) + '</p>' +
-      (!mine ? '<button type="button" class="global-report-btn" data-report-user="' + escapeHTML(item.sender_id) +
-      '" data-report-message="' + escapeHTML(item.id) + '">Zgłoś</button>' : '') + '</article>';
+    const likes = likeMap.get(item.id) || {count:0,liked:false};
+    const parent = byId.get(item.reply_to_id);
+    return '<article class="global-message' + (mine ? ' own' : '') + '" data-global-message="' + item.id + '">' +
+      '<div class="global-message-meta"><strong>' + escapeHTML(nickname) + '</strong>' + role +
+      '<time>' + escapeHTML(formatTime(item.created_at)) + (item.edited_at ? ' · edytowano' : '') + '</time></div>' +
+      (parent ? '<div class="bubble-reply-context">↳ ' + escapeHTML(parent.content.slice(0,100)) + '</div>' : '') +
+      '<p>' + escapeHTML(item.content) + '</p><div class="bubble-actions">' +
+      (mine ? '<button type="button" class="msg-action" data-global-action="edit" data-id="' + item.id + '">Edytuj</button><button type="button" class="msg-action danger" data-global-action="delete" data-id="' + item.id + '">Usuń</button>' :
+        '<button type="button" class="msg-action" data-global-action="report" data-id="' + item.id + '" data-user="' + item.sender_id + '">Zgłoś</button>') +
+      '<button type="button" class="msg-action" data-global-action="reply" data-id="' + item.id + '">Odpowiedz</button>' +
+      '<button type="button" class="msg-action' + (likes.liked ? ' liked' : '') + '" data-global-action="like" data-id="' + item.id + '">♥ ' + likes.count + '</button></div></article>';
   }).join("");
   $("page-content").innerHTML =
     '<div class="global-chat-head"><button type="button" class="chat-back" id="global-chat-back">‹</button><div><strong>Czat ogólny</strong><small>Wszyscy użytkownicy aplikacji</small></div></div>' +
@@ -2112,49 +2129,58 @@ async function openGlobalChat() {
     '<div class="global-chat-messages" id="global-chat-messages">' + (rows || '<p class="global-chat-empty">Nie ma jeszcze wiadomości. Napisz pierwszą!</p>') + '</div>' +
     (currentMute ? '<div class="global-chat-muted">Wysyłanie wiadomości jest tymczasowo wyłączone.<br>Powód: ' + escapeHTML(currentMute.reason) +
       '<br>Do: ' + escapeHTML(formatModerationExpiry(currentMute.expires_at)) + '</div>' :
-      '<form class="global-chat-composer" id="global-chat-form"><input id="global-chat-input" maxlength="500" autocomplete="off" placeholder="Napisz na czacie ogólnym…"><button type="submit" aria-label="Wyślij">➤</button></form>');
+      '<form class="global-chat-composer" id="global-chat-form"><div id="global-reply-hint" class="chat-reply-hint hidden"></div><input id="global-chat-input" maxlength="500" autocomplete="off" placeholder="Napisz na czacie ogólnym…"><button type="submit" aria-label="Wyślij">➤</button></form>');
   $("global-chat-back").addEventListener("click", renderChatList);
-  $("page-content").querySelectorAll("[data-report-message]").forEach(button => {
-    button.addEventListener("click", async () => {
-      const ok = await submitContentReport("message", button.dataset.reportMessage, button.dataset.reportUser);
-      if (ok) { button.disabled = true; button.textContent = "Zgłoszono"; }
-    });
-  });
+  $("page-content").querySelectorAll("[data-global-action]").forEach(button => button.addEventListener("click", async () => {
+    const id = button.dataset.id, action = button.dataset.globalAction, message = byId.get(id);
+    if (action === "report") {
+      const reason = prompt("Powód zgłoszenia (opcjonalnie):") || "";
+      const ok = await submitContentReport("message",id,button.dataset.user,reason);
+      if (ok) {button.textContent="Zgłoszono";button.disabled=true;}
+    } else if (action === "reply") {
+      replyToMessageId = id;
+      const input = $("global-chat-input"); if (input) {input.placeholder="Odpowiedź na wiadomość…";input.focus();}
+      const hint = $("global-reply-hint"); if (hint) {hint.textContent="Odpowiadasz: "+(message?.content || "").slice(0,90);hint.classList.remove("hidden");}
+    } else if (action === "edit") {
+      const value = prompt("Edytuj wiadomość:",message?.content || "");
+      if (value === null) return;
+      const content=value.trim().slice(0,500); if(!content)return alert("Wiadomość nie może być pusta.");
+      const {error}=await supabaseClient.from("global_chat_messages").update({content,edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",currentUser.id);
+      if(error)return alert("Nie udało się edytować wiadomości.");
+      await openGlobalChat();
+    } else if (action === "delete") {
+      if(!confirm("Usunąć tę wiadomość?"))return;
+      const {error}=await supabaseClient.from("global_chat_messages").delete().eq("id",id).eq("sender_id",currentUser.id);
+      if(error)return alert("Nie udało się usunąć wiadomości.");
+      await openGlobalChat();
+    } else if (action === "like") {
+      const liked=likeMap.get(id)?.liked;
+      const result=liked
+        ? await supabaseClient.from("global_chat_message_likes").delete().eq("message_id",id).eq("user_id",currentUser.id)
+        : await supabaseClient.from("global_chat_message_likes").insert({message_id:id,user_id:currentUser.id});
+      if(result.error)return alert("Nie udało się zmienić polubienia.");
+      await openGlobalChat();
+    }
+  }));
   if (!currentMute) {
     $("global-chat-form").addEventListener("submit", async event => {
       event.preventDefault();
       const input = $("global-chat-input"), content = input.value.trim();
       if (!content) return;
       const button = event.currentTarget.querySelector("button"); button.disabled = true;
-      const { error: sendError } = await supabaseClient.from("global_chat_messages").insert({sender_id:currentUser.id,content});
+      const { error: sendError } = await supabaseClient.from("global_chat_messages").insert({sender_id:currentUser.id,content,reply_to_id:replyToMessageId});
       button.disabled = false;
       if (sendError) { console.error("Global chat send error:",sendError); alert("Nie udało się wysłać wiadomości. Możliwe, że obowiązuje wyciszenie."); return; }
-      input.value = ""; input.focus();
+      replyToMessageId=null; input.value = ""; await openGlobalChat();
     });
   }
   const box = $("global-chat-messages"); if (box) box.scrollTop = box.scrollHeight;
   globalChatChannel = supabaseClient.channel("global-chat-live")
     .on("postgres_changes",{event:"INSERT",schema:"public",table:"global_chat_messages"},async payload=>{
-      const fresh=payload.new; await loadProfilesByIds([fresh.sender_id]);
-      const mine=fresh.sender_id===currentUser.id, profile=mine?getMyProfile():getProfileById(fresh.sender_id);
-      const nickname=profile?.nickname||"Użytkownik";
-      const role=(mine?isAdmin:profile?.isAdmin)?'<span class="user-role-badge admin-role">ADMIN</span>':
-        profile?.badge==="premium"?'<span class="user-role-badge premium-role">PREMIUM</span>':"";
-      const article=document.createElement("article"); article.className="global-message"+(mine?" own":"");
-      article.innerHTML='<div class="global-message-meta"><strong>'+escapeHTML(nickname)+'</strong>'+role+
-        '<time>'+escapeHTML(formatTime(fresh.created_at))+'</time></div><p>'+escapeHTML(fresh.content)+'</p>'+
-        (!mine?'<button type="button" class="global-report-btn" data-report-user="'+escapeHTML(fresh.sender_id)+
-        '" data-report-message="'+escapeHTML(fresh.id)+'">Zgłoś</button>':"");
-      const target=$("global-chat-messages"); if(!target)return;
-      target.querySelector(".global-chat-empty")?.remove(); target.appendChild(article);
-      article.querySelector("[data-report-message]")?.addEventListener("click",async event=>{
-        const button=event.currentTarget,ok=await submitContentReport("message",button.dataset.reportMessage,button.dataset.reportUser);
-        if(ok){button.disabled=true;button.textContent="Zgłoszono";}
-      });
-      target.scrollTop=target.scrollHeight;
+      const fresh=payload.new;
+      if ($("global-chat-messages")) await openGlobalChat();
     }).subscribe();
 }
-
 
 async function loadConversationMessages(conversationId) {
   const { data, error } = await supabaseClient.from("messages")
