@@ -1,10 +1,10 @@
-const CACHE_NAME = "zspm-community-shell-v80";
+const CACHE_NAME = "zspm-community-shell-v81";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./download.html",
   "./public/modern.css?v=56",
-  "./public/app.js?v=43",
+  "./public/app.js?v=44",
   "./public/support-config.js?v=2",
   "./public/supabase-config.js",
   "./manifest.webmanifest",
@@ -30,6 +30,42 @@ self.addEventListener("activate", event => {
       ))
       .then(() => self.clients.claim())
   );
+});
+
+self.addEventListener("push", event => {
+  event.waitUntil((async () => {
+    let payload = {};
+    try {
+      payload = event.data ? event.data.json() : {};
+    } catch (error) {
+      payload = { body: event.data ? event.data.text() : "" };
+    }
+    const title = String(payload.title || "ZSPM Community").slice(0, 100);
+    await self.registration.showNotification(title, {
+      body: String(payload.body || "Masz nowe powiadomienie.").slice(0, 220),
+      icon: "./public/icons/icon-192.svg",
+      badge: "./public/icons/icon-192.svg",
+      tag: payload.tag || "zspm-notification",
+      data: { url: payload.data?.url || "./" },
+      renotify: false
+    });
+  })());
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  event.waitUntil((async () => {
+    const target = new URL(event.notification.data?.url || "./", self.registration.scope).href;
+    const clientsList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const client of clientsList) {
+      if ("focus" in client) {
+        await client.focus();
+        if ("navigate" in client) await client.navigate(target);
+        return;
+      }
+    }
+    if (self.clients.openWindow) await self.clients.openWindow(target);
+  })());
 });
 
 self.addEventListener("fetch", event => {
