@@ -2,9 +2,16 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#100b1d">
-<title>ZSPM Dating App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ZSPM Community">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="./public/icons/icon.svg">
+<link rel="apple-touch-icon" href="./public/icons/icon.svg">
+<title>ZSPM Community</title>
 
 <style>
 * {
@@ -198,6 +205,17 @@ button { cursor: pointer; }
   align-items: center;
   justify-content: center;
   font-size: 20px;
+}
+
+.avatar.account-switch {
+  border: 0;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+}
+.avatar.account-switch:focus-visible {
+  outline: 2px solid var(--accent, #4f8cff);
+  outline-offset: 3px;
 }
 
 .welcome { margin: 15px 0 25px; }
@@ -458,30 +476,6 @@ button { cursor: pointer; }
 }
 
 .field textarea:focus { border-color: #b46af5; }
-
-.emoji-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.emoji-option {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: #100b1d;
-  border: 1px solid #49325e;
-  font-size: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.emoji-option.selected {
-  border-color: #c084fc;
-  background: #2a1d3d;
-  box-shadow: 0 0 10px #9333ea55;
-}
 
 .switch-row {
   display: flex;
@@ -899,6 +893,7 @@ button { cursor: pointer; }
   padding: 0 8px;
 }
 </style>
+<link rel="stylesheet" href="public/modern.css">
   <meta property="og:image" content="https://bolt.new/static/og_default.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
@@ -911,8 +906,8 @@ button { cursor: pointer; }
 <div id="auth" class="container">
 
   <div class="logo">
-    <div class="logo-icon">💜</div>
-    <h1>ZSPM Dating App</h1>
+    <div class="logo-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 18.5 12 4l8 14.5H4Z"/><path d="M8 18.5 12 11l4 7.5M12 4v7"/></svg></div>
+    <h1>ZSPM Community</h1>
     <p>Twoja społeczność szkolna</p>
   </div>
 
@@ -1010,8 +1005,8 @@ button { cursor: pointer; }
     </div>
 
     <p class="notice">
-      Wersja demonstracyjna. Nie używaj prawdziwych haseł
-      ani danych osobowych.
+      Nie udostępniaj w profilu prywatnych danych, takich jak adres,
+      numer telefonu ani hasła. Zdjęcia profilowe i dane ankiety są zapisywane online.
     </p>
 
   </div>
@@ -1028,26 +1023,35 @@ button { cursor: pointer; }
 
       <div class="topbar">
         <div class="small-logo">
-          <div class="small-logo-icon">💜</div>
-          ZSPM Dating App
+          <div class="small-logo-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 18.5 12 4l8 14.5H4Z"/><path d="M8 18.5 12 11l4 7.5"/></svg></div>
+          ZSPM Community
         </div>
 
         <div style="display:flex;gap:10px;align-items:center;">
           <button type="button" class="bell-btn" id="notif-bell" aria-label="Powiadomienia">
-            🔔
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
             <span class="bell-badge hidden" id="notif-badge"></span>
           </button>
-          <div class="avatar">👤</div>
+          <div class="account-menu-wrap">
+            <button type="button" class="avatar account-switch" id="account-switch" aria-label="Otwórz menu konta" title="Konto" aria-haspopup="true" aria-expanded="false" aria-controls="account-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></button>
+            <div class="account-menu hidden" id="account-menu" role="menu" aria-label="Menu konta">
+              <div class="account-menu-heading">Konto</div>
+              <button type="button" class="account-menu-logout" id="account-logout" role="menuitem">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>
+                Wyloguj się
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="welcome">
-        <h2>Cześć, <span id="user-name">Uczeń</span>! 👋</h2>
+        <h2>Cześć, <span id="user-name">Uczeń</span>!</h2>
         <p>Witamy w społeczności Twojej szkoły.</p>
       </div>
 
       <div class="hero">
-        <h3>Witaj w ZSPM! 💜</h3>
+        <h3>Witaj w ZSPM!</h3>
         <p>
           Poznawaj nowych ludzi, nawiązuj przyjaźnie
           i integruj się ze społecznością szkolną.
@@ -1059,37 +1063,37 @@ button { cursor: pointer; }
       <div class="menu-grid">
 
         <button class="menu-item" data-page="profiles">
-          <div class="menu-icon">👥</div>
+          <div class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M16 3.5a4 4 0 0 1 0 7"/></svg></div>
           <h3>Profile uczniów</h3>
           <p>Poznaj swoją społeczność</p>
         </button>
 
         <button class="menu-item" data-page="my-profile">
-          <div class="menu-icon">🙂</div>
+          <div class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>
           <h3>Mój profil</h3>
           <p>Twój profil w społeczności</p>
         </button>
 
         <button class="menu-item" data-page="chat">
-          <div class="menu-icon">💬</div>
-          <h3>Czat szkolny</h3>
-          <p>Rozmawiaj z uczniami</p>
+          <div class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9 9 0 0 1-4-.9L3 21l1.9-4.5A8.5 8.5 0 1 1 21 11.5Z"/></svg></div>
+          <h3>Wiadomości</h3>
+          <p>Prywatne rozmowy ze znajomymi</p>
         </button>
 
         <button class="menu-item" data-page="friends">
-          <div class="menu-icon">👫</div>
+          <div class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 11.5a3.5 3.5 0 1 0 0-7"/></svg></div>
           <h3>Znajomi</h3>
           <p>Zaproszenia i znajomi</p>
         </button>
 
         <button class="menu-item" data-page="settings">
-          <div class="menu-icon">⚙️</div>
+          <div class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.6.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.6-.9l-1.7.7-1.4-2.4 1.4-1.1a8 8 0 0 1 0-1.9l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.6-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.6.9l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1 0 1.9Z"/></svg></div>
           <h3>Ustawienia</h3>
           <p>Zarządzaj swoim kontem</p>
         </button>
 
         <button class="menu-item" data-page="support">
-          <div class="menu-icon">💜</div>
+          <div class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></div>
           <h3>Wesprzyj twórcę</h3>
           <p>Wspieraj rozwój projektu</p>
         </button>
@@ -1114,27 +1118,27 @@ button { cursor: pointer; }
   <nav class="bottom-nav">
 
     <button class="nav-item active" data-page="home">
-      <span>🏠</span>Główna
+      <span><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg></span>Główna
     </button>
 
     <button class="nav-item" data-page="profiles">
-      <span>👥</span>Profile
+      <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M16 3.5a4 4 0 0 1 0 7"/></svg></span>Profile
     </button>
 
     <button class="nav-item" data-page="my-profile">
-      <span>🙂</span>Profil
+      <span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>Profil
     </button>
 
     <button class="nav-item" data-page="chat">
-      <span>💬</span>Czat
+      <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9 9 0 0 1-4-.9L3 21l1.9-4.5A8.5 8.5 0 1 1 21 11.5Z"/></svg></span>Czat
     </button>
 
     <button class="nav-item" data-page="friends">
-      <span>👫</span>Znajomi
+      <span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 11.5a3.5 3.5 0 1 0 0-7"/></svg></span>Znajomi
     </button>
 
     <button class="nav-item" data-page="settings">
-      <span>⚙️</span>Ustawienia
+      <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 13.5v-3l-2-.7-.8-1.4.7-2-2.6-1.5-1.5 1.4h-1.6L9.7 4.9 7 6.4l.7 2-.8 1.4-2 .7v3l2 .7.8 1.4-.7 2 2.6 1.5 1.5-1.4h1.6l1.5 1.4 2.6-1.5-.7-2 .8-1.4Z"/></svg></span>Ustawienia
     </button>
 
   </nav>
@@ -1142,20 +1146,61 @@ button { cursor: pointer; }
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./public/supabase-config.js"></script>
+
 <script>
 "use strict";
 
 const $ = id => document.getElementById(id);
 
-const STORAGE_KEY = "zspm_demo_accounts";
-const SESSION_KEY = "zspm_demo_session";
+const THEME_KEY = "zspm_community_theme";
+
+const SUPABASE_CONFIG = window.ZSPM_SUPABASE_CONFIG || {};
+const supabaseClient = (
+  window.supabase &&
+  typeof SUPABASE_CONFIG.url === "string" &&
+  SUPABASE_CONFIG.url.startsWith("https://") &&
+  typeof SUPABASE_CONFIG.publishableKey === "string" &&
+  SUPABASE_CONFIG.publishableKey.startsWith("sb_publishable_")
+) ? window.supabase.createClient(
+  SUPABASE_CONFIG.url,
+  SUPABASE_CONFIG.publishableKey,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  }
+) : null;
+
+function getAppUser(user) {
+  if (!user) return null;
+  return {
+    id: user.id,
+    name: user.user_metadata?.nickname || user.email?.split("@")[0] || "Uczeń",
+    email: user.email || ""
+  };
+}
+
+function applyTheme(theme) {
+  const selectedTheme = theme === "light" ? "light" : "dark";
+  document.documentElement.dataset.theme = selectedTheme;
+  try {
+    localStorage.setItem(THEME_KEY, selectedTheme);
+  } catch (error) {}
+}
+
+try {
+  applyTheme(localStorage.getItem(THEME_KEY) || "dark");
+} catch (error) {
+  applyTheme("dark");
+}
+
 const PROFILES_KEY = "zspm_demo_profiles";
 const REPORTS_KEY = "zspm_demo_reports";
-
-const AVATAR_OPTIONS = [
-  "🙂", "😀", "🦊", "🐼", "🐺", "🦉",
-  "🐬", "🐝", "🦄", "🐱", "🦁", "🐧"
-];
+const PROFILE_SOCIAL_KEY = "zspm_demo_profile_social";
 
 const DEMO_PROFILES = [
   {
@@ -1209,6 +1254,22 @@ const DEMO_PROFILES = [
 ];
 
 let currentUser = null;
+let myProfileCache = null;
+let publicProfilesCache = [];
+let profileSocialCache = {};
+let friendsDataCache = { incoming: [], outgoing: [], friends: [] };
+let blockedUsersCache = [];
+let notificationsCache = [];
+let conversationsCache = [];
+let activeConversationId = null;
+let activeChatProfile = null;
+let activeChatChannel = null;
+let chatListChannel = null;
+let notificationsChannel = null;
+let friendsChannel = null;
+let socialChannel = null;
+let reportsCache = [];
+let reportedMessageIdsCache = [];
 
 function showMessage(id, text, type = "error") {
   const element = $(id);
@@ -1234,39 +1295,24 @@ function showRegister() {
   $("register-form").classList.remove("hidden");
 }
 
-function getAccounts() {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    return [];
-  }
-}
-
-async function hashPassword(password) {
-  if (!window.crypto || !window.crypto.subtle) {
-    throw new Error("Wymagane jest bezpieczne połączenie HTTPS.");
-  }
-
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hash = await crypto.subtle.digest("SHA-256", data);
-
-  return Array.from(new Uint8Array(hash))
-    .map(byte => byte.toString(16).padStart(2, "0"))
-    .join("");
+function authUnavailableMessage() {
+  return "Logowanie jest chwilowo niedostępne. Odśwież stronę i spróbuj ponownie.";
 }
 
 $("go-login").addEventListener("click", showLogin);
 $("go-register").addEventListener("click", showRegister);
 
 
-// REJESTRACJA
+// REJESTRACJA — SUPABASE AUTH
 
 $("register").addEventListener("submit", async event => {
   event.preventDefault();
-
   clearMessage("register-message");
+
+  if (!supabaseClient) {
+    showMessage("register-message", authUnavailableMessage());
+    return;
+  }
 
   const name = $("reg-name").value.trim();
   const email = $("reg-email").value.trim().toLowerCase();
@@ -1282,39 +1328,37 @@ $("register").addEventListener("submit", async event => {
     return;
   }
 
-  const accounts = getAccounts();
-
-  if (accounts.some(account => account.email === email)) {
-    showMessage("register-message", "Ten adres e-mail jest już zarejestrowany. Zaloguj się.");
-    return;
-  }
-
   const button = $("register").querySelector("button[type=submit]");
   button.disabled = true;
   button.textContent = "Tworzenie konta...";
 
   try {
-    const passwordHash = await hashPassword(password);
-
-    accounts.push({
-      name,
+    const { data, error } = await supabaseClient.auth.signUp({
       email,
-      passwordHash
+      password,
+      options: {
+        data: { nickname: name }
+      }
     });
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+    if (error) throw error;
 
-    currentUser = { name, email };
-
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
-
-    enterApp();
-
+    if (data.session && data.user) {
+      currentUser = getAppUser(data.user);
+      enterApp();
+    } else {
+      showMessage(
+        "register-message",
+        "Konto zostało utworzone. Sprawdź pocztę i potwierdź adres e-mail, a następnie zaloguj się.",
+        "success"
+      );
+    }
   } catch (error) {
-    showMessage(
-      "register-message",
-      error.message || "Wystąpił błąd. Spróbuj ponownie."
-    );
+    console.error("Supabase registration error:", error);
+    const message = /already registered|already exists|user already/i.test(error.message || "")
+      ? "Ten adres e-mail jest już zarejestrowany. Zaloguj się."
+      : (error.message || "Nie udało się utworzyć konta. Spróbuj ponownie.");
+    showMessage("register-message", message);
   } finally {
     button.disabled = false;
     button.textContent = "Utwórz konto →";
@@ -1322,60 +1366,63 @@ $("register").addEventListener("submit", async event => {
 });
 
 
-// LOGOWANIE
+// LOGOWANIE — SUPABASE AUTH
 
 $("login").addEventListener("submit", async event => {
   event.preventDefault();
-
   clearMessage("login-message");
 
-  const email = $("login-email").value.trim().toLowerCase();
-  const password = $("login-password").value;
-
-  const accounts = getAccounts();
-  const account = accounts.find(item => item.email === email);
-
-  if (!account) {
-    showMessage("login-message", "Nie znaleziono konta. Zarejestruj się najpierw.");
+  if (!supabaseClient) {
+    showMessage("login-message", authUnavailableMessage());
     return;
   }
 
+  const email = $("login-email").value.trim().toLowerCase();
+  const password = $("login-password").value;
+  const button = $("login").querySelector("button[type=submit]");
+  button.disabled = true;
+  button.textContent = "Logowanie...";
+
   try {
-    const passwordHash = await hashPassword(password);
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
 
-    if (passwordHash !== account.passwordHash) {
-      showMessage("login-message", "Nieprawidłowe hasło. Spróbuj ponownie.");
-      return;
-    }
+    if (error) throw error;
 
-    currentUser = {
-      name: account.name,
-      email: account.email
-    };
-
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
-
+    currentUser = getAppUser(data.user);
     enterApp();
-
   } catch (error) {
-    showMessage("login-message", "Nie udało się zalogować. Spróbuj ponownie.");
+    console.error("Supabase login error:", error);
+    const message = /email not confirmed/i.test(error.message || "")
+      ? "Najpierw potwierdź adres e-mail, korzystając z wiadomości od Supabase."
+      : "Nieprawidłowy e-mail lub hasło. Sprawdź dane i spróbuj ponownie.";
+    showMessage("login-message", message);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Zaloguj się →";
   }
 });
 
 
 // OTWARCIE APLIKACJI
 
-function enterApp() {
+async function enterApp() {
   if (!currentUser) return;
 
   $("auth").classList.add("hidden");
   $("app").classList.remove("hidden");
-
   $("user-name").textContent = currentUser.name;
-
   updateNotifBadge();
 
-  openPage("home");
+  await loadMyProfileFromSupabase();
+  await loadBlockedUsers();
+  await loadFriendsData();
+  await loadNotifications();
+  await loadReports();
+  await setupRealtimeSubscriptions();
+  await openPage("home");
 }
 
 
@@ -1383,41 +1430,47 @@ function enterApp() {
 
 const pages = {
   profiles: {
-    title: "Profile uczniów 👥",
+    title: "Profile uczniów",
     subtitle: "Poznaj społeczność swojej szkoły",
     content: ""
   },
 
   "my-profile": {
-    title: "Mój profil 🙂",
+    title: "Mój profil",
     subtitle: "Twój profil w społeczności",
     content: ""
   },
 
   chat: {
-    title: "Czat szkolny 💬",
-    subtitle: "Rozmawiaj ze społecznością",
+    title: "Wiadomości",
+    subtitle: "Prywatne rozmowy ze znajomymi",
     content: ""
   },
 
   friends: {
-    title: "Znajomi 👫",
+    title: "Znajomi",
     subtitle: "Zaproszenia i Twoi znajomi",
     content: ""
   },
 
+  notifications: {
+    title: "Powiadomienia",
+    subtitle: "Twoja aktywność w społeczności",
+    content: ""
+  },
+
   settings: {
-    title: "Ustawienia ⚙️",
+    title: "Ustawienia",
     subtitle: "Zarządzaj swoim kontem",
     content: ""
   },
 
   support: {
-    title: "Wesprzyj twórcę 💜",
+    title: "Wesprzyj twórcę",
     subtitle: "Pomóż rozwijać projekt",
     content: `
       <div class="page-content">
-        <h3>Wesprzyj ZSPM Dating App</h3>
+        <h3>Wesprzyj ZSPM Community</h3>
         <p>Dziękujemy za wsparcie naszego projektu!</p>
         <p>Możliwości wsparcia zostaną dodane później.</p>
       </div>
@@ -1425,7 +1478,7 @@ const pages = {
   }
 };
 
-function openPage(page) {
+async function openPage(page) {
   const home = $("home-page");
   const other = $("other-page");
 
@@ -1444,14 +1497,22 @@ function openPage(page) {
     $("page-subtitle").textContent = selected.subtitle;
 
     if (page === "profiles") {
+      $("page-content").innerHTML = '<div class="page-content"><p>Ładowanie profili...</p></div>';
+      await loadPublicProfilesFromSupabase();
+      await loadFriendsData();
+      await loadBlockedUsers();
+      await loadReports();
+      await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
       $("page-content").innerHTML = renderProfilesPage();
       bindProfilesPage();
     } else if (page === "my-profile") {
       renderMyProfilePage();
     } else if (page === "chat") {
-      renderChatList();
+      await renderChatList();
     } else if (page === "friends") {
-      renderFriendsPage();
+      await renderFriendsPage();
+    } else if (page === "notifications") {
+      await renderNotificationsPage();
     } else if (page === "settings") {
       renderSettingsPage();
     } else {
@@ -1502,31 +1563,238 @@ function saveUserProfiles(profiles) {
 
 function getMyProfile() {
   if (!currentUser) return null;
+  if (myProfileCache) return myProfileCache;
   const profiles = getUserProfiles();
   return profiles[currentUser.email] || null;
 }
 
-function saveMyProfile(profile) {
+async function mapDatabaseProfile(row) {
+  if (!row) return null;
+  let photoUrl = "";
+  if (row.photo_path) {
+    const { data, error } = await supabaseClient.storage
+      .from("profile-photos")
+      .createSignedUrl(row.photo_path, 604800);
+    if (error) console.warn("Profile photo URL error:", error);
+    else photoUrl = data?.signedUrl || "";
+  }
+  return {
+    id: row.id,
+    nickname: row.nickname || currentUser?.name || "Uczeń",
+    klasa: row.class_name || "",
+    bio: row.bio || "",
+    interests: Array.isArray(row.interests) ? row.interests : [],
+    photo: photoUrl,
+    photoPath: row.photo_path || "",
+    privacy: {
+      visible: row.is_visible !== false,
+      showClass: row.show_class !== false,
+      showInterests: row.show_interests !== false
+    }
+  };
+}
+
+async function loadMyProfileFromSupabase() {
+  if (!supabaseClient || !currentUser?.id) return null;
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("id,nickname,class_name,bio,interests,photo_path,is_visible,show_class,show_interests")
+    .eq("id", currentUser.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Profile load error:", error);
+    return null;
+  }
+
+  myProfileCache = await mapDatabaseProfile(data);
+  if (myProfileCache) {
+    const profiles = getUserProfiles();
+    profiles[currentUser.email] = myProfileCache;
+    saveUserProfiles(profiles);
+    $("user-name").textContent = myProfileCache.nickname;
+  }
+  return myProfileCache;
+}
+
+async function saveMyProfile(profile) {
+  if (!currentUser?.id || !supabaseClient) {
+    throw new Error("Zaloguj się ponownie, aby zapisać profil.");
+  }
+
+  const previous = getMyProfile();
+  const oldPhotoPath = previous?.photoPath || null;
+  let photoPath = profile.photoPath || oldPhotoPath;
+
+  if (profile.photo && profile.photo.startsWith("data:image/")) {
+    const response = await fetch(profile.photo);
+    const blob = await response.blob();
+    const newPath = currentUser.id + "/" + Date.now() + ".jpg";
+    const { error: uploadError } = await supabaseClient.storage
+      .from("profile-photos")
+      .upload(newPath, blob, {
+        contentType: "image/jpeg",
+        cacheControl: "3600",
+        upsert: true
+      });
+    if (uploadError) throw uploadError;
+    photoPath = newPath;
+  } else if (!profile.photo) {
+    photoPath = null;
+  }
+
+  const row = {
+    id: currentUser.id,
+    nickname: profile.nickname,
+    class_name: profile.klasa || null,
+    bio: profile.bio || "",
+    interests: Array.isArray(profile.interests) ? profile.interests : [],
+    photo_path: photoPath,
+    is_visible: profile.privacy?.visible !== false,
+    show_class: profile.privacy?.showClass !== false,
+    show_interests: profile.privacy?.showInterests !== false
+  };
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .upsert(row, { onConflict: "id" })
+    .select("id,nickname,class_name,bio,interests,photo_path,is_visible,show_class,show_interests")
+    .single();
+
+  if (error) throw error;
+
+  if (oldPhotoPath && oldPhotoPath !== photoPath) {
+    const { error: removeError } = await supabaseClient.storage
+      .from("profile-photos")
+      .remove([oldPhotoPath]);
+    if (removeError) console.warn("Old profile photo cleanup failed:", removeError);
+  }
+
+  myProfileCache = await mapDatabaseProfile(data);
   const profiles = getUserProfiles();
-  profiles[currentUser.email] = profile;
+  profiles[currentUser.email] = myProfileCache;
   saveUserProfiles(profiles);
+  return myProfileCache;
+}
+
+async function loadPublicProfilesFromSupabase() {
+  if (!supabaseClient) return [];
+  const { data, error } = await supabaseClient
+    .from("public_profiles")
+    .select("id,nickname,class_name,bio,photo_path,interests,is_visible,show_class,show_interests")
+    .eq("is_visible", true)
+    .order("nickname", { ascending: true });
+
+  if (error) {
+    console.error("Public profiles load error:", error);
+    return [];
+  }
+
+  publicProfilesCache = (await Promise.all((data || [])
+    .filter(row => row.id !== currentUser?.id)
+    .map(row => mapDatabaseProfile(row)))).filter(Boolean);
+  return publicProfilesCache;
 }
 
 function getReports() {
-  try {
-    const data = localStorage.getItem(REPORTS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    return [];
-  }
+  return reportsCache;
 }
 
-function addReport(profileId) {
-  const reports = getReports();
-  if (!reports.includes(profileId)) {
-    reports.push(profileId);
-    localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+async function loadReports() {
+  if (!currentUser?.id) return [];
+  const { data, error } = await supabaseClient.from("content_reports")
+    .select("target_type,target_id")
+    .eq("reporter_id", currentUser.id);
+  if (error) {
+    console.error("Reports load error:", error);
+    return reportsCache;
   }
+  reportsCache = (data || []).filter(item => item.target_type === "profile").map(item => item.target_id);
+  reportedMessageIdsCache = (data || []).filter(item => item.target_type === "message").map(item => item.target_id);
+  return reportsCache;
+}
+
+function getProfileSocialData() {
+  return profileSocialCache;
+}
+
+async function loadProfileSocialData(profileIds) {
+  profileSocialCache = {};
+  const ids = [...new Set((profileIds || []).filter(Boolean))];
+  if (!ids.length || !supabaseClient) return profileSocialCache;
+
+  const [likesResult, commentsResult] = await Promise.all([
+    supabaseClient.from("profile_likes")
+      .select("profile_id,user_id")
+      .in("profile_id", ids),
+    supabaseClient.from("profile_comments")
+      .select("id,profile_id,author_id,content,created_at")
+      .in("profile_id", ids)
+      .order("created_at", { ascending: true })
+  ]);
+
+  if (likesResult.error) console.error("Profile likes load error:", likesResult.error);
+  if (commentsResult.error) console.error("Profile comments load error:", commentsResult.error);
+
+  const comments = commentsResult.data || [];
+  const authorIds = [...new Set(comments.map(item => item.author_id).filter(Boolean))];
+  let authorMap = new Map();
+  if (authorIds.length) {
+    const { data, error } = await supabaseClient.from("public_profiles")
+      .select("id,nickname")
+      .in("id", authorIds);
+    if (error) console.error("Comment authors load error:", error);
+    (data || []).forEach(item => authorMap.set(item.id, item.nickname));
+  }
+
+  ids.forEach(id => {
+    const likes = (likesResult.data || []).filter(item => item.profile_id === id);
+    const profileComments = comments.filter(item => item.profile_id === id);
+    profileSocialCache[id] = {
+      liked: likes.some(item => item.user_id === currentUser?.id),
+      likes: likes.length,
+      comments: profileComments.map(item => ({
+        id: item.id,
+        author_id: item.author_id,
+        author: authorMap.get(item.author_id) || "Uczeń",
+        text: item.content,
+        time: new Date(item.created_at).getTime()
+      }))
+    };
+  });
+  return profileSocialCache;
+}
+
+function profileSocialHTML(profile) {
+  const item = profileSocialCache[profile.id] || { liked: false, likes: 0, comments: [] };
+  const liked = item.liked === true;
+  const likes = Math.max(0, Number(item.likes) || 0);
+  const comments = Array.isArray(item.comments) ? item.comments : [];
+  const own = profile.id === currentUser?.id;
+  const commentsHTML = comments.map((comment, index) =>
+    '<div class="profile-comment' + (index >= 2 ? ' profile-comment-extra" hidden' : '') + '">' +
+    '<strong>' + escapeHTML(comment.author || "Uczeń") +
+    '</strong><span>' + escapeHTML(comment.text || "") + '</span></div>'
+  ).join("");
+  const commentsToggle = comments.length > 2
+    ? '<button type="button" class="profile-comments-toggle" data-action="toggle-comments" aria-expanded="false">Więcej</button>'
+    : "";
+
+  return '<div class="profile-social">' +
+    '<div class="profile-social-actions">' +
+    (own ? '' : '<button type="button" class="social-like' + (liked ? ' liked' : '') +
+    '" data-action="toggle-like" data-profile-id="' + escapeHTML(profile.id) +
+    '" aria-pressed="' + (liked ? 'true' : 'false') + '">' +
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.7c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11A4.7 4.7 0 0 1 12 6.1a4.7 4.7 0 0 1 8.8 2.6Z"/></svg>' +
+    (liked ? 'Lubisz' : 'Lubię to') + ' <span>' + likes + '</span></button>') +
+    '<span class="profile-comment-count">' + comments.length + ' komentarzy</span></div>' +
+    '<div class="profile-comments">' +
+    (commentsHTML || '<p class="no-comments">Jeszcze nie ma komentarzy.</p>') +
+    '</div>' + commentsToggle +
+    '<form class="profile-comment-form" data-profile-id="' +
+    escapeHTML(profile.id) + '">' +
+    '<input type="text" name="comment" maxlength="240" placeholder="Napisz komentarz..." aria-label="Napisz komentarz" required>' +
+    '<button type="submit">Dodaj</button></form></div>';
 }
 
 function renderInterests(p, privacy) {
@@ -1536,6 +1804,16 @@ function renderInterests(p, privacy) {
     .map(item => `<span class="interest-tag">${escapeHTML(item)}</span>`)
     .join("");
   return `<div class="profile-interests">${tags}</div>`;
+}
+
+function profileAvatarHTML(profile, className = "profile-avatar") {
+  const photo = typeof profile.photo === "string" &&
+    (/^data:image\/(jpeg|png|webp);base64,/i.test(profile.photo) ||
+     /^https:\/\//i.test(profile.photo))
+    ? profile.photo : "";
+  return photo
+    ? `<div class="${className} has-photo"><img src="${escapeHTML(photo)}" alt="Zdjęcie profilu"></div>`
+    : `<div class="${className} profile-avatar-placeholder" aria-label="Brak zdjęcia"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>`;
 }
 
 function profileCardHTML(profile, own) {
@@ -1555,7 +1833,7 @@ function profileCardHTML(profile, own) {
   return `
     <div class="profile-card${own ? " own" : ""}">
       <div class="profile-head">
-        <div class="profile-avatar">${escapeHTML(profile.avatar)}</div>
+        ${profileAvatarHTML(profile)}
         <div>
           <div class="profile-nick">${escapeHTML(profile.nickname)}${badge}</div>
           ${klasa}
@@ -1563,6 +1841,7 @@ function profileCardHTML(profile, own) {
       </div>
       <div class="profile-bio">${escapeHTML(profile.bio)}</div>
       ${renderInterests(profile, privacy)}
+      ${profileSocialHTML(profile)}
       <div class="btn-row">
         ${friendAction}
         ${action}
@@ -1574,16 +1853,17 @@ function profileCardHTML(profile, own) {
 function renderProfilesPage() {
   const reports = getReports();
   const myProfile = getMyProfile();
-  const myVisible = myProfile && (myProfile.privacy || DEFAULT_PRIVACY).visible !== false;
-
   const cards = [];
 
-  if (myProfile && myVisible) {
-    cards.push(profileCardHTML({ ...myProfile, id: "own" }, true));
+  if (myProfile) {
+    cards.push(profileCardHTML({ ...myProfile, id: currentUser.id }, true));
   }
 
-  DEMO_PROFILES
-    .filter(profile => !myProfile || profile.nickname !== myProfile.nickname)
+  const liveProfiles = publicProfilesCache.filter(profile =>
+    profile.id !== currentUser?.id && profile.privacy?.visible !== false
+  );
+  liveProfiles
+    .filter(profile => !myProfile || profile.id !== currentUser?.id)
     .forEach(profile => {
       const reported = reports.includes(profile.id);
       const card = profileCardHTML(profile, false)
@@ -1597,10 +1877,16 @@ function renderProfilesPage() {
     });
 
   return `
-    <div class="page-content">
-      <h3>Profile uczniów</h3>
-      <p>Poznaj społeczność swojej szkoły.</p>
-      <p class="demo-note">⚠️ Profile oznaczone jako demonstracyjne nie przedstawiają prawdziwych uczniów.</p>
+    <div class="profiles-page-header">
+      <div class="page-content">
+        <h3>Odkryj uczniów</h3>
+        <p>Przeglądaj ankiety, poznawaj osoby o podobnych zainteresowaniach i nawiązuj znajomości.</p>
+      </div>
+      <button type="button" class="main-btn create-profile-btn" data-action="create-profile">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Utwórz ankietę
+      </button>
+      <p class="section-sub">Polubienia i komentarze są widoczne dla użytkowników, którzy mogą zobaczyć daną ankietę.</p>
     </div>
     <div class="profile-grid">${cards.join("")}</div>
   `;
@@ -1609,48 +1895,131 @@ function renderProfilesPage() {
 function bindProfilesPage() {
   const container = $("page-content");
 
-  const rerenderProfiles = () => {
+  const rerenderProfiles = async () => {
+    await loadFriendsData();
+    await loadProfileSocialData([currentUser?.id, ...publicProfilesCache.map(item => item.id)]);
     $("page-content").innerHTML = renderProfilesPage();
     bindProfilesPage();
     updateNotifBadge();
   };
 
-  container.querySelectorAll("[data-action='edit-profile']").forEach(button => {
+  container.querySelectorAll("[data-action='create-profile'], [data-action='edit-profile']").forEach(button => {
     button.addEventListener("click", () => openPage("my-profile"));
   });
 
   container.querySelectorAll("[data-action='add-friend']").forEach(button => {
-    button.addEventListener("click", () => {
-      sendFriendInvite(button.dataset.personId);
-      rerenderProfiles();
+    button.addEventListener("click", async () => {
+      const error = await sendFriendInvite(button.dataset.personId);
+      if (error) alert(error);
+      await rerenderProfiles();
     });
   });
 
   container.querySelectorAll("[data-action='cancel-invite']").forEach(button => {
-    button.addEventListener("click", () => {
-      cancelFriendInvite(button.dataset.personId);
-      rerenderProfiles();
+    button.addEventListener("click", async () => {
+      await cancelFriendInvite(button.dataset.requestId);
+      await rerenderProfiles();
     });
   });
 
   container.querySelectorAll("[data-action='accept-invite']").forEach(button => {
-    button.addEventListener("click", () => {
-      acceptFriendInvite(button.dataset.personId);
-      rerenderProfiles();
+    button.addEventListener("click", async () => {
+      await acceptFriendInvite(button.dataset.requestId);
+      await rerenderProfiles();
     });
   });
 
   container.querySelectorAll("[data-action='unblock']").forEach(button => {
+    button.addEventListener("click", async () => {
+      await unblockUser(button.dataset.personId);
+      await rerenderProfiles();
+    });
+  });
+
+  container.querySelectorAll("[data-action='block-person']").forEach(button => {
+    button.addEventListener("click", async () => {
+      await blockUser(button.dataset.personId);
+      await rerenderProfiles();
+    });
+  });
+
+  container.querySelectorAll("[data-action='toggle-like']").forEach(button => {
+    button.addEventListener("click", async () => {
+      const profileId = button.dataset.profileId;
+      const current = profileSocialCache[profileId] || { liked: false };
+      let result;
+      if (current.liked) {
+        result = await supabaseClient.from("profile_likes")
+          .delete().eq("profile_id", profileId).eq("user_id", currentUser.id);
+      } else {
+        result = await supabaseClient.from("profile_likes")
+          .insert({ profile_id: profileId, user_id: currentUser.id });
+      }
+      if (result.error) {
+        console.error("Like update error:", result.error);
+        alert("Nie udało się zaktualizować polubienia.");
+        return;
+      }
+      await rerenderProfiles();
+    });
+  });
+
+  container.querySelectorAll("[data-action='toggle-comments']").forEach(button => {
     button.addEventListener("click", () => {
-      unblockUser(button.dataset.personId);
-      rerenderProfiles();
+      const social = button.closest(".profile-social");
+      const comments = social && social.querySelector(".profile-comments");
+      if (!comments) return;
+      const expanded = button.getAttribute("aria-expanded") !== "true";
+      comments.querySelectorAll(".profile-comment-extra").forEach(comment => {
+        comment.hidden = !expanded;
+      });
+      comments.classList.toggle("expanded", expanded);
+      button.textContent = expanded ? "Mniej" : "Więcej";
+      button.setAttribute("aria-expanded", expanded ? "true" : "false");
+    });
+  });
+
+  container.querySelectorAll(".profile-comment-form").forEach(form => {
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      const input = form.querySelector("input[name='comment']");
+      const value = input.value.trim().slice(0, 240);
+      const profileId = form.dataset.profileId;
+      if (!value || !profileId) return;
+      const existing = profileSocialCache[profileId]?.comments || [];
+      if (existing.length >= 50) {
+        alert("Osiągnięto limit komentarzy dla tej ankiety.");
+        return;
+      }
+      const { error } = await supabaseClient.from("profile_comments").insert({
+        profile_id: profileId,
+        author_id: currentUser.id,
+        content: value
+      });
+      if (error) {
+        console.error("Comment save error:", error);
+        alert("Nie udało się dodać komentarza.");
+        return;
+      }
+      await rerenderProfiles();
     });
   });
 
   container.querySelectorAll("[data-action='report']").forEach(button => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const profileId = button.dataset.profileId;
-      addReport(profileId);
+      const { error } = await supabaseClient.from("content_reports").insert({
+        reporter_id: currentUser.id,
+        reported_user_id: profileId,
+        target_type: "profile",
+        target_id: profileId
+      });
+      if (error) {
+        console.error("Profile report error:", error);
+        alert("Nie udało się wysłać zgłoszenia.");
+        return;
+      }
+      reportsCache.push(profileId);
       button.disabled = true;
       button.textContent = "Zgłoszono profil";
     });
@@ -1662,19 +2031,11 @@ function bindProfilesPage() {
 
 function renderMyProfilePage() {
   const myProfile = getMyProfile();
-  const avatar = myProfile?.avatar || AVATAR_OPTIONS[0];
+  const photo = myProfile?.photo || "";
   const nickname = myProfile?.nickname || currentUser.name;
   const klasa = myProfile?.klasa || "";
   const bio = myProfile?.bio || "";
   const interests = myProfile?.interests ? myProfile.interests.join(", ") : "";
-
-  const avatarButtons = AVATAR_OPTIONS
-    .map(option => `
-      <button type="button"
-        class="emoji-option${option === avatar ? " selected" : ""}"
-        data-avatar="${option}">${option}</button>
-    `)
-    .join("");
 
   $("page-content").innerHTML = `
     <div id="my-profile-message" class="message"></div>
@@ -1696,6 +2057,18 @@ function renderMyProfilePage() {
         </div>
 
         <div class="field">
+          <label>Zdjęcie profilowe</label>
+          <div class="profile-photo-editor">
+            <div id="my-photo-preview" class="profile-photo-preview">${photo ? `<img src="${escapeHTML(photo)}" alt="Podgląd zdjęcia">` : `<span>Bez zdjęcia</span>`}</div>
+            <div class="profile-photo-controls">
+              <input id="my-photo" type="file" accept="image/jpeg,image/png,image/webp">
+              <p class="section-sub">JPG, PNG lub WebP. Maksymalny rozmiar pliku: 5 MB.</p>
+              <button type="button" id="remove-my-photo" class="pill-btn"${photo ? "" : " disabled"}>Usuń zdjęcie</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
           <label>Krótki opis</label>
           <textarea id="my-bio" maxlength="200"
             placeholder="Napisz w kilku zdaniach, czym się interesujesz...">${escapeHTML(bio)}</textarea>
@@ -1707,35 +2080,87 @@ function renderMyProfilePage() {
             placeholder="np. sport, muzyka, gry" value="${escapeHTML(interests)}">
         </div>
 
-        <div class="field">
-          <label>Wybierz awatar</label>
-          <div class="emoji-picker" id="avatar-picker">${avatarButtons}</div>
-        </div>
-
         <button class="main-btn" type="submit">Zapisz zmiany</button>
       </div>
     </form>
   `;
 
-  bindMyProfilePage(avatar);
+  bindMyProfilePage();
 }
 
-function bindMyProfilePage(initialAvatar) {
-  let selectedAvatar = initialAvatar;
+function compressProfilePhoto(file) {
+  return new Promise((resolve, reject) => {
+    if (!file || !/^image\/(jpeg|png|webp)$/i.test(file.type)) {
+      reject(new Error("Wybierz zdjęcie w formacie JPG, PNG lub WebP."));
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      reject(new Error("Plik jest za duży. Maksymalny rozmiar to 5 MB."));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Nie udało się odczytać zdjęcia."));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error("Nie udało się otworzyć zdjęcia."));
+      image.onload = () => {
+        const maxSide = 512;
+        const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+        const context = canvas.getContext("2d");
+        if (!context) {
+          reject(new Error("Nie udało się przygotować zdjęcia."));
+          return;
+        }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        try {
+          resolve(canvas.toDataURL("image/jpeg", 0.78));
+        } catch (error) {
+          reject(new Error("Nie udało się przetworzyć zdjęcia."));
+        }
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
-  const picker = $("avatar-picker");
+function bindMyProfilePage() {
+  const existing = getMyProfile();
+  let selectedPhoto = existing?.photo || "";
+  const photoInput = $("my-photo");
+  const photoPreview = $("my-photo-preview");
+  const removePhotoButton = $("remove-my-photo");
 
-  picker.querySelectorAll(".emoji-option").forEach(button => {
-    button.addEventListener("click", () => {
-      picker.querySelectorAll(".emoji-option").forEach(item => {
-        item.classList.remove("selected");
-      });
-      button.classList.add("selected");
-      selectedAvatar = button.dataset.avatar;
-    });
+  const updatePhotoPreview = () => {
+    photoPreview.innerHTML = selectedPhoto
+      ? `<img src="${escapeHTML(selectedPhoto)}" alt="Podgląd zdjęcia">`
+      : "<span>Bez zdjęcia</span>";
+    removePhotoButton.disabled = !selectedPhoto;
+  };
+
+  photoInput.addEventListener("change", async () => {
+    const file = photoInput.files && photoInput.files[0];
+    if (!file) return;
+    try {
+      selectedPhoto = await compressProfilePhoto(file);
+      updatePhotoPreview();
+      clearMessage("my-profile-message");
+    } catch (error) {
+      photoInput.value = "";
+      showMessage("my-profile-message", error.message || "Nie udało się dodać zdjęcia.");
+    }
   });
 
-  $("my-profile-form").addEventListener("submit", event => {
+  removePhotoButton.addEventListener("click", () => {
+    selectedPhoto = "";
+    photoInput.value = "";
+    updatePhotoPreview();
+  });
+
+  $("my-profile-form").addEventListener("submit", async event => {
     event.preventDefault();
 
     const nickname = $("my-nick").value.trim();
@@ -1759,18 +2184,29 @@ function bindMyProfilePage(initialAvatar) {
 
     const existing = getMyProfile();
 
-    saveMyProfile({
-      nickname,
-      klasa,
-      bio,
-      interests,
-      avatar: selectedAvatar,
-      privacy: existing?.privacy || { ...DEFAULT_PRIVACY }
-    });
-
-    $("user-name").textContent = nickname;
-
-    showMessage("my-profile-message", "Profil został zapisany.", "success");
+    const submitButton = $("my-profile-form").querySelector("button[type=submit]");
+    submitButton.disabled = true;
+    submitButton.textContent = "Zapisywanie...";
+    try {
+      const saved = await saveMyProfile({
+        nickname,
+        klasa,
+        bio,
+        interests,
+        photo: selectedPhoto,
+        photoPath: existing?.photoPath || null,
+        privacy: existing?.privacy || { ...DEFAULT_PRIVACY }
+      });
+      selectedPhoto = saved?.photo || "";
+      $("user-name").textContent = nickname;
+      showMessage("my-profile-message", "Profil został zapisany w bazie danych.", "success");
+    } catch (error) {
+      console.error("Profile save error:", error);
+      showMessage("my-profile-message", error.message || "Nie udało się zapisać profilu.");
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = "Zapisz zmiany";
+    }
   });
 }
 
@@ -1786,14 +2222,23 @@ function renderSettingsPage() {
 
   $("page-content").innerHTML = `
     <div class="page-content">
-      <h3>Twoje konto</h3>
-      <p>Pseudonim: ${safeName}</p>
-      <p>E-mail: ${safeEmail} (widoczny tylko dla Ciebie)</p>
+      <h3>Wygląd aplikacji</h3>
+      <p>Wybierz motyw, który będzie wygodny dla Ciebie.</p>
+      <div class="switch-row">
+        <div>
+          <div class="switch-label">Tryb ciemny</div>
+          <div class="switch-hint">Możesz w każdej chwili przełączyć na jasny motyw.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="theme-toggle" ${document.documentElement.dataset.theme !== "light" ? "checked" : ""}>
+          <span class="slider"></span>
+        </label>
+      </div>
     </div>
 
     <div class="page-content">
       <h3>Prywatność</h3>
-      <p>Twoje dane są zapisywane tylko na tym urządzeniu.</p>
+      <p>Ustawienia prywatności profilu są zapisywane na Twoim koncie.</p>
 
       <div class="switch-row">
         <div>
@@ -1834,6 +2279,11 @@ function renderSettingsPage() {
     </button>
   `;
 
+  const themeToggle = $("theme-toggle");
+  themeToggle.addEventListener("change", () => {
+    applyTheme(themeToggle.checked ? "dark" : "light");
+  });
+
   const privacyInputs = {
     visible: $("privacy-visible"),
     showClass: $("privacy-class"),
@@ -1849,12 +2299,16 @@ function renderSettingsPage() {
         klasa: existing?.klasa || "",
         bio: existing?.bio || "",
         interests: existing?.interests || [],
-        avatar: existing?.avatar || AVATAR_OPTIONS[0],
+        photo: existing?.photo || "",
+        photoPath: existing?.photoPath || null,
         privacy: {
           visible: privacyInputs.visible.checked,
           showClass: privacyInputs.showClass.checked,
           showInterests: privacyInputs.showInterests.checked
         }
+      }).catch(error => {
+        console.error("Privacy settings save error:", error);
+        alert("Nie udało się zapisać ustawień prywatności. Spróbuj ponownie.");
       });
     });
   });
@@ -1863,168 +2317,204 @@ function renderSettingsPage() {
 }
 
 
-// ZNAJOMI I POWIADOMIENIA
+// ZNAJOMI, POWIADOMIENIA I CZAT — SUPABASE
 
-const FRIENDS_KEY = "zspm_demo_friends_data";
+const MAX_MESSAGE_LENGTH = 500;
 
-function getFriendsData() {
-  if (!currentUser) {
-    return { outgoing: [], incoming: [], friends: [], seenInvites: 0 };
-  }
-
-  try {
-    const raw = localStorage.getItem(FRIENDS_KEY);
-    const all = raw ? JSON.parse(raw) : {};
-    const data = all[currentUser.email];
-
-    if (!data || typeof data !== "object") {
-      return {
-        outgoing: [],
-        incoming: ["demo-3", "demo-5"],
-        friends: ["demo-2"],
-        seenInvites: 0
-      };
-    }
-
-    return {
-      outgoing: Array.isArray(data.outgoing) ? data.outgoing : [],
-      incoming: Array.isArray(data.incoming) ? data.incoming : [],
-      friends: Array.isArray(data.friends) ? data.friends : [],
-      seenInvites: typeof data.seenInvites === "number" ? data.seenInvites : 0
-    };
-  } catch (error) {
-    return { outgoing: [], incoming: [], friends: [], seenInvites: 0 };
-  }
+function getProfileById(id) {
+  if (id === currentUser?.id) return myProfileCache;
+  return publicProfilesCache.find(profile => profile.id === id) || null;
 }
 
-function saveFriendsData(data) {
-  let all = {};
-
-  try {
-    const raw = localStorage.getItem(FRIENDS_KEY);
-    all = raw ? JSON.parse(raw) : {};
-  } catch (error) {
-    all = {};
+async function loadProfilesByIds(ids) {
+  const uniqueIds = [...new Set((ids || []).filter(Boolean))];
+  if (!uniqueIds.length) return [];
+  const { data, error } = await supabaseClient
+    .from("public_profiles")
+    .select("id,nickname,class_name,bio,photo_path,interests,is_visible,show_class,show_interests")
+    .in("id", uniqueIds);
+  if (error) {
+    console.error("Related profiles load error:", error);
+    return [];
   }
-
-  all[currentUser.email] = data;
-  localStorage.setItem(FRIENDS_KEY, JSON.stringify(all));
+  const mapped = (await Promise.all((data || []).map(row => mapDatabaseProfile(row)))).filter(Boolean);
+  const byId = new Map(publicProfilesCache.map(profile => [profile.id, profile]));
+  mapped.forEach(profile => byId.set(profile.id, profile));
+  publicProfilesCache = [...byId.values()].filter(profile => profile.id !== currentUser?.id);
+  return mapped;
 }
 
-function demoPersonById(personId) {
-  return DEMO_PROFILES.find(profile => profile.id === personId) || null;
+async function loadFriendsData() {
+  if (!currentUser?.id) return friendsDataCache;
+  const [requestsResult, friendshipsResult] = await Promise.all([
+    supabaseClient.from("friend_requests")
+      .select("id,sender_id,receiver_id,status,created_at")
+      .or("sender_id.eq." + currentUser.id + ",receiver_id.eq." + currentUser.id)
+      .order("created_at", { ascending: false }),
+    supabaseClient.from("friendships")
+      .select("user_one,user_two")
+      .or("user_one.eq." + currentUser.id + ",user_two.eq." + currentUser.id)
+  ]);
+  if (requestsResult.error) console.error("Friend requests load error:", requestsResult.error);
+  if (friendshipsResult.error) console.error("Friendships load error:", friendshipsResult.error);
+
+  const requests = requestsResult.data || [];
+  const friendships = friendshipsResult.data || [];
+  const otherIds = [
+    ...requests.map(row => row.sender_id === currentUser.id ? row.receiver_id : row.sender_id),
+    ...friendships.map(row => row.user_one === currentUser.id ? row.user_two : row.user_one)
+  ];
+  await loadProfilesByIds(otherIds);
+
+  friendsDataCache = {
+    incoming: requests.filter(row => row.receiver_id === currentUser.id && row.status === "pending")
+      .map(row => ({ requestId: row.id, profile: getProfileById(row.sender_id) })).filter(item => item.profile),
+    outgoing: requests.filter(row => row.sender_id === currentUser.id && row.status === "pending")
+      .map(row => ({ requestId: row.id, profile: getProfileById(row.receiver_id) })).filter(item => item.profile),
+    friends: friendships.map(row => getProfileById(row.user_one === currentUser.id ? row.user_two : row.user_one)).filter(Boolean)
+  };
+  return friendsDataCache;
 }
 
-function unreadInvitesCount() {
-  const data = getFriendsData();
-  return Math.max(0, data.incoming.length - data.seenInvites);
-}
+async function sendFriendInvite(personId) {
+  if (!personId || personId === currentUser?.id) return "Nieprawidłowa osoba.";
+  if (isBlocked(personId)) return "Odblokuj tę osobę, aby wysłać zaproszenie.";
+  const existing = friendsDataCache;
+  if (existing.friends.some(profile => profile.id === personId)) return "Ta osoba jest już Twoim znajomym.";
+  if (existing.outgoing.some(item => item.profile.id === personId)) return "Zaproszenie zostało już wysłane.";
+  if (existing.incoming.some(item => item.profile.id === personId)) return "Ta osoba już Cię zaprosiła. Zaakceptuj zaproszenie.";
 
-function updateNotifBadge() {
-  const badge = $("notif-badge");
-  if (!badge) return;
-
-  const count = unreadInvitesCount();
-
-  if (count > 0) {
-    badge.textContent = count > 9 ? "9+" : String(count);
-    badge.classList.remove("hidden");
-  } else {
-    badge.classList.add("hidden");
+  const { error } = await supabaseClient.from("friend_requests").insert({
+    sender_id: currentUser.id,
+    receiver_id: personId,
+    status: "pending"
+  });
+  if (error) {
+    console.error("Friend request error:", error);
+    return error.code === "23505"
+      ? "Zaproszenie do tej osoby już oczekuje."
+      : "Nie udało się wysłać zaproszenia.";
   }
-}
-
-function unblockUser(personId) {
-  const blocked = getBlockedUsers().filter(id => id !== personId);
-  localStorage.setItem(BLOCK_KEY, JSON.stringify(blocked));
-}
-
-function sendFriendInvite(personId) {
-  if (!demoPersonById(personId)) return "Nieprawidłowa osoba.";
-
-  const data = getFriendsData();
-
-  if (data.friends.includes(personId)) {
-    return "Ta osoba jest już Twoim znajomym.";
-  }
-
-  if (data.outgoing.includes(personId)) {
-    return "Zaproszenie zostało już wysłane.";
-  }
-
-  if (data.incoming.includes(personId)) {
-    return "Ta osoba już Cię zaprosiła. Zaakceptuj zaproszenie.";
-  }
-
-  if (isBlocked(personId)) {
-    return "Najpierw odblokuj tego użytkownika.";
-  }
-
-  data.outgoing.push(personId);
-  saveFriendsData(data);
+  await loadFriendsData();
+  await loadNotifications();
   return null;
 }
 
-function acceptFriendInvite(personId) {
-  const data = getFriendsData();
-
-  if (!data.incoming.includes(personId)) return;
-
-  if (!data.friends.includes(personId)) data.friends.push(personId);
-  data.incoming = data.incoming.filter(id => id !== personId);
-  data.seenInvites = data.incoming.length;
-  saveFriendsData(data);
+async function acceptFriendInvite(requestId) {
+  const { error } = await supabaseClient.from("friend_requests")
+    .update({ status: "accepted" }).eq("id", requestId);
+  if (error) {
+    console.error("Accept friend request error:", error);
+    alert("Nie udało się zaakceptować zaproszenia.");
+    return;
+  }
+  await loadFriendsData();
+  await loadNotifications();
 }
 
-function rejectFriendInvite(personId) {
-  const data = getFriendsData();
-  data.incoming = data.incoming.filter(id => id !== personId);
-  data.seenInvites = data.incoming.length;
-  saveFriendsData(data);
+async function rejectFriendInvite(requestId) {
+  const { error } = await supabaseClient.from("friend_requests")
+    .update({ status: "rejected" }).eq("id", requestId);
+  if (error) console.error("Reject friend request error:", error);
+  await loadFriendsData();
 }
 
-function cancelFriendInvite(personId) {
-  const data = getFriendsData();
-  data.outgoing = data.outgoing.filter(id => id !== personId);
-  saveFriendsData(data);
+async function cancelFriendInvite(requestId) {
+  const { error } = await supabaseClient.from("friend_requests")
+    .delete().eq("id", requestId);
+  if (error) console.error("Cancel friend request error:", error);
+  await loadFriendsData();
 }
 
-function removeFriend(personId) {
-  const data = getFriendsData();
-  data.friends = data.friends.filter(id => id !== personId);
-  saveFriendsData(data);
+async function removeFriend(personId) {
+  const a = currentUser.id < personId ? currentUser.id : personId;
+  const b = currentUser.id < personId ? personId : currentUser.id;
+  const { error } = await supabaseClient.from("friendships")
+    .delete().eq("user_one", a).eq("user_two", b);
+  if (error) console.error("Remove friend error:", error);
+  await loadFriendsData();
+}
+
+async function loadBlockedUsers() {
+  if (!currentUser?.id) return [];
+  const { data, error } = await supabaseClient.from("user_blocks")
+    .select("blocked_id").eq("blocker_id", currentUser.id);
+  if (error) {
+    console.error("Blocked users load error:", error);
+    return blockedUsersCache;
+  }
+  blockedUsersCache = (data || []).map(row => row.blocked_id);
+  return blockedUsersCache;
+}
+
+function isBlocked(personId) {
+  return blockedUsersCache.includes(personId);
+}
+
+async function blockUser(personId) {
+  if (!personId || personId === currentUser?.id) return;
+  const { error } = await supabaseClient.from("user_blocks").insert({
+    blocker_id: currentUser.id,
+    blocked_id: personId
+  });
+  if (error && error.code !== "23505") {
+    console.error("Block user error:", error);
+    alert("Nie udało się zablokować użytkownika.");
+    return;
+  }
+  await loadBlockedUsers();
+  await loadFriendsData();
+}
+
+async function unblockUser(personId) {
+  const { error } = await supabaseClient.from("user_blocks")
+    .delete().eq("blocker_id", currentUser.id).eq("blocked_id", personId);
+  if (error) console.error("Unblock user error:", error);
+  await loadBlockedUsers();
+}
+
+async function submitContentReport(targetType, targetId, reportedUserId) {
+  const { error } = await supabaseClient.from("content_reports").insert({
+    reporter_id: currentUser.id,
+    reported_user_id: reportedUserId,
+    target_type: targetType,
+    target_id: targetId
+  });
+  if (error) {
+    console.error("Content report error:", error);
+    alert("Nie udało się wysłać zgłoszenia.");
+    return false;
+  }
+  return true;
 }
 
 function friendButtonHTML(profile) {
+  const blockButton = '<button class="report-btn" data-action="block-person" data-person-id="' + escapeHTML(profile.id) + '">Blokuj</button>';
   if (isBlocked(profile.id)) {
-    return `<button class="pill-btn" data-action="unblock" data-person-id="${escapeHTML(profile.id)}">Odblokuj użytkownika</button>`;
+    return '<button class="pill-btn" data-action="unblock" data-person-id="' + escapeHTML(profile.id) + '">Odblokuj użytkownika</button>';
   }
-
-  const data = getFriendsData();
-
-  if (data.friends.includes(profile.id)) {
-    return `<button class="pill-btn" disabled>Już jesteście znajomymi ✓</button>`;
+  if (friendsDataCache.friends.some(item => item.id === profile.id)) {
+    return '<button class="pill-btn" disabled>Już jesteście znajomymi</button>' + blockButton;
   }
-
-  if (data.incoming.includes(profile.id)) {
-    return `<button class="accept-btn" data-action="accept-invite" data-person-id="${escapeHTML(profile.id)}">Zaakceptuj zaproszenie</button>`;
+  const incoming = friendsDataCache.incoming.find(item => item.profile.id === profile.id);
+  if (incoming) {
+    return '<button class="accept-btn" data-action="accept-invite" data-request-id="' + escapeHTML(incoming.requestId) + '">Zaakceptuj prośbę</button>' + blockButton;
   }
-
-  if (data.outgoing.includes(profile.id)) {
-    return `<button class="report-btn" data-action="cancel-invite" data-person-id="${escapeHTML(profile.id)}">Anuluj zaproszenie</button>`;
+  const outgoing = friendsDataCache.outgoing.find(item => item.profile.id === profile.id);
+  if (outgoing) {
+    return '<button class="report-btn" data-action="cancel-invite" data-request-id="' + escapeHTML(outgoing.requestId) + '">Anuluj prośbę</button>' + blockButton;
   }
-
-  return `<button class="accept-btn" data-action="add-friend" data-person-id="${escapeHTML(profile.id)}">Dodaj do znajomych</button>`;
+  return '<button class="accept-btn" data-action="add-friend" data-person-id="' + escapeHTML(profile.id) + '">Poproś o kontakt</button>' + blockButton;
 }
 
 function personCardHTML(profile, buttonsHTML) {
   return `
     <div class="profile-card">
       <div class="profile-head">
-        <div class="profile-avatar">${escapeHTML(profile.avatar)}</div>
+        ${profileAvatarHTML(profile)}
         <div>
           <div class="profile-nick">${escapeHTML(profile.nickname)}</div>
-          <div class="profile-klasa">Klasa ${escapeHTML(profile.klasa)}</div>
+          ${profile.klasa ? '<div class="profile-klasa">Klasa ' + escapeHTML(profile.klasa) + '</div>' : ''}
         </div>
       </div>
       <div class="btn-row">${buttonsHTML}</div>
@@ -2032,249 +2522,118 @@ function personCardHTML(profile, buttonsHTML) {
   `;
 }
 
-function renderFriendsPage() {
-  const data = getFriendsData();
+async function renderFriendsPage() {
+  await loadFriendsData();
+  await loadBlockedUsers();
 
-  data.seenInvites = data.incoming.length;
-  saveFriendsData(data);
-  updateNotifBadge();
+  const incomingHTML = friendsDataCache.incoming.map(item => personCardHTML(item.profile, `
+    <button class="accept-btn" data-action="accept-invite" data-request-id="${escapeHTML(item.requestId)}">Zaakceptuj</button>
+    <button class="report-btn" data-action="reject-invite" data-request-id="${escapeHTML(item.requestId)}">Odrzuć zaproszenie</button>
+  `)).join("");
 
-  const incomingHTML = data.incoming
-    .map(id => demoPersonById(id))
-    .filter(Boolean)
-    .map(profile => personCardHTML(profile, `
-      <button class="accept-btn" data-action="accept-invite" data-person-id="${escapeHTML(profile.id)}">Zaakceptuj</button>
-      <button class="report-btn" data-action="reject-invite" data-person-id="${escapeHTML(profile.id)}">Odrzuć zaproszenie</button>
-    `))
-    .join("");
+  const outgoingHTML = friendsDataCache.outgoing.map(item => personCardHTML(item.profile, `
+    <button class="report-btn" data-action="cancel-invite" data-request-id="${escapeHTML(item.requestId)}">Anuluj zaproszenie</button>
+  `)).join("");
 
-  const outgoingHTML = data.outgoing
-    .map(id => demoPersonById(id))
-    .filter(Boolean)
-    .map(profile => personCardHTML(profile, `
-      <button class="report-btn" data-action="cancel-invite" data-person-id="${escapeHTML(profile.id)}">Anuluj zaproszenie</button>
-    `))
-    .join("");
-
-  const friendsHTML = data.friends
-    .map(id => demoPersonById(id))
-    .filter(Boolean)
-    .map(profile => {
-      const blocked = isBlocked(profile.id);
-
-      return personCardHTML(profile, `
-        <button class="report-btn" data-action="remove-friend" data-person-id="${escapeHTML(profile.id)}">Usuń ze znajomych</button>
-        ${blocked
-          ? `<button class="pill-btn" data-action="unblock" data-person-id="${escapeHTML(profile.id)}">Odblokuj użytkownika</button>`
-          : `<button class="report-btn" data-action="block-person" data-person-id="${escapeHTML(profile.id)}">Blokuj</button>
-             <button class="report-btn" data-action="report-person" data-person-id="${escapeHTML(profile.id)}">Zgłoś</button>`}
-      `);
-    })
-    .join("");
+  const friendsHTML = friendsDataCache.friends.map(profile => personCardHTML(profile, `
+    ${isBlocked(profile.id)
+      ? '<button class="pill-btn" data-action="unblock" data-person-id="' + escapeHTML(profile.id) + '">Odblokuj użytkownika</button>'
+      : '<button class="accept-btn" data-action="open-friend-chat" data-person-id="' + escapeHTML(profile.id) + '">Napisz wiadomość</button><button class="report-btn" data-action="block-person" data-person-id="' + escapeHTML(profile.id) + '">Blokuj</button>'}
+    <button class="report-btn" data-action="remove-friend" data-person-id="${escapeHTML(profile.id)}">Usuń ze znajomych</button>
+    <button class="report-btn" data-action="report-person" data-person-id="${escapeHTML(profile.id)}">Zgłoś</button>
+  `)).join("");
 
   $("page-content").innerHTML = `
     <div class="page-content">
       <h3>Znajomi i zaproszenia</h3>
-      <p>Zarządzaj zaproszeniami i listą znajomych.</p>
-      <p class="demo-note">⚠️ Wersja demonstracyjna — zaproszenia i znajomi zapisują się tylko na tym urządzeniu.</p>
+      <p>Zaproszenia i lista znajomych są synchronizowane z Twoim kontem.</p>
     </div>
-
     <div class="page-content">
-      <h3>Zaproszenia (${data.incoming.length})</h3>
-      ${incomingHTML || `<p class="section-sub">Brak nowych zaproszeń.</p>`}
+      <h3>Prośby o kontakt (${friendsDataCache.incoming.length})</h3>
+      ${incomingHTML || '<p class="section-sub">Brak nowych zaproszeń.</p>'}
     </div>
-
-    ${data.outgoing.length ? `
+    ${friendsDataCache.outgoing.length ? `
       <div class="page-content">
-        <h3>Wysłane zaproszenia (${data.outgoing.length})</h3>
+        <h3>Wysłane zaproszenia (${friendsDataCache.outgoing.length})</h3>
         ${outgoingHTML}
       </div>` : ""}
-
     <div class="page-content">
-      <h3>Moi znajomi (${data.friends.length})</h3>
-      ${friendsHTML || `<p class="section-sub">Nie masz jeszcze znajomych. Dodaj kogoś z sekcji „Profile uczniów”.</p>`}
+      <h3>Moi znajomi (${friendsDataCache.friends.length})</h3>
+      ${friendsHTML || '<p class="section-sub">Nie masz jeszcze znajomych. Poznaj uczniów w sekcji „Profile uczniów”.</p>'}
     </div>
   `;
-
   bindFriendsPage();
 }
 
 function bindFriendsPage() {
   const container = $("page-content");
-
   const rerender = () => renderFriendsPage();
 
   container.querySelectorAll("[data-action='accept-invite']").forEach(button => {
-    button.addEventListener("click", () => {
-      acceptFriendInvite(button.dataset.personId);
-      rerender();
+    button.addEventListener("click", async () => {
+      await acceptFriendInvite(button.dataset.requestId);
+      await rerender();
     });
   });
-
   container.querySelectorAll("[data-action='reject-invite']").forEach(button => {
-    button.addEventListener("click", () => {
-      rejectFriendInvite(button.dataset.personId);
-      rerender();
+    button.addEventListener("click", async () => {
+      await rejectFriendInvite(button.dataset.requestId);
+      await rerender();
     });
   });
-
   container.querySelectorAll("[data-action='cancel-invite']").forEach(button => {
-    button.addEventListener("click", () => {
-      cancelFriendInvite(button.dataset.personId);
-      rerender();
+    button.addEventListener("click", async () => {
+      await cancelFriendInvite(button.dataset.requestId);
+      await rerender();
     });
   });
-
+  container.querySelectorAll("[data-action='open-friend-chat']").forEach(button => {
+    button.addEventListener("click", () => openFriendConversation(button.dataset.personId));
+  });
   container.querySelectorAll("[data-action='remove-friend']").forEach(button => {
-    button.addEventListener("click", () => {
-      removeFriend(button.dataset.personId);
-      rerender();
+    button.addEventListener("click", async () => {
+      await removeFriend(button.dataset.personId);
+      await rerender();
     });
   });
-
   container.querySelectorAll("[data-action='block-person']").forEach(button => {
-    button.addEventListener("click", () => {
-      blockUser(button.dataset.personId);
-      rerender();
+    button.addEventListener("click", async () => {
+      await blockUser(button.dataset.personId);
+      await rerender();
     });
   });
-
   container.querySelectorAll("[data-action='unblock']").forEach(button => {
-    button.addEventListener("click", () => {
-      unblockUser(button.dataset.personId);
-      rerender();
+    button.addEventListener("click", async () => {
+      await unblockUser(button.dataset.personId);
+      await rerender();
     });
   });
-
   container.querySelectorAll("[data-action='report-person']").forEach(button => {
-    button.addEventListener("click", () => {
-      addReport(button.dataset.personId);
-      button.disabled = true;
-      button.textContent = "Zgłoszono";
+    button.addEventListener("click", async () => {
+      const ok = await submitContentReport("profile", button.dataset.personId, button.dataset.personId);
+      if (ok) {
+        button.disabled = true;
+        button.textContent = "Zgłoszono";
+      }
     });
   });
 }
 
-$("notif-bell").addEventListener("click", () => openPage("friends"));
-
-
-// CZAT
-
-const CHAT_KEY = "zspm_demo_chat";
-const CHAT_REPORTS_KEY = "zspm_demo_chat_reports";
-const BLOCK_KEY = "zspm_demo_blocked";
-const MAX_MESSAGE_LENGTH = 500;
-
-const CHAT_PEOPLE = {
-  lis: { id: "demo-1", avatar: "🦊", nickname: "SzybkiLis" },
-  ania: { id: "demo-2", avatar: "🐼", nickname: "KreatywnaAnia" },
-  wilk: { id: "demo-3", avatar: "🐺", nickname: "WilkSportowy" },
-  mela: { id: "demo-5", avatar: "🐬", nickname: "MelaKoduje" }
-};
-
-const CONVERSATIONS = [
-  {
-    id: "school",
-    type: "group",
-    name: "Czat szkolny",
-    avatar: "🏫",
-    members: ["ania", "wilk", "lis", "mela"]
-  },
-  {
-    id: "demo-lis",
-    type: "direct",
-    person: "lis"
-  },
-  {
-    id: "demo-mela",
-    type: "direct",
-    person: "mela"
+async function openFriendConversation(personId) {
+  if (isBlocked(personId)) {
+    alert("Ta rozmowa jest niedostępna, ponieważ użytkownik jest zablokowany.");
+    return;
   }
-];
-
-function minutesAgo(minutes) {
-  return Date.now() - minutes * 60000;
-}
-
-const SEED_MESSAGES = {
-  school: [
-    { id: "seed-s1", from: "ania", text: "Cześć wszystkim! Ktoś już widział nowy plan lekcji?", time: minutesAgo(240) },
-    { id: "seed-s2", from: "wilk", text: "Ja! Trening piłki nożnej w środę o 16:00, kto się zapisuje?", time: minutesAgo(180) },
-    { id: "seed-s3", from: "lis", text: "Ja wpadam po treningu 😄", time: minutesAgo(150) },
-    { id: "seed-s4", from: "mela", text: "Szukam jeszcze osoby do projektu na konkurs programistyczny. Chętni? 💻", time: minutesAgo(60) }
-  ],
-  "demo-lis": [
-    { id: "seed-l1", from: "lis", text: "Hej! Widziałem, że grasz w szachy. Chętny do partii w przerwie?", time: minutesAgo(120) },
-    { id: "seed-l2", from: "me", text: "Cześć! Jasne, mogę w czwartek 🙂", time: minutesAgo(110) }
-  ],
-  "demo-mela": [
-    { id: "seed-m1", from: "mela", text: "Cześć! Pomożesz mi przetestować mini-grę, którą robię?", time: minutesAgo(45) }
-  ]
-};
-
-function getChatData() {
-  try {
-    const data = localStorage.getItem(CHAT_KEY);
-    const parsed = data ? JSON.parse(data) : null;
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch (error) {
-    return {};
+  const { data, error } = await supabaseClient.rpc("create_direct_conversation", {
+    p_other_user: personId
+  });
+  if (error || !data) {
+    console.error("Create conversation error:", error);
+    alert("Nie można rozpocząć rozmowy. Możesz pisać tylko do znajomych, a blokada wyłącza wiadomości.");
+    return;
   }
-}
-
-function getConversationMessages(convId) {
-  const data = getChatData();
-
-  if (!data[convId]) {
-    data[convId] = SEED_MESSAGES[convId] ? [...SEED_MESSAGES[convId]] : [];
-    localStorage.setItem(CHAT_KEY, JSON.stringify(data));
-  }
-
-  return data[convId];
-}
-
-function saveConversationMessages(convId, messages) {
-  const data = getChatData();
-  data[convId] = messages;
-  localStorage.setItem(CHAT_KEY, JSON.stringify(data));
-}
-
-function getChatReports() {
-  try {
-    const data = localStorage.getItem(CHAT_REPORTS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    return [];
-  }
-}
-
-function addChatReport(messageId) {
-  const reports = getChatReports();
-  if (!reports.includes(messageId)) {
-    reports.push(messageId);
-    localStorage.setItem(CHAT_REPORTS_KEY, JSON.stringify(reports));
-  }
-}
-
-function getBlockedUsers() {
-  try {
-    const data = localStorage.getItem(BLOCK_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    return [];
-  }
-}
-
-function blockUser(personId) {
-  const blocked = getBlockedUsers();
-  if (!blocked.includes(personId)) {
-    blocked.push(personId);
-    localStorage.setItem(BLOCK_KEY, JSON.stringify(blocked));
-  }
-}
-
-function isBlocked(personId) {
-  return getBlockedUsers().includes(personId);
+  await openPage("chat");
+  await openChat(data);
 }
 
 function formatTime(timestamp) {
@@ -2286,35 +2645,56 @@ function formatTime(timestamp) {
 
 function myDisplayInfo() {
   const myProfile = getMyProfile();
-  return {
-    nickname: myProfile?.nickname || currentUser.name,
-    avatar: myProfile?.avatar || "🙂"
-  };
+  return { nickname: myProfile?.nickname || currentUser.name };
 }
 
-function renderChatList() {
-  const items = CONVERSATIONS.map(conv => {
-    const person = conv.type === "direct" ? CHAT_PEOPLE[conv.person] : null;
-    const name = person ? person.nickname : conv.name;
-    const avatar = person ? person.avatar : conv.avatar;
+async function renderChatList() {
+  if (activeChatChannel) {
+    await supabaseClient.removeChannel(activeChatChannel);
+    activeChatChannel = null;
+  }
+  if (chatListChannel) {
+    await supabaseClient.removeChannel(chatListChannel);
+    chatListChannel = null;
+  }
+  activeConversationId = null;
+  const { data, error } = await supabaseClient.from("conversations")
+    .select("id,user_one,user_two,updated_at")
+    .order("updated_at", { ascending: false });
+  if (error) {
+    console.error("Conversations load error:", error);
+    $("page-content").innerHTML = '<div class="page-content"><p>Nie udało się załadować rozmów.</p></div>';
+    return;
+  }
+  conversationsCache = data || [];
+  const otherIds = conversationsCache.map(conv => conv.user_one === currentUser.id ? conv.user_two : conv.user_one);
+  await loadProfilesByIds(otherIds);
 
-    const messages = getConversationMessages(conv.id);
-    const last = messages[messages.length - 1];
+  let latestByConversation = new Map();
+  if (conversationsCache.length) {
+    const { data: messages, error: messagesError } = await supabaseClient.from("messages")
+      .select("id,conversation_id,sender_id,content,created_at")
+      .in("conversation_id", conversationsCache.map(conv => conv.id))
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (messagesError) console.error("Conversation previews error:", messagesError);
+    (messages || []).forEach(message => {
+      if (!latestByConversation.has(message.conversation_id)) latestByConversation.set(message.conversation_id, message);
+    });
+  }
 
-    let preview = "Brak wiadomości";
-
-    if (last) {
-      const author = last.from === "me"
-        ? "Ty"
-        : (CHAT_PEOPLE[last.from]?.nickname || "Uczeń");
-      preview = author + ": " + last.text;
-    }
-
+  const items = conversationsCache.map(conv => {
+    const otherId = conv.user_one === currentUser.id ? conv.user_two : conv.user_one;
+    const profile = getProfileById(otherId) || { id: otherId, nickname: "Uczeń", photo: "" };
+    const last = latestByConversation.get(conv.id);
+    const preview = last
+      ? (last.sender_id === currentUser.id ? "Ty: " : "") + last.content
+      : "Brak wiadomości";
     return `
       <button type="button" class="conv-item" data-conv="${escapeHTML(conv.id)}">
-        <div class="conv-avatar">${escapeHTML(avatar)}</div>
+        ${profileAvatarHTML(profile, "conv-avatar")}
         <div class="conv-info">
-          <div class="conv-nick">${escapeHTML(name)}</div>
+          <div class="conv-nick">${escapeHTML(profile.nickname)}</div>
           <div class="conv-last">${escapeHTML(preview)}</div>
         </div>
       </button>
@@ -2323,193 +2703,350 @@ function renderChatList() {
 
   $("page-content").innerHTML = `
     <div class="page-content">
-      <h3>Rozmowy</h3>
-      <p>Wybierz rozmowę, aby dołączyć do dyskusji.</p>
-      <p class="demo-note">⚠️ Czat jest demonstracyjny. Wiadomości zapisują się tylko na tym urządzeniu i nie są wysyłane przez internet.</p>
+      <h3>Rozmowy prywatne</h3>
+      <p>Możesz pisać do zaakceptowanych znajomych. Czat obsługuje wyłącznie wiadomości tekstowe.</p>
     </div>
-    <div class="conv-list">${items}</div>
+    <div class="conv-list">${items || '<div class="page-content"><p>Nie masz jeszcze rozmów. Dodaj znajomego, aby rozpocząć czat.</p></div>'}</div>
   `;
-
   $("page-content").querySelectorAll("[data-conv]").forEach(button => {
-    button.addEventListener("click", () => {
-      openChat(button.dataset.conv);
-    });
+    button.addEventListener("click", () => openChat(button.dataset.conv));
   });
+  chatListChannel = supabaseClient.channel("chat-list-" + currentUser.id)
+    .on("postgres_changes", {
+      event: "INSERT", schema: "public", table: "messages"
+    }, async () => {
+      if (document.querySelector("#page-title")?.textContent === "Wiadomości" && !activeConversationId) {
+        await renderChatList();
+      }
+    })
+    .subscribe();
 }
 
-function messageBubbleHTML(msg) {
-  if (msg.from !== "me") {
-    const person = CHAT_PEOPLE[msg.from];
-    if (person && isBlocked(person.id)) return "";
+async function loadConversationMessages(conversationId) {
+  const { data, error } = await supabaseClient.from("messages")
+    .select("id,conversation_id,sender_id,content,created_at")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true })
+    .limit(200);
+  if (error) {
+    console.error("Messages load error:", error);
+    return [];
   }
+  return data || [];
+}
 
-  const mine = msg.from === "me";
-  const myInfo = myDisplayInfo();
-  const nick = mine ? myInfo.nickname : CHAT_PEOPLE[msg.from].nickname;
-  const avatar = mine ? myInfo.avatar : CHAT_PEOPLE[msg.from].avatar;
-  const reported = getChatReports().includes(msg.id);
-
+function messageBubbleHTML(message) {
+  const mine = message.sender_id === currentUser.id;
+  const profile = mine ? getMyProfile() : getProfileById(message.sender_id);
+  const sender = profile || { nickname: "Uczeń", photo: "" };
+  const alreadyReported = reportedMessageIdsCache.includes(message.id);
   const actions = mine ? "" : `
     <div class="bubble-actions">
-      ${reported
-        ? `<span class="chat-reported">Zgłoszono ✓</span>`
-        : `<button type="button" class="msg-action" data-action="report-msg" data-msg-id="${escapeHTML(msg.id)}">Zgłoś</button>`}
-      <button type="button" class="msg-action" data-action="block-person" data-person-id="${escapeHTML(CHAT_PEOPLE[msg.from].id)}">Blokuj</button>
-    </div>
-  `;
-
+      ${alreadyReported
+        ? '<span class="chat-reported">Zgłoszono</span>'
+        : '<button type="button" class="msg-action" data-action="report-msg" data-msg-id="' + escapeHTML(message.id) + '" data-sender-id="' + escapeHTML(message.sender_id) + '">Zgłoś</button>'}
+      <button type="button" class="msg-action" data-action="block-person"
+        data-person-id="${escapeHTML(message.sender_id)}">Blokuj</button>
+    </div>`;
   return `
     <div class="chat-row${mine ? " mine" : ""}">
-      ${mine ? "" : `<div class="msg-avatar">${escapeHTML(avatar)}</div>`}
+      ${mine ? "" : profileAvatarHTML(sender, "msg-avatar")}
       <div class="bubble">
-        ${mine ? "" : `<div class="bubble-author">${escapeHTML(nick)}</div>`}
-        <div class="bubble-text" data-msg-id="${escapeHTML(msg.id)}"></div>
-        <div class="bubble-time">${formatTime(msg.time)}</div>
+        ${mine ? "" : '<div class="bubble-author">' + escapeHTML(sender.nickname) + '</div>'}
+        <div class="bubble-text" data-msg-id="${escapeHTML(message.id)}"></div>
+        <div class="bubble-time">${formatTime(new Date(message.created_at).getTime())}</div>
         ${actions}
       </div>
     </div>
   `;
 }
 
-function renderMessages(conv, messages) {
+function renderMessages(messages) {
   const container = $("chat-msgs");
   if (!container) return;
-
-  const visible = messages.map(msg => messageBubbleHTML(msg)).filter(Boolean);
-
-  container.innerHTML = visible.length
-    ? visible.join("")
-    : `<div class="page-content"><p>Brak wiadomości. Napisz pierwszą!</p></div>`;
-
-  messages.forEach(msg => {
-    const element = container.querySelector(`.bubble-text[data-msg-id="${CSS.escape(msg.id)}"]`);
-    if (element) element.textContent = msg.text;
+  container.innerHTML = messages.length
+    ? messages.map(messageBubbleHTML).join("")
+    : '<div class="page-content"><p>Brak wiadomości. Napisz pierwszą!</p></div>';
+  messages.forEach(message => {
+    const element = container.querySelector('.bubble-text[data-msg-id="' + CSS.escape(message.id) + '"]');
+    if (element) element.textContent = message.content;
   });
 
   container.querySelectorAll("[data-action='report-msg']").forEach(button => {
-    button.addEventListener("click", () => {
-      addChatReport(button.dataset.msgId);
-      const span = document.createElement("span");
-      span.className = "chat-reported";
-      span.textContent = "Zgłoszono ✓";
-      button.replaceWith(span);
+    button.addEventListener("click", async () => {
+      const ok = await submitContentReport("message", button.dataset.msgId, button.dataset.senderId);
+      if (ok) {
+        reportedMessageIdsCache.push(button.dataset.msgId);
+        button.disabled = true;
+        button.textContent = "Zgłoszono";
+      }
     });
   });
-
   container.querySelectorAll("[data-action='block-person']").forEach(button => {
-    button.addEventListener("click", () => {
-      blockUser(button.dataset.personId);
-      openChat(conv.id);
+    button.addEventListener("click", async () => {
+      await blockUser(button.dataset.personId);
+      await openChat(activeConversationId);
     });
   });
-
-  requestAnimationFrame(() => {
-    window.scrollTo(0, document.body.scrollHeight);
-  });
+  requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
 }
 
-function openChat(convId) {
-  const conv = CONVERSATIONS.find(item => item.id === convId);
-
-  if (!conv) {
-    renderChatList();
+async function openChat(conversationId) {
+  if (chatListChannel) {
+    await supabaseClient.removeChannel(chatListChannel);
+    chatListChannel = null;
+  }
+  if (activeChatChannel) {
+    await supabaseClient.removeChannel(activeChatChannel);
+    activeChatChannel = null;
+  }
+  const { data: conversation, error } = await supabaseClient.from("conversations")
+    .select("id,user_one,user_two")
+    .eq("id", conversationId).single();
+  if (error || !conversation) {
+    console.error("Open conversation error:", error);
+    await renderChatList();
     return;
   }
-
-  const person = conv.type === "direct" ? CHAT_PEOPLE[conv.person] : null;
-  const blocked = person && isBlocked(person.id);
-  const title = person ? person.nickname : conv.name;
-  const avatar = person ? person.avatar : conv.avatar;
+  activeConversationId = conversationId;
+  const otherId = conversation.user_one === currentUser.id ? conversation.user_two : conversation.user_one;
+  await loadProfilesByIds([otherId]);
+  activeChatProfile = getProfileById(otherId) || { id: otherId, nickname: "Uczeń", photo: "" };
+  await loadBlockedUsers();
+  const blocked = isBlocked(otherId);
+  const { data: canSendResult, error: canSendError } = await supabaseClient.rpc("can_send_message", {
+    p_conversation_id: conversationId
+  });
+  const canSend = !canSendError && canSendResult === true;
 
   $("page-content").innerHTML = `
     <div class="chat-head">
       <button type="button" class="chat-back" id="chat-back" aria-label="Powrót do rozmów">‹</button>
-      <div class="conv-avatar small">${escapeHTML(avatar)}</div>
+      ${profileAvatarHTML(activeChatProfile, "conv-avatar small")}
       <div class="chat-head-info">
-        <div class="chat-head-nick">${escapeHTML(title)}</div>
-        <div class="chat-head-status">wersja demonstracyjna</div>
+        <div class="chat-head-nick">${escapeHTML(activeChatProfile.nickname)}</div>
+        <div class="chat-head-status">Prywatna rozmowa · tylko tekst</div>
       </div>
-      ${person ? `
-        <button type="button" class="chat-block-btn" id="chat-block" ${blocked ? "disabled" : ""}>
-          ${blocked ? "Zablokowany" : "Blokuj"}
-        </button>` : ""}
+      <button type="button" class="chat-block-btn" id="chat-block">${blocked ? "Odblokuj" : "Blokuj"}</button>
     </div>
-
     <div class="chat-msgs" id="chat-msgs"></div>
-
-    ${blocked ? `
-      <div class="page-content">
-        <p>Ten użytkownik jest zablokowany. Nie wyświetlasz jego wiadomości i nie możesz wysyłać nowych.</p>
-      </div>` : `
+    ${blocked
+      ? '<div class="page-content"><p>Ten użytkownik jest zablokowany. Odblokuj go, aby ponownie wysyłać wiadomości.</p></div>'
+      : !canSend
+        ? '<div class="page-content"><p>Wiadomości w tej rozmowie są obecnie niedostępne.</p></div>'
+        : `
       <div class="composer-wrap">
         <form class="chat-composer" id="chat-form">
-          <input id="chat-input" class="chat-input" type="text"
-            maxlength="500" placeholder="Napisz wiadomość..." autocomplete="off">
+          <input id="chat-input" class="chat-input" type="text" maxlength="${MAX_MESSAGE_LENGTH}"
+            placeholder="Napisz wiadomość..." autocomplete="off">
           <button class="chat-send" type="submit" aria-label="Wyślij">➤</button>
         </form>
         <div class="char-hint" id="char-hint">0 / ${MAX_MESSAGE_LENGTH}</div>
       </div>`}
   `;
 
-  $("chat-back").addEventListener("click", () => {
-    renderChatList();
-    window.scrollTo(0, 0);
+  $("chat-back").addEventListener("click", () => renderChatList());
+  $("chat-block").addEventListener("click", async () => {
+    if (isBlocked(otherId)) await unblockUser(otherId);
+    else await blockUser(otherId);
+    await openChat(conversationId);
   });
 
-  if (person) {
-    $("chat-block").addEventListener("click", () => {
-      blockUser(person.id);
-      openChat(conv.id);
-    });
-  }
+  const messages = await loadConversationMessages(conversationId);
+  renderMessages(messages);
 
-  const messages = getConversationMessages(conv.id);
-  renderMessages(conv, messages);
+  if (canSend) bindComposer(conversationId);
 
-  if (!blocked) {
-    bindComposer(conv, messages);
-  }
+  await supabaseClient.from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("user_id", currentUser.id)
+    .eq("type", "message")
+    .eq("related_id", conversationId)
+    .is("read_at", null);
+  await loadNotifications();
+
+  activeChatChannel = supabaseClient.channel("messages-" + conversationId)
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "messages",
+      filter: "conversation_id=eq." + conversationId
+    }, async () => {
+      const fresh = await loadConversationMessages(conversationId);
+      renderMessages(fresh);
+      await loadNotifications();
+    })
+    .subscribe();
 }
 
-function bindComposer(conv, messages) {
+function bindComposer(conversationId) {
   const form = $("chat-form");
   const input = $("chat-input");
   const hint = $("char-hint");
-
   input.addEventListener("input", () => {
     hint.textContent = input.value.length + " / " + MAX_MESSAGE_LENGTH;
   });
-
-  form.addEventListener("submit", event => {
+  form.addEventListener("submit", async event => {
     event.preventDefault();
-
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    if (text.length > MAX_MESSAGE_LENGTH) {
-      input.value = text.slice(0, MAX_MESSAGE_LENGTH);
-      hint.textContent = MAX_MESSAGE_LENGTH + " / " + MAX_MESSAGE_LENGTH;
+    const content = input.value.trim().slice(0, MAX_MESSAGE_LENGTH);
+    if (!content) return;
+    const button = form.querySelector("button[type=submit]");
+    button.disabled = true;
+    const { error } = await supabaseClient.from("messages").insert({
+      conversation_id: conversationId,
+      sender_id: currentUser.id,
+      content
+    });
+    button.disabled = false;
+    if (error) {
+      console.error("Send message error:", error);
+      alert("Nie udało się wysłać wiadomości. Sprawdź, czy rozmowa nie jest zablokowana.");
       return;
     }
-
-    messages.push({
-      id: "u-" + Date.now() + "-" + Math.floor(Math.random() * 10000),
-      from: "me",
-      text,
-      time: Date.now()
-    });
-
-    saveConversationMessages(conv.id, messages);
-
     input.value = "";
     hint.textContent = "0 / " + MAX_MESSAGE_LENGTH;
-
-    renderMessages(conv, messages);
+    const fresh = await loadConversationMessages(conversationId);
+    renderMessages(fresh);
+    await loadNotifications();
     input.focus();
   });
 }
 
+async function loadNotifications() {
+  if (!currentUser?.id) return [];
+  const { data, error } = await supabaseClient.from("notifications")
+    .select("id,type,title,body,related_user_id,related_id,read_at,created_at")
+    .eq("user_id", currentUser.id)
+    .order("created_at", { ascending: false })
+    .limit(60);
+  if (error) {
+    console.error("Notifications load error:", error);
+    return notificationsCache;
+  }
+  notificationsCache = data || [];
+  updateNotifBadge();
+  return notificationsCache;
+}
+
+function updateNotifBadge() {
+  const badge = $("notif-badge");
+  if (!badge) return;
+  const count = notificationsCache.filter(item => !item.read_at).length;
+  if (count > 0) {
+    badge.textContent = count > 9 ? "9+" : String(count);
+    badge.classList.remove("hidden");
+  } else {
+    badge.classList.add("hidden");
+  }
+}
+
+async function renderNotificationsPage() {
+  await loadNotifications();
+  const items = notificationsCache.map(item => {
+    const date = new Date(item.created_at).toLocaleString("pl-PL", {
+      day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+    });
+    return `
+      <button type="button" class="conv-item notification-item${item.read_at ? "" : " unread"}"
+        data-notification-id="${escapeHTML(item.id)}" data-type="${escapeHTML(item.type)}"
+        data-related-id="${escapeHTML(item.related_id || "")}">
+        <div class="conv-info">
+          <div class="conv-nick">${escapeHTML(item.title)}</div>
+          <div class="conv-last">${escapeHTML(item.body || "")}</div>
+          <div class="section-sub">${escapeHTML(date)}</div>
+        </div>
+      </button>`;
+  }).join("");
+  $("page-content").innerHTML = `
+    <div class="page-content">
+      <h3>Powiadomienia</h3>
+      <p>Zaproszenia, wiadomości i aktywność przy Twojej ankiecie.</p>
+    </div>
+    <div class="conv-list">${items || '<div class="page-content"><p>Nie masz jeszcze powiadomień.</p></div>'}</div>
+  `;
+  $("page-content").querySelectorAll("[data-notification-id]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const notification = notificationsCache.find(item => item.id === button.dataset.notificationId);
+      if (!notification) return;
+      if (!notification.read_at) {
+        await supabaseClient.from("notifications").update({ read_at: new Date().toISOString() })
+          .eq("id", notification.id).eq("user_id", currentUser.id);
+      }
+      await loadNotifications();
+      if (notification.type === "message" && notification.related_id) {
+        await openPage("chat");
+        await openChat(notification.related_id);
+      } else if (notification.type === "friend_request" || notification.type === "friend_accepted") {
+        await openPage("friends");
+      } else {
+        await openPage("profiles");
+      }
+    });
+  });
+}
+
+async function setupRealtimeSubscriptions() {
+  if (notificationsChannel) {
+    await supabaseClient.removeChannel(notificationsChannel);
+    notificationsChannel = null;
+  }
+  if (friendsChannel) {
+    await supabaseClient.removeChannel(friendsChannel);
+    friendsChannel = null;
+  }
+  if (socialChannel) {
+    await supabaseClient.removeChannel(socialChannel);
+    socialChannel = null;
+  }
+  notificationsChannel = supabaseClient.channel("notifications-" + currentUser.id)
+    .on("postgres_changes", {
+      event: "*", schema: "public", table: "notifications",
+      filter: "user_id=eq." + currentUser.id
+    }, () => loadNotifications())
+    .subscribe();
+
+  friendsChannel = supabaseClient.channel("friends-" + currentUser.id)
+    .on("postgres_changes", { event: "*", schema: "public", table: "friend_requests" }, async () => {
+      await loadFriendsData();
+      const pageTitle = document.querySelector("#page-title")?.textContent;
+      if (pageTitle === "Znajomi") await renderFriendsPage();
+      if (pageTitle === "Profile uczniów") {
+        await loadBlockedUsers();
+        await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
+        $("page-content").innerHTML = renderProfilesPage();
+        bindProfilesPage();
+      }
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, async () => {
+      await loadFriendsData();
+      const pageTitle = document.querySelector("#page-title")?.textContent;
+      if (pageTitle === "Znajomi") await renderFriendsPage();
+      if (pageTitle === "Profile uczniów") {
+        await loadBlockedUsers();
+        await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
+        $("page-content").innerHTML = renderProfilesPage();
+        bindProfilesPage();
+      }
+    })
+    .subscribe();
+
+  socialChannel = supabaseClient.channel("profile-social-" + currentUser.id)
+    .on("postgres_changes", { event: "*", schema: "public", table: "profile_likes" }, async () => {
+      if (document.querySelector("#page-title")?.textContent === "Profile uczniów") {
+        await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
+        $("page-content").innerHTML = renderProfilesPage();
+        bindProfilesPage();
+      }
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "profile_comments" }, async () => {
+      if (document.querySelector("#page-title")?.textContent === "Profile uczniów") {
+        await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
+        $("page-content").innerHTML = renderProfilesPage();
+        bindProfilesPage();
+      }
+    })
+    .subscribe();
+}
 
 // OBSŁUGA PRZYCISKÓW
 
@@ -2519,45 +3056,127 @@ document.querySelectorAll("[data-page]").forEach(button => {
   });
 });
 
+$("notif-bell").addEventListener("click", () => openPage("notifications"));
+
+const accountSwitchButton = $("account-switch");
+const accountMenu = $("account-menu");
+
+function closeAccountMenu() {
+  accountMenu.classList.add("hidden");
+  accountSwitchButton.setAttribute("aria-expanded", "false");
+}
+
+accountSwitchButton.addEventListener("click", event => {
+  event.stopPropagation();
+  const isOpen = !accountMenu.classList.contains("hidden");
+  accountMenu.classList.toggle("hidden", isOpen);
+  accountSwitchButton.setAttribute("aria-expanded", String(!isOpen));
+});
+
+accountMenu.addEventListener("click", event => event.stopPropagation());
+
+document.addEventListener("click", event => {
+  if (!event.target.closest(".account-menu-wrap")) closeAccountMenu();
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeAccountMenu();
+});
+
+$("account-logout").addEventListener("click", async () => {
+  closeAccountMenu();
+  await logout();
+});
+
 
 // WYLOGOWANIE
 
-function logout() {
+async function logout() {
+  closeAccountMenu();
+  if (activeChatChannel) {
+    await supabaseClient.removeChannel(activeChatChannel);
+    activeChatChannel = null;
+  }
+  if (chatListChannel) {
+    await supabaseClient.removeChannel(chatListChannel);
+    chatListChannel = null;
+  }
+  if (notificationsChannel) {
+    await supabaseClient.removeChannel(notificationsChannel);
+    notificationsChannel = null;
+  }
+  if (friendsChannel) {
+    await supabaseClient.removeChannel(friendsChannel);
+    friendsChannel = null;
+  }
+  if (socialChannel) {
+    await supabaseClient.removeChannel(socialChannel);
+    socialChannel = null;
+  }
+  if (supabaseClient) {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) {
+      console.error("Supabase sign-out error:", error);
+      alert("Nie udało się wylogować. Spróbuj ponownie.");
+      return;
+    }
+  }
+
   currentUser = null;
-
-  sessionStorage.removeItem(SESSION_KEY);
-
+  myProfileCache = null;
+  publicProfilesCache = [];
+  profileSocialCache = {};
+  friendsDataCache = { incoming: [], outgoing: [], friends: [] };
+  blockedUsersCache = [];
+  notificationsCache = [];
+  reportsCache = [];
+  reportedMessageIdsCache = [];
+  conversationsCache = [];
+  activeConversationId = null;
+  activeChatProfile = null;
+  updateNotifBadge();
   $("app").classList.add("hidden");
   $("auth").classList.remove("hidden");
-
   $("register").reset();
   $("login").reset();
-
-  showRegister();
+  showLogin();
 }
 
 
-// PRZYWRACANIE SESJI
+// PRZYWRACANIE SESJI SUPABASE
 
-try {
-  const savedSession = sessionStorage.getItem(SESSION_KEY);
-
-  if (savedSession) {
-    currentUser = JSON.parse(savedSession);
-
-    if (
-      currentUser &&
-      typeof currentUser.name === "string" &&
-      typeof currentUser.email === "string"
-    ) {
-      enterApp();
-    } else {
-      currentUser = null;
-      sessionStorage.removeItem(SESSION_KEY);
-    }
+async function restoreSupabaseSession() {
+  if (!supabaseClient) {
+    showMessage("register-message", authUnavailableMessage());
+    return;
   }
-} catch (error) {
-  sessionStorage.removeItem(SESSION_KEY);
+
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) throw error;
+
+    if (data.session?.user) {
+      currentUser = getAppUser(data.session.user);
+      enterApp();
+    }
+  } catch (error) {
+    console.error("Supabase session restore error:", error);
+    showMessage(
+      "register-message",
+      "Nie udało się przywrócić sesji. Odśwież stronę i spróbuj ponownie."
+    );
+  }
+}
+
+restoreSupabaseSession();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js", { scope: "./" })
+      .catch(error => console.warn("PWA service worker registration failed:", error));
+  });
 }
 </script>
 
