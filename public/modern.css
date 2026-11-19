@@ -2089,10 +2089,10 @@ body.christmas-enabled #christmas-decorations .christmas-scene {
   filter: drop-shadow(0 4px 5px rgba(5,30,55,.3));
 }
 body.christmas-enabled #christmas-decorations .christmas-tree {
-  left: 2px;
+  right: 2px;
 }
 body.christmas-enabled #christmas-decorations .christmas-snowman {
-  right: 2px;
+  left: 2px;
 }
 body.christmas-enabled #app .bottom-nav .nav-item {
   position: relative;
@@ -2189,10 +2189,10 @@ body.christmas-enabled #app button svg,
 body.christmas-enabled #app [class*="icon"] svg {
   color: #bfe6ff;
 }
-body.christmas-enabled #app button svg path,
-body.christmas-enabled #app button svg circle,
-body.christmas-enabled #app button svg line,
-body.christmas-enabled #app button svg polyline {
+body.christmas-enabled #app svg path,
+body.christmas-enabled #app svg circle,
+body.christmas-enabled #app svg line,
+body.christmas-enabled #app svg polyline {
   stroke: currentColor;
 }
 body.christmas-enabled #app button svg [fill="none"] {
