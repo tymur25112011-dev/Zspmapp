@@ -202,6 +202,8 @@ const APP_UI_TEXT={
 "Nie udało się przywrócić sesji. Odśwież stronę i spróbuj ponownie.":["Could not restore the session. Refresh and try again.","Не удалось восстановить сеанс. Обновите страницу и попробуйте снова.","Не вдалося відновити сеанс. Оновіть сторінку та спробуйте ще раз."]
 };
 const APP_UI_LANG_INDEX={pl:-1,en:0,ru:1,uk:2};
+const appUiOriginalText=new WeakMap();
+const appUiOriginalAttrs=new WeakMap();
 function translateVisibleUI(root=document.body){
   if(!root)return;
   const langIndex=APP_UI_LANG_INDEX[appLanguage]??-1;
@@ -211,13 +213,23 @@ function translateVisibleUI(root=document.body){
   for(const node of nodes){
     const parent=node.parentElement;
     if(!parent||parent.closest("script,style,textarea,[contenteditable='true'],[data-no-translate],.chat-message-body,.profile-bio,.forum-post-body,.user-generated"))continue;
-    const raw=node.nodeValue,trimmed=raw.trim();
+    if(!appUiOriginalText.has(node))appUiOriginalText.set(node,node.nodeValue);
+    const raw=appUiOriginalText.get(node),trimmed=raw.trim();
     if(!trimmed)continue;
     const translated=APP_UI_TEXT[trimmed];
     if(translated)node.nodeValue=raw.replace(trimmed,translated[langIndex]);
+    else node.nodeValue=raw;
   }
   root.querySelectorAll?.("input[placeholder],textarea[placeholder],input[aria-label],button[aria-label],select[aria-label]").forEach(el=>{
-    for(const attr of ["placeholder","aria-label"]){const v=el.getAttribute(attr);if(v&&APP_UI_TEXT[v])el.setAttribute(attr,APP_UI_TEXT[v][langIndex]);}
+    let originals=appUiOriginalAttrs.get(el);
+    if(!originals){originals={};appUiOriginalAttrs.set(el,originals);}
+    for(const attr of ["placeholder","aria-label"]){
+      const current=el.getAttribute(attr);
+      if(current&&!Object.prototype.hasOwnProperty.call(originals,attr))originals[attr]=current;
+      const original=originals[attr];
+      if(original&&APP_UI_TEXT[original])el.setAttribute(attr,APP_UI_TEXT[original][langIndex]);
+      else if(original)el.setAttribute(attr,original);
+    }
   });
 }
 let appUiTranslationObserver=null;
