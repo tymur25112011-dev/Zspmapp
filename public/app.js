@@ -1590,6 +1590,92 @@ function bindQuestionnairePage() {
 }
 
 
+
+const PUSH_VAPID_PUBLIC_KEY = "BF3WtS7KovwgrIq3dWQBkpjkQeSU46gL5Y_Fj9ksAWqBjXq590cdOBuLNZllMtGjCOcjIiBiG-PPPGneVYfNGaM";
+
+function pushBase64ToUint8Array(value) {
+  const padding = "=".repeat((4 - value.length % 4) % 4);
+  const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from(raw, char => char.charCodeAt(0));
+}
+
+async function enablePhonePush() {
+  if (!currentUser || !supabaseClient) throw new Error("Zaloguj się, aby włączyć powiadomienia.");
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+    throw new Error("Ta przeglądarka nie obsługuje powiadomień push.");
+  }
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    throw new Error(permission === "denied"
+      ? "Powiadomienia są zablokowane. Włącz je w ustawieniach aplikacji Android."
+      : "Nie przyznano zgody na powiadomienia.");
+  }
+  const registration = await navigator.serviceWorker.ready;
+  let subscription = await registration.pushManager.getSubscription();
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: pushBase64ToUint8Array(PUSH_VAPID_PUBLIC_KEY)
+    });
+  }
+  const value = subscription.toJSON();
+  if (!value.endpoint || !value.keys?.p256dh || !value.keys?.auth) {
+    throw new Error("Nie udało się utworzyć subskrypcji push.");
+  }
+  const { error } = await supabaseClient.from("push_subscriptions").upsert({
+    user_id: currentUser.id,
+    endpoint: value.endpoint,
+    p256dh: value.keys.p256dh,
+    auth: value.keys.auth,
+    updated_at: new Date().toISOString()
+  }, { onConflict: "endpoint" });
+  if (error) throw error;
+  return subscription;
+}
+
+async function disablePhonePush() {
+  if (!currentUser || !supabaseClient) return;
+  const registration = await navigator.serviceWorker.ready;
+  const subscription = await registration.pushManager.getSubscription();
+  if (subscription) {
+    const { error } = await supabaseClient.from("push_subscriptions").delete()
+      .eq("user_id", currentUser.id).eq("endpoint", subscription.endpoint);
+    if (error) throw error;
+    await subscription.unsubscribe();
+  }
+}
+
+async function refreshPhonePushSettings() {
+  const status = $("push-settings-status");
+  const enable = $("push-enable-button");
+  const disable = $("push-disable-button");
+  if (!status || !enable || !disable) return;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+    status.textContent = "Ta przeglądarka nie obsługuje powiadomień push.";
+    enable.hidden = true;
+    disable.hidden = true;
+    return;
+  }
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    const isEnabled = !!subscription && Notification.permission === "granted";
+    enable.hidden = isEnabled;
+    disable.hidden = !isEnabled;
+    if (Notification.permission === "denied") {
+      status.textContent = "Powiadomienia są zablokowane w Androidzie. Zmień uprawnienia aplikacji w ustawieniach telefonu.";
+    } else if (isEnabled) {
+      status.textContent = "Powiadomienia push są włączone na tym urządzeniu.";
+    } else {
+      status.textContent = "Powiadomienia push są wyłączone na tym urządzeniu.";
+    }
+  } catch (error) {
+    status.textContent = "Nie udało się sprawdzić ustawień powiadomień.";
+    console.warn("Push settings check failed:", error);
+  }
+}
+
 // USTAWIENIA
 
 function renderSettingsPage() {
@@ -1620,6 +1706,14 @@ function renderSettingsPage() {
           <span class="slider"></span>
         </label>
       </div>
+    </div>
+
+    <div class="page-content">
+      <h3>Powiadomienia na telefonie</h3>
+      <p>Otrzymuj powiadomienia o nowych wiadomościach i aktywności, nawet gdy aplikacja jest zamknięta. Wymagana jest zgoda systemu Android.</p>
+      <p id="push-settings-status" class="switch-hint">Sprawdzanie ustawień...</p>
+      <button type="button" class="main-btn" id="push-enable-button">Włącz powiadomienia</button>
+      <button type="button" class="logout" id="push-disable-button" hidden>Wyłącz powiadomienia</button>
     </div>
 
     <div class="page-content">
@@ -1659,6 +1753,37 @@ function renderSettingsPage() {
 
     <button class="logout" id="logout-button">Wyloguj się</button>
   `;
+
+  const pushEnableButton = $("push-enable-button");
+  const pushDisableButton = $("push-disable-button");
+  if (pushEnableButton) pushEnableButton.addEventListener("click", async () => {
+    pushEnableButton.disabled = true;
+    const status = $("push-settings-status");
+    if (status) status.textContent = "Włączanie powiadomień...";
+    try {
+      await enablePhonePush();
+      if (status) status.textContent = "Powiadomienia push zostały włączone.";
+    } catch (error) {
+      if (status) status.textContent = error.message || "Nie udało się włączyć powiadomień.";
+    } finally {
+      pushEnableButton.disabled = false;
+      await refreshPhonePushSettings();
+    }
+  });
+  if (pushDisableButton) pushDisableButton.addEventListener("click", async () => {
+    pushDisableButton.disabled = true;
+    const status = $("push-settings-status");
+    try {
+      await disablePhonePush();
+      if (status) status.textContent = "Powiadomienia push zostały wyłączone.";
+    } catch (error) {
+      if (status) status.textContent = error.message || "Nie udało się wyłączyć powiadomień.";
+    } finally {
+      pushDisableButton.disabled = false;
+      await refreshPhonePushSettings();
+    }
+  });
+  refreshPhonePushSettings();
 
   $("theme-select").addEventListener("change", event => applyTheme(event.target.value));
   $("christmas-toggle").addEventListener("change", event => applyChristmasDecorations(event.target.checked));
