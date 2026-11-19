@@ -1589,7 +1589,7 @@ function profileSocialHTML(profile) {
   const likes = Math.max(0, Number(item.likes) || 0);
   const comments = Array.isArray(item.comments) ? item.comments : [];
   const commentsHTML = comments.map((comment, index) =>
-    '<div class="profile-comment' + (index >= 2 ? ' profile-comment-extra' : '') + '">' +
+    '<div class="profile-comment' + (index >= 2 ? ' profile-comment-extra" hidden' : '') + '">' +
     '<strong>' + escapeHTML(comment.author || "Uczeń") +
     '</strong><span>' + escapeHTML(comment.text || "") + '</span></div>'
   ).join("");
@@ -1767,8 +1767,15 @@ function bindProfilesPage() {
 
   container.querySelectorAll("[data-action='toggle-comments']").forEach(button => {
     button.addEventListener("click", () => {
-      const comments = button.parentElement.querySelector(".profile-comments");
-      const expanded = comments.classList.toggle("expanded");
+      const social = button.closest(".profile-social");
+      const comments = social && social.querySelector(".profile-comments");
+      if (!comments) return;
+
+      const expanded = button.getAttribute("aria-expanded") !== "true";
+      comments.querySelectorAll(".profile-comment-extra").forEach(comment => {
+        comment.hidden = !expanded;
+      });
+      comments.classList.toggle("expanded", expanded);
       button.textContent = expanded ? "Mniej" : "Więcej";
       button.setAttribute("aria-expanded", expanded ? "true" : "false");
     });
