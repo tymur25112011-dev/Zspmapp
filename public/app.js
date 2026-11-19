@@ -412,6 +412,7 @@ const pages = {
   },
 
   forum: { title: "Forum społeczności", subtitle: "Rozmawiaj na tematy szkolne i nie tylko", content: "" },
+  timetable: { title: "Plan lekcji", subtitle: "Rozkład zajęć klas technikum", content: "" },
   planner: { title: "Mój plan", subtitle: "Zadania, sprawdziany i terminy", content: "" },
   cosmetics: { title: "Sklep wyglądu", subtitle: "Odblokowuj ozdoby wraz z poziomem", content: "" },
 
@@ -704,6 +705,8 @@ async function openPage(page, options = {}) {
       await renderIdeasPage();
     } else if (page === "forum") {
       await renderCommunityForumPage();
+    } else if (page === "timetable") {
+      renderSchoolTimetablePage();
     } else if (page === "planner") {
       await renderCommunityPlannerPage();
     } else if (page === "cosmetics") {
@@ -3000,6 +3003,144 @@ async function renderCommunityForumPage() {
   }));
   host.querySelectorAll("[data-forum-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Usunąć ten temat i komentarze?"))return;const {error}=await supabaseClient.from("community_forum_posts").delete().eq("id",b.dataset.forumDelete);if(error)alert("Nie udało się usunąć tematu.");else await renderCommunityForumPage();}));
   host.querySelectorAll("[data-forum-comment-delete]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await supabaseClient.from("community_forum_comments").delete().eq("id",b.dataset.forumCommentDelete);if(error)alert("Nie udało się usunąć komentarza.");else await renderCommunityForumPage();}));
+}
+
+
+const SCHOOL_TIMETABLE_1DR = {
+  1: [
+    ["Fizyka", "1.03"],
+    ["Język polski", "1.07"],
+    ["Geografia", "1.05"],
+    ["Biznes i zarządzanie", "0.07"],
+    ["Edukacja dla bezpieczeństwa", "1.14"]
+  ],
+  2: [
+    ["Kreacja w reklamie – grafika", "2.16"],
+    ["Podstawy reklamy", "2.07"],
+    ["Matematyka", "2.07"],
+    ["Historia", "0.04"],
+    ["BHP", "0.04"],
+    ["Podstawy marketingu", "2.06"],
+    ["Informatyka", "2.02"],
+    ["Geografia", "1.05"],
+    ["Wychowanie fizyczne", "G1"]
+  ],
+  3: [
+    ["Fizyka", "1.03"],
+    ["Podstawy reklamy", "1.04"],
+    ["Przekaz i komunikat w reklamie", "1.14"],
+    ["Język polski", "1.07"],
+    ["Język niemiecki", "0.08"],
+    ["Strategia w reklamie", "2.16"],
+    ["Wychowanie fizyczne", "G1"],
+    ["Wychowanie fizyczne", "G1"]
+  ],
+  4: [
+    ["Strategia w reklamie", "1.13"],
+    ["Godzina wychowawcza", "1.14"],
+    ["Przekaz i komunikat w reklamie", "1.07"],
+    ["Kreacja w reklamie – grafika", "2.05"],
+    ["Przekaz i komunikat w reklamie", "0.08"],
+    ["Informatyka", "2.02"]
+  ],
+  5: [
+    ["Język polski", "1.07"],
+    ["Język polski", "1.07"],
+    ["Edukacja zdrowotna", "0.11"],
+    ["Matematyka", "2.07"],
+    ["Język niemiecki", "0.08"],
+    ["Język angielski", "0.09"],
+    ["Język angielski", "0.09"]
+  ]
+};
+
+const SCHOOL_TIMETABLE_DAYS = [
+  { value: 1, label: "Pon", full: "Poniedziałek" },
+  { value: 2, label: "Wt", full: "Wtorek" },
+  { value: 3, label: "Śr", full: "Środa" },
+  { value: 4, label: "Czw", full: "Czwartek" },
+  { value: 5, label: "Pt", full: "Piątek" },
+  { value: 6, label: "Sob", full: "Sobota" },
+  { value: 0, label: "Ndz", full: "Niedziela" }
+];
+
+const SCHOOL_LESSON_TIMES = [
+  null,
+  "08:20–09:05",
+  "09:10–09:55",
+  "10:05–10:50",
+  "11:05–11:50",
+  "12:00–12:45",
+  "12:55–13:40",
+  "13:50–14:35",
+  "14:40–15:25",
+  "15:30–16:15"
+];
+
+const SCHOOL_BREAKS = { 1: 5, 2: 5, 3: 10, 4: 15, 5: 10, 6: 10, 7: 10, 8: 5 };
+
+function renderSchoolTimetablePage() {
+  const host = $("page-content");
+  const today = new Date().getDay();
+  const initialDay = SCHOOL_TIMETABLE_DAYS.some(day => day.value === today) ? today : 1;
+
+  host.innerHTML = `
+    <section class="feature-intro school-timetable-intro">
+      <div class="school-timetable-heading">
+        <div><strong>Plan lekcji</strong><p>Wybierz klasę i dzień tygodnia, aby sprawdzić zajęcia.</p></div>
+        <span class="school-class-badge">1DR</span>
+      </div>
+      <label class="school-class-label" for="school-timetable-class">Klasa</label>
+      <select id="school-timetable-class" class="school-class-select">
+        <option value="1DR">1DR</option>
+        <option value="unavailable" disabled>Inne klasy — wkrótce</option>
+      </select>
+      <div class="school-day-tabs" role="group" aria-label="Wybierz dzień tygodnia">
+        ${SCHOOL_TIMETABLE_DAYS.map(day => `<button type="button" class="school-day-tab" data-timetable-day="${day.value}" aria-pressed="${day.value === initialDay}">${day.label}</button>`).join("")}
+      </div>
+    </section>
+    <section id="school-timetable-results" aria-live="polite"></section>
+    <p class="school-timetable-note">Godziny i sale na podstawie planu przekazanego dla klasy 1DR. W razie zmian planu dane trzeba zaktualizować.</p>
+  `;
+
+  const renderDay = dayValue => {
+    const day = SCHOOL_TIMETABLE_DAYS.find(item => item.value === dayValue);
+    const lessons = SCHOOL_TIMETABLE_1DR[dayValue];
+    host.querySelectorAll("[data-timetable-day]").forEach(button => {
+      const active = Number(button.dataset.timetableDay) === dayValue;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+
+    const result = host.querySelector("#school-timetable-results");
+    if (!lessons) {
+      result.innerHTML = `<div class="feature-card school-timetable-empty"><div class="school-empty-icon">☀</div><h3>${day.full} — weekend</h3><p>Nie masz zaplanowanych lekcji. Miłego odpoczynku!</p></div>`;
+      return;
+    }
+
+    result.innerHTML = `
+      <div class="school-timetable-day-head"><div><span>KLASA 1DR</span><h3>${day.full}</h3></div><span class="school-lesson-count">${lessons.length} ${lessons.length === 1 ? "lekcja" : lessons.length < 5 ? "lekcje" : "lekcji"}</span></div>
+      <div class="school-lesson-list">
+        ${lessons.map(([subject, room], index) => {
+          const lessonNumber = index + 1;
+          const breakMinutes = SCHOOL_BREAKS[lessonNumber];
+          return `
+            <article class="school-lesson-card">
+              <div class="school-lesson-number">${lessonNumber}</div>
+              <div class="school-lesson-main"><strong>${escapeHTML(subject)}</strong><span>${SCHOOL_LESSON_TIMES[lessonNumber]}</span></div>
+              <div class="school-lesson-room"><small>SALA</small><b>${escapeHTML(room)}</b></div>
+            </article>
+            ${index < lessons.length - 1 && breakMinutes ? `<div class="school-break-row"><span></span><small>Przerwa · ${breakMinutes} min</small></div>` : ""}
+          `;
+        }).join("")}
+      </div>
+    `;
+  };
+
+  host.querySelectorAll("[data-timetable-day]").forEach(button => {
+    button.addEventListener("click", () => renderDay(Number(button.dataset.timetableDay)));
+  });
+  renderDay(initialDay);
 }
 
 async function renderCommunityPlannerPage() {
