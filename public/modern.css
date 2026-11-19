@@ -2342,3 +2342,30 @@ body.christmas-enabled #app a:not(.nav-item) {
   body.christmas-enabled #app .bottom-nav .nav-item { font-size: 9px; }
   body.christmas-enabled #christmas-decorations .christmas-scene { transform: scale(.5); }
 }
+
+
+/* Winter snowfall performance optimization for mobile devices.
+   Keep two light particle layers on phones; remove the costly foreground layer. */
+@media (max-width: 760px) {
+  body.christmas-enabled #christmas-decorations .snowfall-back {
+    opacity: .26;
+    background-size: 137px 191px, 181px 223px, 229px 207px;
+    animation: snowfall-back 38s linear infinite;
+    filter: none;
+  }
+  body.christmas-enabled #christmas-decorations .snowfall-mid {
+    opacity: .38;
+    background-size: 191px 241px, 257px 283px, 307px 229px;
+    animation: snowfall-mid 30s linear infinite;
+    filter: none;
+  }
+  body.christmas-enabled #christmas-decorations .snowfall-front {
+    display: none;
+    animation: none !important;
+  }
+}
+@media (max-width: 380px) {
+  body.christmas-enabled #christmas-decorations .snowfall-mid {
+    opacity: .3;
+  }
+}
