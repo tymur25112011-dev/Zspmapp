@@ -3516,3 +3516,25 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
   box-shadow:0 0 15px rgba(147,226,255,.5);
   pointer-events:none;
 }
+
+/* Community progression, status, reactions and rooms */
+.community-custom-status{margin-top:7px;color:#a9c8e9;font-size:12px;overflow-wrap:anywhere}
+.community-level-card{margin-top:15px;padding:13px;border:1px solid rgba(104,169,255,.2);border-radius:13px;background:rgba(40,93,157,.12)}
+.community-level-top{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#dcecff}
+.community-level-top span{color:#8fc8ff;font-weight:800}
+.community-level-track{height:7px;margin:9px 0 6px;border-radius:99px;background:rgba(125,163,210,.18);overflow:hidden}
+.community-level-track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#398cff,#72d5ff)}
+.community-level-card small{color:#91a9c7;font-size:10px}
+.chat-room-tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 0 13px;scrollbar-width:thin}
+.chat-room-tab{flex:0 0 auto;padding:9px 12px;border:1px solid var(--zspm-border);border-radius:99px;background:var(--zspm-panel);color:var(--zspm-muted);font-size:12px;font-weight:700}
+.chat-room-tab.active{border-color:#559cff;background:rgba(57,132,240,.2);color:#e5f2ff}
+.chat-reaction-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:9px}
+.chat-reaction,.chat-reaction-pick{border:1px solid var(--zspm-border);border-radius:99px;background:rgba(70,110,170,.12);color:var(--zspm-text);padding:4px 8px;font-size:12px}
+.chat-reaction.active{border-color:#63aaff;background:rgba(52,133,240,.25)}
+.chat-reaction-picker{display:inline-flex;gap:4px;flex-wrap:wrap}
+.chat-reaction-pick{padding:4px 6px;background:transparent}
+.chat-reaction-pick:active,.chat-reaction:active{transform:scale(.94)}
+.decor-comet:after{content:"☄";position:absolute;right:-12px;top:-10px;color:#a9dcff;font-size:26px;text-shadow:0 0 12px #319bff;transform:rotate(-22deg);z-index:4}
+.decor-spark:after{content:"✦";position:absolute;right:-8px;top:4px;color:#ffe78b;font-size:25px;text-shadow:0 0 12px #ffbf3d;z-index:4}
+.decor-prism .community-avatar-ring{border:3px solid transparent;background:linear-gradient(#0b1830,#0b1830) padding-box,conic-gradient(#ff6b9d,#ffd76a,#68e6d5,#6d9bff,#c47bff,#ff6b9d) border-box;box-shadow:0 0 18px #8a83ff88}
+.decor-flame:after{content:"♨";position:absolute;left:50%;top:-19px;transform:translateX(-50%);font-size:25px;color:#ff9b61;text-shadow:0 0 12px #ff4c25;z-index:4}
