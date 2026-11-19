@@ -129,6 +129,7 @@ let isBanned = false;
 let currentMute = null;
 let currentUserBadge = null;
 let myProfileCache = null;
+let communityProfileCache = null;
 let publicProfilesCache = [];
 let profileSocialCache = {};
 let friendsDataCache = { incoming: [], outgoing: [], friends: [] };
@@ -360,7 +361,13 @@ const pages = {
 
   "my-profile": {
     title: "Mój profil",
-    subtitle: "Twój profil w społeczności",
+    subtitle: "Twój profil w społeczności ZSPM",
+    content: ""
+  },
+
+  questionnaire: {
+    title: "Moja ankieta",
+    subtitle: "Oddzielna ankieta do poznawania innych uczniów",
     content: ""
   },
 
@@ -674,7 +681,9 @@ async function openPage(page, options = {}) {
       $("page-content").innerHTML = renderProfilesPage();
       bindProfilesPage();
     } else if (page === "my-profile") {
-      renderMyProfilePage();
+      await renderCommunityProfilePage();
+    } else if (page === "questionnaire") {
+      renderQuestionnairePage();
     } else if (page === "chat") {
       await renderChatList();
     } else if (page === "friends") {
@@ -1155,9 +1164,11 @@ function profileAvatarHTML(profile, className = "profile-avatar") {
     (/^data:image\/(jpeg|png|webp);base64,/i.test(profile.photo) ||
      /^https:\/\//i.test(profile.photo))
     ? profile.photo : "";
+  const userId = profile?.id || profile?.user_id || "";
+  const openAttrs = userId ? ' data-open-community-profile="' + escapeHTML(userId) + '" role="button" tabindex="0" aria-label="Otwórz profil użytkownika"' : "";
   return photo
-    ? `<div class="${className} has-photo"><img src="${escapeHTML(photo)}" alt="Zdjęcie profilu"></div>`
-    : `<div class="${className} profile-avatar-placeholder" aria-label="Brak zdjęcia"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>`;
+    ? `<div class="${className} has-photo community-avatar-clickable"${openAttrs}><img src="${escapeHTML(photo)}" alt="Zdjęcie profilu"></div>`
+    : `<div class="${className} profile-avatar-placeholder community-avatar-clickable" aria-label="Brak zdjęcia"${openAttrs}><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div>`;
 }
 
 function profileCardHTML(profile, own) {
@@ -1173,7 +1184,7 @@ function profileCardHTML(profile, own) {
   const badge = (own ? `<span class="you-badge">Twój profil</span>` : "") + roleBadge;
 
   const action = own
-    ? `<button class="report-btn" data-action="edit-profile">Edytuj swój profil</button>`
+    ? `<button class="report-btn" data-action="edit-profile">Edytuj ankietę</button>`
     : `<button class="report-btn" data-action="report" data-profile-id="${escapeHTML(profile.id)}">Zgłoś profil</button>`;
 
   const friendAction = own ? "" : friendButtonHTML(profile);
@@ -1243,7 +1254,7 @@ function bindProfilesPage() {
   };
 
   container.querySelectorAll("[data-action='create-profile'], [data-action='edit-profile']").forEach(button => {
-    button.addEventListener("click", () => openPage("my-profile"));
+    button.addEventListener("click", () => openPage("questionnaire"));
   });
 
   container.querySelectorAll("[data-action='add-friend']").forEach(button => {
@@ -1368,7 +1379,7 @@ function bindProfilesPage() {
 
 // MÓJ PROFIL
 
-function renderMyProfilePage() {
+function renderQuestionnairePage() {
   const myProfile = getMyProfile();
   const photo = myProfile?.photo || "";
   const nickname = myProfile?.nickname || currentUser.name;
@@ -1424,7 +1435,7 @@ function renderMyProfilePage() {
     </form>
   `;
 
-  bindMyProfilePage();
+  bindQuestionnairePage();
 }
 
 function compressProfilePhoto(file) {
@@ -1466,7 +1477,7 @@ function compressProfilePhoto(file) {
   });
 }
 
-function bindMyProfilePage() {
+function bindQuestionnairePage() {
   const existing = getMyProfile();
   let selectedPhoto = existing?.photo || "";
   const photoInput = $("my-photo");
@@ -1653,6 +1664,268 @@ function renderSettingsPage() {
 
   $("logout-button").addEventListener("click", logout);
 }
+
+
+
+// PUBLIC COMMUNITY PROFILES — independent from student discovery questionnaires.
+const COMMUNITY_ASSET_BUCKET = "community-profile-assets";
+const COMMUNITY_BANNERS = ["aurora","ocean","midnight","nebula","waves"];
+const AVATAR_DECORATIONS = ["none","orbit","glow","crown","ice"];
+
+async function loadCommunityProfile(userId) {
+  if (!userId || !supabaseClient) return null;
+  const { data, error } = await supabaseClient.from("community_profiles")
+    .select("user_id,nickname,status_text,bio,interests,class_name,first_name,last_name,avatar_path,banner_path,avatar_decoration,banner_theme,created_at,updated_at")
+    .eq("user_id", userId).maybeSingle();
+  if (error) {
+    console.error("Community profile load error:", error);
+    throw error;
+  }
+  return data || null;
+}
+
+function communityAssetUrl(path) {
+  if (!path || !supabaseClient) return "";
+  return supabaseClient.storage.from(COMMUNITY_ASSET_BUCKET).getPublicUrl(path).data?.publicUrl || "";
+}
+
+function communityAvatarMarkup(profile, extraClass = "") {
+  const url = communityAssetUrl(profile?.avatar_path);
+  const decoration = AVATAR_DECORATIONS.includes(profile?.avatar_decoration) ? profile.avatar_decoration : "none";
+  return '<div class="community-avatar-wrap decor-' + escapeHTML(decoration) + ' ' + extraClass + '">' +
+    (url ? '<img class="community-avatar-img" src="' + escapeHTML(url) + '" alt="Avatar">' :
+      '<div class="community-avatar-fallback">' + escapeHTML((profile?.nickname || "U").trim().slice(0,1).toUpperCase()) + '</div>') +
+    '<span class="community-avatar-ring" aria-hidden="true"></span></div>';
+}
+
+function communityBannerMarkup(profile) {
+  const url = communityAssetUrl(profile?.banner_path);
+  const theme = COMMUNITY_BANNERS.includes(profile?.banner_theme) ? profile.banner_theme : "aurora";
+  return '<div class="community-profile-banner theme-' + theme + '"' +
+    (url ? ' style="background-image:linear-gradient(180deg,rgba(4,10,24,.05),rgba(4,10,24,.5)),url(&quot;' + escapeHTML(url) + '&quot;)"' : "") + '></div>';
+}
+
+function communityAchievements(profile, roleBadge) {
+  const items = [{icon:"✦",name:"Członek społeczności",desc:"Dołączył do ZSPM Community"}];
+  if (profile?.bio && profile?.interests?.length && profile?.avatar_path) {
+    items.push({icon:"◆",name:"Dopracowany profil",desc:"Uzupełnione informacje i avatar"});
+  }
+  if (roleBadge === "premium") items.push({icon:"✧",name:"PREMIUM",desc:"Wyróżnienie społeczności"});
+  if (isAdmin && profile?.user_id === currentUser?.id) items.push({icon:"★",name:"Administrator",desc:"Opieka nad społecznością"});
+  return items;
+}
+
+function communityProfileHTML(profile, roleBadge, own) {
+  const name = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ");
+  const interests = Array.isArray(profile?.interests) ? profile.interests : [];
+  const achievements = communityAchievements(profile, roleBadge);
+  const joined = profile?.created_at ? new Date(profile.created_at).toLocaleDateString("pl-PL",{month:"long",year:"numeric"}) : "Niedawno";
+  return '<article class="community-profile-card">' +
+    communityBannerMarkup(profile) +
+    '<div class="community-profile-main">' +
+      '<div class="community-profile-identity">' + communityAvatarMarkup(profile) +
+        '<div class="community-profile-heading"><h2>' + escapeHTML(profile?.nickname || "Uczeń") + '</h2>' +
+          (name ? '<p class="community-profile-realname">' + escapeHTML(name) + '</p>' : '') +
+          (profile?.status_text ? '<p class="community-profile-status">' + escapeHTML(profile.status_text) + '</p>' : '<p class="community-profile-status muted">Brak statusu</p>') +
+        '</div>' +
+        (own ? '<button type="button" class="community-edit-btn" id="community-edit-profile">✎ Edytuj profil</button>' : '') +
+      '</div>' +
+      '<div class="community-profile-columns">' +
+        '<section class="community-profile-section"><h3>O mnie</h3><p>' + escapeHTML(profile?.bio || "Ten użytkownik nie dodał jeszcze opisu.") + '</p>' +
+          (profile?.class_name ? '<div class="community-info-line"><span>Klasa</span><strong>' + escapeHTML(profile.class_name) + '</strong></div>' : '') +
+          '<div class="community-info-line"><span>Dołączył(a)</span><strong>' + escapeHTML(joined) + '</strong></div>' +
+          (interests.length ? '<div class="community-interests">' + interests.map(x=>'<span>'+escapeHTML(x)+'</span>').join("") + '</div>' : '') +
+        '</section>' +
+        '<section class="community-profile-section"><h3>Osiągnięcia</h3><div class="community-achievements">' +
+          achievements.map(a=>'<div class="community-achievement"><span class="community-achievement-icon">'+a.icon+'</span><div><strong>'+escapeHTML(a.name)+'</strong><small>'+escapeHTML(a.desc)+'</small></div></div>').join("") +
+        '</div></section>' +
+      '</div>' +
+    '</div></article>';
+}
+
+async function renderCommunityProfilePage() {
+  const host = $("page-content");
+  host.innerHTML = '<div class="page-content"><p>Ładowanie profilu...</p></div>';
+  try {
+    communityProfileCache = await loadCommunityProfile(currentUser.id);
+    const profile = communityProfileCache || {
+      user_id:currentUser.id,nickname:currentUser.name,status_text:"",bio:"",interests:[],
+      class_name:"",first_name:"",last_name:"",avatar_path:null,banner_path:null,
+      avatar_decoration:"none",banner_theme:"aurora",created_at:new Date().toISOString()
+    };
+    const {data:badgeRow} = await supabaseClient.from("user_badges").select("badge").eq("user_id",currentUser.id).maybeSingle();
+    const roleBadge = isAdmin ? "admin" : (badgeRow?.badge || currentUserBadge);
+    host.innerHTML = '<div class="community-profile-page">' +
+      communityProfileHTML(profile, roleBadge, true) +
+      '<div class="community-profile-note">To jest Twój publiczny profil społeczności. Ankieta poznawania uczniów jest osobną funkcją.</div>' +
+      '<button type="button" class="community-questionnaire-link" id="open-own-questionnaire">Otwórz moją ankietę</button>' +
+      '</div>';
+    $("community-edit-profile").addEventListener("click", () => renderCommunityProfileEditor(profile));
+    $("open-own-questionnaire").addEventListener("click", () => openPage("questionnaire"));
+  } catch (error) {
+    console.error(error);
+    host.innerHTML = '<div class="page-content"><p>Nie udało się załadować profilu. Spróbuj ponownie.</p></div>';
+  }
+}
+
+function renderCommunityProfileEditor(profile) {
+  const host = $("page-content");
+  const current = profile || {nickname:currentUser.name,interests:[],avatar_decoration:"none",banner_theme:"aurora"};
+  const bannerChoices = COMMUNITY_BANNERS.map(theme =>
+    '<label class="community-theme-choice"><input type="radio" name="community-banner-theme" value="'+theme+'" '+((current.banner_theme||"aurora")===theme?"checked":"")+'><span class="theme-preview theme-'+theme+'"></span><small>'+({aurora:"Aurora",ocean:"Ocean",midnight:"Midnight",nebula:"Nebula",waves:"Waves"}[theme])+'</small></label>'
+  ).join("");
+  const decorationChoices = AVATAR_DECORATIONS.map(theme =>
+    '<label class="community-decoration-choice"><input type="radio" name="community-avatar-decoration" value="'+theme+'" '+((current.avatar_decoration||"none")===theme?"checked":"")+'><span class="decor-preview decor-'+theme+'">'+(theme==="none"?"○":theme==="orbit"?"◉":theme==="glow"?"✧":theme==="crown"?"♛":"❄")+'</span><small>'+({none:"Brak",orbit:"Orbit",glow:"Glow",crown:"Crown",ice:"Ice"}[theme])+'</small></label>'
+  ).join("");
+  const avatarUrl = communityAssetUrl(current.avatar_path);
+  const bannerUrl = communityAssetUrl(current.banner_path);
+  host.innerHTML = '<div class="community-editor">' +
+    '<div class="community-editor-head"><button type="button" class="pill-btn" id="community-editor-back">‹ Wróć</button><div><h3>Personalizacja profilu</h3><p>Ustaw wygląd, który widzą inni użytkownicy.</p></div></div>' +
+    '<form id="community-profile-form">' +
+      '<section class="community-editor-section"><h4>Baner profilu</h4><div class="community-editor-banner '+('theme-'+(current.banner_theme||"aurora"))+'" id="community-banner-preview" '+(bannerUrl?'style="background-image:url(&quot;'+escapeHTML(bannerUrl)+'&quot;)"':'')+'></div>' +
+      '<label class="community-upload-btn">Wgraj własny baner<input id="community-banner-file" type="file" accept="image/jpeg,image/png,image/webp" hidden></label>' +
+      '<div class="community-theme-grid">'+bannerChoices+'</div></section>' +
+      '<section class="community-editor-section"><h4>Avatar i dekoracje</h4><div class="community-avatar-editor-row">'+communityAvatarMarkup(current,"editor-avatar")+'<label class="community-upload-btn">Zmień avatar<input id="community-avatar-file" type="file" accept="image/jpeg,image/png,image/webp" hidden></label></div>' +
+      '<div class="community-decoration-grid">'+decorationChoices+'</div></section>' +
+      '<section class="community-editor-section"><h4>Informacje</h4>' +
+        '<label class="community-form-field">Nick<input id="community-nickname" maxlength="32" minlength="2" required value="'+escapeHTML(current.nickname||currentUser.name)+'"></label>' +
+        '<label class="community-form-field">Status<input id="community-status" maxlength="80" placeholder="Co u Ciebie?" value="'+escapeHTML(current.status_text||'')+'"></label>' +
+        '<label class="community-form-field">Opis<textarea id="community-bio" maxlength="500" rows="4" placeholder="Napisz kilka słów o sobie...">'+escapeHTML(current.bio||'')+'</textarea></label>' +
+        '<label class="community-form-field">Zainteresowania<input id="community-interests" maxlength="200" placeholder="Muzyka, gry, sport..." value="'+escapeHTML((current.interests||[]).join(", "))+'"></label>' +
+        '<label class="community-form-field">Klasa <span>(opcjonalnie)</span><input id="community-class" maxlength="20" value="'+escapeHTML(current.class_name||'')+'" placeholder="np. 1A"></label>' +
+        '<div class="community-name-fields"><label class="community-form-field">Imię <span>(opcjonalnie)</span><input id="community-first-name" maxlength="60" value="'+escapeHTML(current.first_name||'')+'"></label><label class="community-form-field">Nazwisko <span>(opcjonalnie)</span><input id="community-last-name" maxlength="60" value="'+escapeHTML(current.last_name||'')+'"></label></div>' +
+      '</section><p class="community-editor-feedback" id="community-editor-feedback" aria-live="polite"></p>' +
+      '<button type="submit" class="main-btn community-save-btn">Zapisz profil</button></form></div>';
+
+  $("community-editor-back").addEventListener("click", () => renderCommunityProfilePage());
+  let avatarFile = null, bannerFile = null;
+  const bannerPreview = $("community-banner-preview");
+  $("community-banner-file").addEventListener("change", e => {
+    bannerFile = e.target.files?.[0] || null;
+    if (bannerFile) {
+      const url = URL.createObjectURL(bannerFile);
+      bannerPreview.style.backgroundImage = 'url("'+url+'")';
+    }
+  });
+  $("community-avatar-file").addEventListener("change", e => {
+    avatarFile = e.target.files?.[0] || null;
+    const preview = host.querySelector(".editor-avatar");
+    if (avatarFile && preview) {
+      const img = preview.querySelector("img") || document.createElement("img");
+      img.src = URL.createObjectURL(avatarFile); img.alt = "Podgląd avatara";
+      preview.querySelector(".community-avatar-fallback")?.remove();
+      if (!img.parentNode) preview.prepend(img);
+    }
+  });
+
+  $("community-profile-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const feedback = $("community-editor-feedback");
+    const button = event.currentTarget.querySelector('button[type="submit"]');
+    const nickname = $("community-nickname").value.trim();
+    if (nickname.length < 2) { feedback.textContent = "Nick musi mieć co najmniej 2 znaki."; return; }
+    button.disabled = true; button.textContent = "Zapisywanie...";
+    try {
+      const uploadAsset = async (file, kind, oldPath) => {
+        if (!file) return oldPath || null;
+        const blob = await compressCommunityImage(file, kind === "banner" ? 1600 : 512);
+        const path = currentUser.id + "/" + kind + "-" + Date.now() + ".jpg";
+        const {error} = await supabaseClient.storage.from(COMMUNITY_ASSET_BUCKET).upload(path,blob,{contentType:"image/jpeg",cacheControl:"3600",upsert:false});
+        if (error) throw error;
+        return path;
+      };
+      const avatarPath = await uploadAsset(avatarFile,"avatar",current.avatar_path);
+      const bannerPath = await uploadAsset(bannerFile,"banner",current.banner_path);
+      const row = {
+        user_id:currentUser.id,nickname,status_text:$("community-status").value.trim(),
+        bio:$("community-bio").value.trim(),
+        interests:$("community-interests").value.split(",").map(x=>x.trim()).filter(Boolean).slice(0,10),
+        class_name:$("community-class").value.trim(),first_name:$("community-first-name").value.trim(),
+        last_name:$("community-last-name").value.trim(),avatar_path:avatarPath,banner_path:bannerPath,
+        avatar_decoration:event.currentTarget.querySelector('input[name="community-avatar-decoration"]:checked')?.value||"none",
+        banner_theme:event.currentTarget.querySelector('input[name="community-banner-theme"]:checked')?.value||"aurora",
+        updated_at:new Date().toISOString()
+      };
+      const {data,error}=await supabaseClient.from("community_profiles").upsert(row,{onConflict:"user_id"})
+        .select("user_id,nickname,status_text,bio,interests,class_name,first_name,last_name,avatar_path,banner_path,avatar_decoration,banner_theme,created_at,updated_at").single();
+      if (error) throw error;
+      communityProfileCache=data;
+      $("user-name").textContent = nickname;
+      await renderCommunityProfilePage();
+    } catch (error) {
+      console.error("Community profile save error:",error);
+      feedback.textContent = error.message || "Nie udało się zapisać profilu.";
+      button.disabled=false; button.textContent="Zapisz profil";
+    }
+  });
+}
+
+function compressCommunityImage(file, maxSide) {
+  return new Promise((resolve,reject)=>{
+    if (!file || !/^image\\/(jpeg|png|webp)$/i.test(file.type)) return reject(new Error("Wybierz obraz JPG, PNG lub WebP."));
+    if (file.size > 5*1024*1024) return reject(new Error("Maksymalny rozmiar pliku to 5 MB."));
+    const reader=new FileReader();
+    reader.onerror=()=>reject(new Error("Nie udało się odczytać obrazu."));
+    reader.onload=()=>{
+      const image=new Image();
+      image.onerror=()=>reject(new Error("Nie udało się otworzyć obrazu."));
+      image.onload=()=>{
+        const scale=Math.min(1,maxSide/Math.max(image.width,image.height));
+        const canvas=document.createElement("canvas");
+        canvas.width=Math.max(1,Math.round(image.width*scale)); canvas.height=Math.max(1,Math.round(image.height*scale));
+        const ctx=canvas.getContext("2d"); if(!ctx) return reject(new Error("Nie udało się przygotować obrazu."));
+        ctx.drawImage(image,0,0,canvas.width,canvas.height);
+        canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("Nie udało się skompresować obrazu.")),"image/jpeg",0.82);
+      };
+      image.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function openCommunityProfile(userId) {
+  if (!userId || !supabaseClient) return;
+  let profile;
+  try {
+    profile = await loadCommunityProfile(userId);
+  } catch (error) {
+    alert("Nie udało się otworzyć profilu.");
+    return;
+  }
+  if (!profile) profile = {user_id:userId,nickname:"Uczeń",status_text:"",bio:"",interests:[],avatar_decoration:"none",banner_theme:"aurora"};
+  const [{data:badgeRow},{data:adminRows}] = await Promise.all([
+    supabaseClient.from("user_badges").select("badge").eq("user_id",userId).maybeSingle(),
+    loadAdminFlagsByIds([userId]).then(ids=>({data:[{is_admin:ids.has(userId)}]}))
+  ]);
+  const roleBadge = adminRows?.[0]?.is_admin ? "admin" : (badgeRow?.badge || null);
+  const own = userId === currentUser?.id;
+  const overlay=document.createElement("div");
+  overlay.className="community-profile-overlay";
+  overlay.innerHTML='<div class="community-profile-dialog" role="dialog" aria-modal="true" aria-label="Profil użytkownika">' +
+    '<button type="button" class="community-profile-close" aria-label="Zamknij">×</button>' +
+    communityProfileHTML(profile,roleBadge,own) + '</div>';
+  document.body.appendChild(overlay);
+  const close=()=>overlay.remove();
+  overlay.querySelector(".community-profile-close").addEventListener("click",close);
+  overlay.addEventListener("click",e=>{if(e.target===overlay)close();});
+  overlay.querySelector("#community-edit-profile")?.addEventListener("click",()=>{close();openPage("my-profile");});
+  const esc=e=>{if(e.key==="Escape"){close();document.removeEventListener("keydown",esc);}};
+  document.addEventListener("keydown",esc);
+}
+
+document.addEventListener("click", event => {
+  const avatar = event.target.closest("[data-open-community-profile]");
+  if (avatar) {
+    event.preventDefault();
+    openCommunityProfile(avatar.dataset.openCommunityProfile);
+  }
+});
+document.addEventListener("keydown", event => {
+  if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-open-community-profile]")) {
+    event.preventDefault();
+    openCommunityProfile(event.target.dataset.openCommunityProfile);
+  }
+});
 
 // ZNAJOMI, POWIADOMIENIA I CZAT — SUPABASE
 
