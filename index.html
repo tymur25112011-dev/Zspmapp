@@ -1264,6 +1264,7 @@ let conversationsCache = [];
 let activeConversationId = null;
 let activeChatProfile = null;
 let activeChatChannel = null;
+let chatListChannel = null;
 let notificationsChannel = null;
 let friendsChannel = null;
 let socialChannel = null;
@@ -2642,6 +2643,10 @@ async function renderChatList() {
     await supabaseClient.removeChannel(activeChatChannel);
     activeChatChannel = null;
   }
+  if (chatListChannel) {
+    await supabaseClient.removeChannel(chatListChannel);
+    chatListChannel = null;
+  }
   activeConversationId = null;
   const { data, error } = await supabaseClient.from("conversations")
     .select("id,user_one,user_two,updated_at")
@@ -2696,6 +2701,15 @@ async function renderChatList() {
   $("page-content").querySelectorAll("[data-conv]").forEach(button => {
     button.addEventListener("click", () => openChat(button.dataset.conv));
   });
+  chatListChannel = supabaseClient.channel("chat-list-" + currentUser.id)
+    .on("postgres_changes", {
+      event: "INSERT", schema: "public", table: "messages"
+    }, async () => {
+      if (document.querySelector("#page-title")?.textContent === "Wiadomości" && !activeConversationId) {
+        await renderChatList();
+      }
+    })
+    .subscribe();
 }
 
 async function loadConversationMessages(conversationId) {
@@ -2768,6 +2782,10 @@ function renderMessages(messages) {
 }
 
 async function openChat(conversationId) {
+  if (chatListChannel) {
+    await supabaseClient.removeChannel(chatListChannel);
+    chatListChannel = null;
+  }
   if (activeChatChannel) {
     await supabaseClient.removeChannel(activeChatChannel);
     activeChatChannel = null;
@@ -2980,11 +2998,25 @@ async function setupRealtimeSubscriptions() {
   friendsChannel = supabaseClient.channel("friends-" + currentUser.id)
     .on("postgres_changes", { event: "*", schema: "public", table: "friend_requests" }, async () => {
       await loadFriendsData();
-      if (document.querySelector("#page-title")?.textContent === "Znajomi") await renderFriendsPage();
+      const pageTitle = document.querySelector("#page-title")?.textContent;
+      if (pageTitle === "Znajomi") await renderFriendsPage();
+      if (pageTitle === "Profile uczniów") {
+        await loadBlockedUsers();
+        await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
+        $("page-content").innerHTML = renderProfilesPage();
+        bindProfilesPage();
+      }
     })
     .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, async () => {
       await loadFriendsData();
-      if (document.querySelector("#page-title")?.textContent === "Znajomi") await renderFriendsPage();
+      const pageTitle = document.querySelector("#page-title")?.textContent;
+      if (pageTitle === "Znajomi") await renderFriendsPage();
+      if (pageTitle === "Profile uczniów") {
+        await loadBlockedUsers();
+        await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
+        $("page-content").innerHTML = renderProfilesPage();
+        bindProfilesPage();
+      }
     })
     .subscribe();
 
@@ -3054,6 +3086,10 @@ async function logout() {
   if (activeChatChannel) {
     await supabaseClient.removeChannel(activeChatChannel);
     activeChatChannel = null;
+  }
+  if (chatListChannel) {
+    await supabaseClient.removeChannel(chatListChannel);
+    chatListChannel = null;
   }
   if (notificationsChannel) {
     await supabaseClient.removeChannel(notificationsChannel);
