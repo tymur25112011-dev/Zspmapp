@@ -2287,158 +2287,193 @@ function renderSettingsPage() {
 }
 
 
-// ZNAJOMI I POWIADOMIENIA
+// ZNAJOMI, POWIADOMIENIA I CZAT — SUPABASE
 
-const FRIENDS_KEY = "zspm_demo_friends_data";
+const MAX_MESSAGE_LENGTH = 500;
 
-function getFriendsData() {
-  if (!currentUser) {
-    return { outgoing: [], incoming: [], friends: [], seenInvites: 0 };
-  }
-
-  try {
-    const raw = localStorage.getItem(FRIENDS_KEY);
-    const all = raw ? JSON.parse(raw) : {};
-    const data = all[currentUser.email];
-
-    if (!data || typeof data !== "object") {
-      return {
-        outgoing: [],
-        incoming: [],
-        friends: [],
-        seenInvites: 0
-      };
-    }
-
-    return {
-      outgoing: Array.isArray(data.outgoing) ? data.outgoing : [],
-      incoming: Array.isArray(data.incoming) ? data.incoming : [],
-      friends: Array.isArray(data.friends) ? data.friends : [],
-      seenInvites: typeof data.seenInvites === "number" ? data.seenInvites : 0
-    };
-  } catch (error) {
-    return { outgoing: [], incoming: [], friends: [], seenInvites: 0 };
-  }
+function getProfileById(id) {
+  if (id === currentUser?.id) return myProfileCache;
+  return publicProfilesCache.find(profile => profile.id === id) || null;
 }
 
-function saveFriendsData(data) {
-  let all = {};
-
-  try {
-    const raw = localStorage.getItem(FRIENDS_KEY);
-    all = raw ? JSON.parse(raw) : {};
-  } catch (error) {
-    all = {};
+async function loadProfilesByIds(ids) {
+  const uniqueIds = [...new Set((ids || []).filter(Boolean))];
+  if (!uniqueIds.length) return [];
+  const { data, error } = await supabaseClient
+    .from("public_profiles")
+    .select("id,nickname,class_name,bio,photo_path,interests,is_visible,show_class,show_interests")
+    .in("id", uniqueIds);
+  if (error) {
+    console.error("Related profiles load error:", error);
+    return [];
   }
-
-  all[currentUser.email] = data;
-  localStorage.setItem(FRIENDS_KEY, JSON.stringify(all));
+  const mapped = (data || []).map(row => mapDatabaseProfile(row));
+  const byId = new Map(publicProfilesCache.map(profile => [profile.id, profile]));
+  mapped.forEach(profile => byId.set(profile.id, profile));
+  publicProfilesCache = [...byId.values()].filter(profile => profile.id !== currentUser?.id);
+  return mapped;
 }
 
-function demoPersonById(personId) {
-  return DEMO_PROFILES.find(profile => profile.id === personId) || null;
+async function loadFriendsData() {
+  if (!currentUser?.id) return friendsDataCache;
+  const [requestsResult, friendshipsResult] = await Promise.all([
+    supabaseClient.from("friend_requests")
+      .select("id,sender_id,receiver_id,status,created_at")
+      .or("sender_id.eq." + currentUser.id + ",receiver_id.eq." + currentUser.id)
+      .order("created_at", { ascending: false }),
+    supabaseClient.from("friendships")
+      .select("user_one,user_two")
+      .or("user_one.eq." + currentUser.id + ",user_two.eq." + currentUser.id)
+  ]);
+  if (requestsResult.error) console.error("Friend requests load error:", requestsResult.error);
+  if (friendshipsResult.error) console.error("Friendships load error:", friendshipsResult.error);
+
+  const requests = requestsResult.data || [];
+  const friendships = friendshipsResult.data || [];
+  const otherIds = [
+    ...requests.map(row => row.sender_id === currentUser.id ? row.receiver_id : row.sender_id),
+    ...friendships.map(row => row.user_one === currentUser.id ? row.user_two : row.user_one)
+  ];
+  await loadProfilesByIds(otherIds);
+
+  friendsDataCache = {
+    incoming: requests.filter(row => row.receiver_id === currentUser.id && row.status === "pending")
+      .map(row => ({ requestId: row.id, profile: getProfileById(row.sender_id) })).filter(item => item.profile),
+    outgoing: requests.filter(row => row.sender_id === currentUser.id && row.status === "pending")
+      .map(row => ({ requestId: row.id, profile: getProfileById(row.receiver_id) })).filter(item => item.profile),
+    friends: friendships.map(row => getProfileById(row.user_one === currentUser.id ? row.user_two : row.user_one)).filter(Boolean)
+  };
+  return friendsDataCache;
 }
 
-function unreadInvitesCount() {
-  const data = getFriendsData();
-  return Math.max(0, data.incoming.length - data.seenInvites);
-}
+async function sendFriendInvite(personId) {
+  if (!personId || personId === currentUser?.id) return "Nieprawidłowa osoba.";
+  if (isBlocked(personId)) return "Odblokuj tę osobę, aby wysłać zaproszenie.";
+  const existing = friendsDataCache;
+  if (existing.friends.some(profile => profile.id === personId)) return "Ta osoba jest już Twoim znajomym.";
+  if (existing.outgoing.some(item => item.profile.id === personId)) return "Zaproszenie zostało już wysłane.";
+  if (existing.incoming.some(item => item.profile.id === personId)) return "Ta osoba już Cię zaprosiła. Zaakceptuj zaproszenie.";
 
-function updateNotifBadge() {
-  const badge = $("notif-badge");
-  if (!badge) return;
-
-  const count = unreadInvitesCount();
-
-  if (count > 0) {
-    badge.textContent = count > 9 ? "9+" : String(count);
-    badge.classList.remove("hidden");
-  } else {
-    badge.classList.add("hidden");
+  const { error } = await supabaseClient.from("friend_requests").insert({
+    sender_id: currentUser.id,
+    receiver_id: personId,
+    status: "pending"
+  });
+  if (error) {
+    console.error("Friend request error:", error);
+    return error.code === "23505"
+      ? "Zaproszenie do tej osoby już oczekuje."
+      : "Nie udało się wysłać zaproszenia.";
   }
-}
-
-function unblockUser(personId) {
-  const blocked = getBlockedUsers().filter(id => id !== personId);
-  localStorage.setItem(BLOCK_KEY, JSON.stringify(blocked));
-}
-
-function sendFriendInvite(personId) {
-  if (!demoPersonById(personId)) return "Nieprawidłowa osoba.";
-
-  const data = getFriendsData();
-
-  if (data.friends.includes(personId)) {
-    return "Ta osoba jest już Twoim znajomym.";
-  }
-
-  if (data.outgoing.includes(personId)) {
-    return "Zaproszenie zostało już wysłane.";
-  }
-
-  if (data.incoming.includes(personId)) {
-    return "Ta osoba już Cię zaprosiła. Zaakceptuj zaproszenie.";
-  }
-
-  if (isBlocked(personId)) {
-    return "Najpierw odblokuj tego użytkownika.";
-  }
-
-  data.outgoing.push(personId);
-  saveFriendsData(data);
+  await loadFriendsData();
+  await loadNotifications();
   return null;
 }
 
-function acceptFriendInvite(personId) {
-  const data = getFriendsData();
-
-  if (!data.incoming.includes(personId)) return;
-
-  if (!data.friends.includes(personId)) data.friends.push(personId);
-  data.incoming = data.incoming.filter(id => id !== personId);
-  data.seenInvites = data.incoming.length;
-  saveFriendsData(data);
+async function acceptFriendInvite(requestId) {
+  const { error } = await supabaseClient.from("friend_requests")
+    .update({ status: "accepted" }).eq("id", requestId);
+  if (error) {
+    console.error("Accept friend request error:", error);
+    alert("Nie udało się zaakceptować zaproszenia.");
+    return;
+  }
+  await loadFriendsData();
+  await loadNotifications();
 }
 
-function rejectFriendInvite(personId) {
-  const data = getFriendsData();
-  data.incoming = data.incoming.filter(id => id !== personId);
-  data.seenInvites = data.incoming.length;
-  saveFriendsData(data);
+async function rejectFriendInvite(requestId) {
+  const { error } = await supabaseClient.from("friend_requests")
+    .update({ status: "rejected" }).eq("id", requestId);
+  if (error) console.error("Reject friend request error:", error);
+  await loadFriendsData();
 }
 
-function cancelFriendInvite(personId) {
-  const data = getFriendsData();
-  data.outgoing = data.outgoing.filter(id => id !== personId);
-  saveFriendsData(data);
+async function cancelFriendInvite(requestId) {
+  const { error } = await supabaseClient.from("friend_requests")
+    .delete().eq("id", requestId);
+  if (error) console.error("Cancel friend request error:", error);
+  await loadFriendsData();
 }
 
-function removeFriend(personId) {
-  const data = getFriendsData();
-  data.friends = data.friends.filter(id => id !== personId);
-  saveFriendsData(data);
+async function removeFriend(personId) {
+  const a = currentUser.id < personId ? currentUser.id : personId;
+  const b = currentUser.id < personId ? personId : currentUser.id;
+  const { error } = await supabaseClient.from("friendships")
+    .delete().eq("user_one", a).eq("user_two", b);
+  if (error) console.error("Remove friend error:", error);
+  await loadFriendsData();
+}
+
+async function loadBlockedUsers() {
+  if (!currentUser?.id) return [];
+  const { data, error } = await supabaseClient.from("user_blocks")
+    .select("blocked_id").eq("blocker_id", currentUser.id);
+  if (error) {
+    console.error("Blocked users load error:", error);
+    return blockedUsersCache;
+  }
+  blockedUsersCache = (data || []).map(row => row.blocked_id);
+  return blockedUsersCache;
+}
+
+function isBlocked(personId) {
+  return blockedUsersCache.includes(personId);
+}
+
+async function blockUser(personId) {
+  if (!personId || personId === currentUser?.id) return;
+  const { error } = await supabaseClient.from("user_blocks").insert({
+    blocker_id: currentUser.id,
+    blocked_id: personId
+  });
+  if (error && error.code !== "23505") {
+    console.error("Block user error:", error);
+    alert("Nie udało się zablokować użytkownika.");
+    return;
+  }
+  await loadBlockedUsers();
+  await loadFriendsData();
+}
+
+async function unblockUser(personId) {
+  const { error } = await supabaseClient.from("user_blocks")
+    .delete().eq("blocker_id", currentUser.id).eq("blocked_id", personId);
+  if (error) console.error("Unblock user error:", error);
+  await loadBlockedUsers();
+}
+
+async function submitContentReport(targetType, targetId, reportedUserId) {
+  const { error } = await supabaseClient.from("content_reports").insert({
+    reporter_id: currentUser.id,
+    reported_user_id: reportedUserId,
+    target_type: targetType,
+    target_id: targetId
+  });
+  if (error) {
+    console.error("Content report error:", error);
+    alert("Nie udało się wysłać zgłoszenia.");
+    return false;
+  }
+  return true;
 }
 
 function friendButtonHTML(profile) {
   if (isBlocked(profile.id)) {
-    return `<button class="pill-btn" data-action="unblock" data-person-id="${escapeHTML(profile.id)}">Odblokuj użytkownika</button>`;
+    return '<button class="pill-btn" data-action="unblock" data-person-id="' + escapeHTML(profile.id) + '">Odblokuj użytkownika</button>';
   }
-
-  const data = getFriendsData();
-
-  if (data.friends.includes(profile.id)) {
-    return `<button class="pill-btn" disabled>Już jesteście znajomymi ✓</button>`;
+  if (friendsDataCache.friends.some(item => item.id === profile.id)) {
+    return '<button class="pill-btn" disabled>Już jesteście znajomymi</button>';
   }
-
-  if (data.incoming.includes(profile.id)) {
-    return `<button class="accept-btn" data-action="accept-invite" data-person-id="${escapeHTML(profile.id)}">Zaakceptuj prośbę</button>`;
+  const incoming = friendsDataCache.incoming.find(item => item.profile.id === profile.id);
+  if (incoming) {
+    return '<button class="accept-btn" data-action="accept-invite" data-request-id="' + escapeHTML(incoming.requestId) + '">Zaakceptuj prośbę</button>';
   }
-
-  if (data.outgoing.includes(profile.id)) {
-    return `<button class="report-btn" data-action="cancel-invite" data-person-id="${escapeHTML(profile.id)}">Anuluj prośbę</button>`;
+  const outgoing = friendsDataCache.outgoing.find(item => item.profile.id === profile.id);
+  if (outgoing) {
+    return '<button class="report-btn" data-action="cancel-invite" data-request-id="' + escapeHTML(outgoing.requestId) + '">Anuluj prośbę</button>';
   }
-
-  return `<button class="accept-btn" data-action="add-friend" data-person-id="${escapeHTML(profile.id)}">Poproś o kontakt</button>`;
+  return '<button class="accept-btn" data-action="add-friend" data-person-id="' + escapeHTML(profile.id) + '">Poproś o kontakt</button>';
 }
 
 function personCardHTML(profile, buttonsHTML) {
@@ -2448,7 +2483,7 @@ function personCardHTML(profile, buttonsHTML) {
         ${profileAvatarHTML(profile)}
         <div>
           <div class="profile-nick">${escapeHTML(profile.nickname)}</div>
-          <div class="profile-klasa">Klasa ${escapeHTML(profile.klasa)}</div>
+          ${profile.klasa ? '<div class="profile-klasa">Klasa ' + escapeHTML(profile.klasa) + '</div>' : ''}
         </div>
       </div>
       <div class="btn-row">${buttonsHTML}</div>
@@ -2456,282 +2491,119 @@ function personCardHTML(profile, buttonsHTML) {
   `;
 }
 
-function renderFriendsPage() {
-  const data = getFriendsData();
+async function renderFriendsPage() {
+  await loadFriendsData();
+  await loadBlockedUsers();
 
-  data.seenInvites = data.incoming.length;
-  saveFriendsData(data);
-  updateNotifBadge();
+  const incomingHTML = friendsDataCache.incoming.map(item => personCardHTML(item.profile, `
+    <button class="accept-btn" data-action="accept-invite" data-request-id="${escapeHTML(item.requestId)}">Zaakceptuj</button>
+    <button class="report-btn" data-action="reject-invite" data-request-id="${escapeHTML(item.requestId)}">Odrzuć zaproszenie</button>
+  `)).join("");
 
-  const incomingHTML = data.incoming
-    .map(id => demoPersonById(id))
-    .filter(Boolean)
-    .map(profile => personCardHTML(profile, `
-      <button class="accept-btn" data-action="accept-invite" data-person-id="${escapeHTML(profile.id)}">Zaakceptuj</button>
-      <button class="report-btn" data-action="reject-invite" data-person-id="${escapeHTML(profile.id)}">Odrzuć zaproszenie</button>
-    `))
-    .join("");
+  const outgoingHTML = friendsDataCache.outgoing.map(item => personCardHTML(item.profile, `
+    <button class="report-btn" data-action="cancel-invite" data-request-id="${escapeHTML(item.requestId)}">Anuluj zaproszenie</button>
+  `)).join("");
 
-  const outgoingHTML = data.outgoing
-    .map(id => demoPersonById(id))
-    .filter(Boolean)
-    .map(profile => personCardHTML(profile, `
-      <button class="report-btn" data-action="cancel-invite" data-person-id="${escapeHTML(profile.id)}">Anuluj zaproszenie</button>
-    `))
-    .join("");
-
-  const friendsHTML = data.friends
-    .map(id => demoPersonById(id))
-    .filter(Boolean)
-    .map(profile => {
-      const blocked = isBlocked(profile.id);
-
-      return personCardHTML(profile, `
-        <button class="accept-btn" data-action="open-friend-chat" data-person-id="${escapeHTML(profile.id)}">Napisz wiadomość</button>
-        <button class="report-btn" data-action="remove-friend" data-person-id="${escapeHTML(profile.id)}">Usuń ze znajomych</button>
-        ${blocked
-          ? `<button class="pill-btn" data-action="unblock" data-person-id="${escapeHTML(profile.id)}">Odblokuj użytkownika</button>`
-          : `<button class="report-btn" data-action="block-person" data-person-id="${escapeHTML(profile.id)}">Blokuj</button>
-             <button class="report-btn" data-action="report-person" data-person-id="${escapeHTML(profile.id)}">Zgłoś</button>`}
-      `);
-    })
-    .join("");
+  const friendsHTML = friendsDataCache.friends.map(profile => personCardHTML(profile, `
+    <button class="accept-btn" data-action="open-friend-chat" data-person-id="${escapeHTML(profile.id)}">Napisz wiadomość</button>
+    <button class="report-btn" data-action="remove-friend" data-person-id="${escapeHTML(profile.id)}">Usuń ze znajomych</button>
+    ${isBlocked(profile.id)
+      ? '<button class="pill-btn" data-action="unblock" data-person-id="' + escapeHTML(profile.id) + '">Odblokuj użytkownika</button>'
+      : '<button class="report-btn" data-action="block-person" data-person-id="' + escapeHTML(profile.id) + '">Blokuj</button>'}
+    <button class="report-btn" data-action="report-person" data-person-id="${escapeHTML(profile.id)}">Zgłoś</button>
+  `)).join("");
 
   $("page-content").innerHTML = `
     <div class="page-content">
       <h3>Znajomi i zaproszenia</h3>
-      <p>Akceptuj prośby o kontakt i zarządzaj listą znajomych.</p>
-      <p class="demo-note">⚠️ Wersja demonstracyjna — zaproszenia i znajomi zapisują się tylko na tym urządzeniu.</p>
+      <p>Zaproszenia i lista znajomych są synchronizowane z Twoim kontem.</p>
     </div>
-
     <div class="page-content">
-      <h3>Prośby o kontakt (${data.incoming.length})</h3>
-      ${incomingHTML || `<p class="section-sub">Brak nowych zaproszeń.</p>`}
+      <h3>Prośby o kontakt (${friendsDataCache.incoming.length})</h3>
+      ${incomingHTML || '<p class="section-sub">Brak nowych zaproszeń.</p>'}
     </div>
-
-    ${data.outgoing.length ? `
+    ${friendsDataCache.outgoing.length ? `
       <div class="page-content">
-        <h3>Wysłane zaproszenia (${data.outgoing.length})</h3>
+        <h3>Wysłane zaproszenia (${friendsDataCache.outgoing.length})</h3>
         ${outgoingHTML}
       </div>` : ""}
-
     <div class="page-content">
-      <h3>Moi znajomi (${data.friends.length})</h3>
-      ${friendsHTML || `<p class="section-sub">Nie masz jeszcze znajomych. Dodaj kogoś z sekcji „Profile uczniów”.</p>`}
+      <h3>Moi znajomi (${friendsDataCache.friends.length})</h3>
+      ${friendsHTML || '<p class="section-sub">Nie masz jeszcze znajomych. Poznaj uczniów w sekcji „Profile uczniów”.</p>'}
     </div>
   `;
-
   bindFriendsPage();
 }
 
 function bindFriendsPage() {
   const container = $("page-content");
-
   const rerender = () => renderFriendsPage();
 
   container.querySelectorAll("[data-action='accept-invite']").forEach(button => {
-    button.addEventListener("click", () => {
-      acceptFriendInvite(button.dataset.personId);
-      rerender();
+    button.addEventListener("click", async () => {
+      await acceptFriendInvite(button.dataset.requestId);
+      await rerender();
     });
   });
-
   container.querySelectorAll("[data-action='reject-invite']").forEach(button => {
-    button.addEventListener("click", () => {
-      rejectFriendInvite(button.dataset.personId);
-      rerender();
+    button.addEventListener("click", async () => {
+      await rejectFriendInvite(button.dataset.requestId);
+      await rerender();
     });
   });
-
   container.querySelectorAll("[data-action='cancel-invite']").forEach(button => {
-    button.addEventListener("click", () => {
-      cancelFriendInvite(button.dataset.personId);
-      rerender();
+    button.addEventListener("click", async () => {
+      await cancelFriendInvite(button.dataset.requestId);
+      await rerender();
     });
   });
-
   container.querySelectorAll("[data-action='open-friend-chat']").forEach(button => {
-    button.addEventListener("click", () => {
-      openFriendConversation(button.dataset.personId);
-    });
+    button.addEventListener("click", () => openFriendConversation(button.dataset.personId));
   });
-
   container.querySelectorAll("[data-action='remove-friend']").forEach(button => {
-    button.addEventListener("click", () => {
-      removeFriend(button.dataset.personId);
-      rerender();
+    button.addEventListener("click", async () => {
+      await removeFriend(button.dataset.personId);
+      await rerender();
     });
   });
-
   container.querySelectorAll("[data-action='block-person']").forEach(button => {
-    button.addEventListener("click", () => {
-      blockUser(button.dataset.personId);
-      rerender();
+    button.addEventListener("click", async () => {
+      await blockUser(button.dataset.personId);
+      await rerender();
     });
   });
-
   container.querySelectorAll("[data-action='unblock']").forEach(button => {
-    button.addEventListener("click", () => {
-      unblockUser(button.dataset.personId);
-      rerender();
+    button.addEventListener("click", async () => {
+      await unblockUser(button.dataset.personId);
+      await rerender();
     });
   });
-
   container.querySelectorAll("[data-action='report-person']").forEach(button => {
-    button.addEventListener("click", () => {
-      addReport(button.dataset.personId);
-      button.disabled = true;
-      button.textContent = "Zgłoszono";
+    button.addEventListener("click", async () => {
+      const ok = await submitContentReport("profile", button.dataset.personId, button.dataset.personId);
+      if (ok) {
+        button.disabled = true;
+        button.textContent = "Zgłoszono";
+      }
     });
   });
 }
 
-$("notif-bell").addEventListener("click", () => openPage("friends"));
-
-
-// CZAT
-
-const CHAT_KEY = "zspm_demo_chat";
-const CHAT_REPORTS_KEY = "zspm_demo_chat_reports";
-const BLOCK_KEY = "zspm_demo_blocked";
-const MAX_MESSAGE_LENGTH = 500;
-
-const CHAT_PEOPLE = {
-  lis: { id: "demo-1", avatar: "🦊", nickname: "SzybkiLis" },
-  ania: { id: "demo-2", avatar: "🐼", nickname: "KreatywnaAnia" },
-  wilk: { id: "demo-3", avatar: "🐺", nickname: "WilkSportowy" },
-  mela: { id: "demo-5", avatar: "🐬", nickname: "MelaKoduje" }
-};
-
-
-function openFriendConversation(personId) {
-  const profile = demoPersonById(personId);
-  if (!profile || isBlocked(personId)) return;
-
-  const personKey = "friend_" + profile.id;
-  const conversationId = "friend-" + profile.id;
-  CHAT_PEOPLE[personKey] = {
-    id: profile.id,
-    avatar: profile.avatar,
-    nickname: profile.nickname
-  };
-
-  if (!CONVERSATIONS.some(item => item.id === conversationId)) {
-    CONVERSATIONS.push({
-      id: conversationId,
-      type: "direct",
-      person: personKey
-    });
+async function openFriendConversation(personId) {
+  if (isBlocked(personId)) {
+    alert("Ta rozmowa jest niedostępna, ponieważ użytkownik jest zablokowany.");
+    return;
   }
-
-  openPage("chat");
-  openChat(conversationId);
-  window.scrollTo(0, 0);
-}
-
-const CONVERSATIONS = [
-  {
-    id: "school",
-    type: "group",
-    name: "Czat szkolny",
-    avatar: "🏫",
-    members: ["ania", "wilk", "lis", "mela"]
-  },
-  {
-    id: "demo-lis",
-    type: "direct",
-    person: "lis"
-  },
-  {
-    id: "demo-mela",
-    type: "direct",
-    person: "mela"
+  const { data, error } = await supabaseClient.rpc("create_direct_conversation", {
+    p_other_user: personId
+  });
+  if (error || !data) {
+    console.error("Create conversation error:", error);
+    alert("Nie można rozpocząć rozmowy. Możesz pisać tylko do znajomych, a blokada wyłącza wiadomości.");
+    return;
   }
-];
-
-function minutesAgo(minutes) {
-  return Date.now() - minutes * 60000;
-}
-
-const SEED_MESSAGES = {
-  school: [
-    { id: "seed-s1", from: "ania", text: "Cześć wszystkim! Ktoś już widział nowy plan lekcji?", time: minutesAgo(240) },
-    { id: "seed-s2", from: "wilk", text: "Ja! Trening piłki nożnej w środę o 16:00, kto się zapisuje?", time: minutesAgo(180) },
-    { id: "seed-s3", from: "lis", text: "Ja wpadam po treningu 😄", time: minutesAgo(150) },
-    { id: "seed-s4", from: "mela", text: "Szukam jeszcze osoby do projektu na konkurs programistyczny. Chętni? 💻", time: minutesAgo(60) }
-  ],
-  "demo-lis": [
-    { id: "seed-l1", from: "lis", text: "Hej! Widziałem, że grasz w szachy. Chętny do partii w przerwie?", time: minutesAgo(120) },
-    { id: "seed-l2", from: "me", text: "Cześć! Jasne, mogę w czwartek 🙂", time: minutesAgo(110) }
-  ],
-  "demo-mela": [
-    { id: "seed-m1", from: "mela", text: "Cześć! Pomożesz mi przetestować mini-grę, którą robię?", time: minutesAgo(45) }
-  ]
-};
-
-function getChatData() {
-  try {
-    const data = localStorage.getItem(CHAT_KEY);
-    const parsed = data ? JSON.parse(data) : null;
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch (error) {
-    return {};
-  }
-}
-
-function getConversationMessages(convId) {
-  const data = getChatData();
-
-  if (!data[convId]) {
-    data[convId] = SEED_MESSAGES[convId] ? [...SEED_MESSAGES[convId]] : [];
-    localStorage.setItem(CHAT_KEY, JSON.stringify(data));
-  }
-
-  return data[convId];
-}
-
-function saveConversationMessages(convId, messages) {
-  const data = getChatData();
-  data[convId] = messages;
-  localStorage.setItem(CHAT_KEY, JSON.stringify(data));
-}
-
-function getChatReports() {
-  try {
-    const data = localStorage.getItem(CHAT_REPORTS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    return [];
-  }
-}
-
-function addChatReport(messageId) {
-  const reports = getChatReports();
-  if (!reports.includes(messageId)) {
-    reports.push(messageId);
-    localStorage.setItem(CHAT_REPORTS_KEY, JSON.stringify(reports));
-  }
-}
-
-function getBlockedUsers() {
-  try {
-    const data = localStorage.getItem(BLOCK_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    return [];
-  }
-}
-
-function blockUser(personId) {
-  const blocked = getBlockedUsers();
-  if (!blocked.includes(personId)) {
-    blocked.push(personId);
-    localStorage.setItem(BLOCK_KEY, JSON.stringify(blocked));
-  }
-}
-
-function isBlocked(personId) {
-  return getBlockedUsers().includes(personId);
+  await openPage("chat");
+  await openChat(data);
 }
 
 function formatTime(timestamp) {
@@ -2743,35 +2615,52 @@ function formatTime(timestamp) {
 
 function myDisplayInfo() {
   const myProfile = getMyProfile();
-  return {
-    nickname: myProfile?.nickname || currentUser.name,
-    avatar: myProfile?.avatar || "🙂"
-  };
+  return { nickname: myProfile?.nickname || currentUser.name };
 }
 
-function renderChatList() {
-  const items = CONVERSATIONS.map(conv => {
-    const person = conv.type === "direct" ? CHAT_PEOPLE[conv.person] : null;
-    const name = person ? person.nickname : conv.name;
-    const avatar = person ? person.avatar : conv.avatar;
+async function renderChatList() {
+  if (activeChatChannel) {
+    await supabaseClient.removeChannel(activeChatChannel);
+    activeChatChannel = null;
+  }
+  activeConversationId = null;
+  const { data, error } = await supabaseClient.from("conversations")
+    .select("id,user_one,user_two,updated_at")
+    .order("updated_at", { ascending: false });
+  if (error) {
+    console.error("Conversations load error:", error);
+    $("page-content").innerHTML = '<div class="page-content"><p>Nie udało się załadować rozmów.</p></div>';
+    return;
+  }
+  conversationsCache = data || [];
+  const otherIds = conversationsCache.map(conv => conv.user_one === currentUser.id ? conv.user_two : conv.user_one);
+  await loadProfilesByIds(otherIds);
 
-    const messages = getConversationMessages(conv.id);
-    const last = messages[messages.length - 1];
+  let latestByConversation = new Map();
+  if (conversationsCache.length) {
+    const { data: messages, error: messagesError } = await supabaseClient.from("messages")
+      .select("id,conversation_id,sender_id,content,created_at")
+      .in("conversation_id", conversationsCache.map(conv => conv.id))
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (messagesError) console.error("Conversation previews error:", messagesError);
+    (messages || []).forEach(message => {
+      if (!latestByConversation.has(message.conversation_id)) latestByConversation.set(message.conversation_id, message);
+    });
+  }
 
-    let preview = "Brak wiadomości";
-
-    if (last) {
-      const author = last.from === "me"
-        ? "Ty"
-        : (CHAT_PEOPLE[last.from]?.nickname || "Uczeń");
-      preview = author + ": " + last.text;
-    }
-
+  const items = conversationsCache.map(conv => {
+    const otherId = conv.user_one === currentUser.id ? conv.user_two : conv.user_one;
+    const profile = getProfileById(otherId) || { id: otherId, nickname: "Uczeń", photo: "" };
+    const last = latestByConversation.get(conv.id);
+    const preview = last
+      ? (last.sender_id === currentUser.id ? "Ty: " : "") + last.content
+      : "Brak wiadomości";
     return `
       <button type="button" class="conv-item" data-conv="${escapeHTML(conv.id)}">
-        <div class="conv-avatar">${escapeHTML(avatar)}</div>
+        ${profileAvatarHTML(profile, "conv-avatar")}
         <div class="conv-info">
-          <div class="conv-nick">${escapeHTML(name)}</div>
+          <div class="conv-nick">${escapeHTML(profile.nickname)}</div>
           <div class="conv-last">${escapeHTML(preview)}</div>
         </div>
       </button>
@@ -2780,193 +2669,276 @@ function renderChatList() {
 
   $("page-content").innerHTML = `
     <div class="page-content">
-      <h3>Rozmowy</h3>
-      <p>Wybierz rozmowę, aby dołączyć do dyskusji.</p>
-      <p class="demo-note">⚠️ Czat jest demonstracyjny. Wiadomości zapisują się tylko na tym urządzeniu i nie są wysyłane przez internet.</p>
+      <h3>Rozmowy prywatne</h3>
+      <p>Możesz pisać do zaakceptowanych znajomych. Czat obsługuje wyłącznie wiadomości tekstowe.</p>
     </div>
-    <div class="conv-list">${items}</div>
+    <div class="conv-list">${items || '<div class="page-content"><p>Nie masz jeszcze rozmów. Dodaj znajomego, aby rozpocząć czat.</p></div>'}</div>
   `;
-
   $("page-content").querySelectorAll("[data-conv]").forEach(button => {
-    button.addEventListener("click", () => {
-      openChat(button.dataset.conv);
-    });
+    button.addEventListener("click", () => openChat(button.dataset.conv));
   });
 }
 
-function messageBubbleHTML(msg) {
-  const mine = msg.from === "me";
-  const person = mine ? null : CHAT_PEOPLE[msg.from];
+async function loadConversationMessages(conversationId) {
+  const { data, error } = await supabaseClient.from("messages")
+    .select("id,conversation_id,sender_id,content,created_at")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true })
+    .limit(200);
+  if (error) {
+    console.error("Messages load error:", error);
+    return [];
+  }
+  return data || [];
+}
 
-  // Ignore malformed or unknown senders instead of crashing the whole chat view.
-  if (!mine && (!person || isBlocked(person.id))) return "";
-
-  const myInfo = myDisplayInfo();
-  const nick = mine ? myInfo.nickname : person.nickname;
-  const avatar = mine ? myInfo.avatar : person.avatar;
-  const reported = getChatReports().includes(msg.id);
-
+function messageBubbleHTML(message) {
+  const mine = message.sender_id === currentUser.id;
+  const profile = mine ? getMyProfile() : getProfileById(message.sender_id);
+  const sender = profile || { nickname: "Uczeń", photo: "" };
   const actions = mine ? "" : `
     <div class="bubble-actions">
-      ${reported
-        ? `<span class="chat-reported">Zgłoszono ✓</span>`
-        : `<button type="button" class="msg-action" data-action="report-msg" data-msg-id="${escapeHTML(msg.id)}">Zgłoś</button>`}
-      <button type="button" class="msg-action" data-action="block-person" data-person-id="${escapeHTML(CHAT_PEOPLE[msg.from].id)}">Blokuj</button>
-    </div>
-  `;
-
+      <button type="button" class="msg-action" data-action="report-msg"
+        data-msg-id="${escapeHTML(message.id)}" data-sender-id="${escapeHTML(message.sender_id)}">Zgłoś</button>
+      <button type="button" class="msg-action" data-action="block-person"
+        data-person-id="${escapeHTML(message.sender_id)}">Blokuj</button>
+    </div>`;
   return `
     <div class="chat-row${mine ? " mine" : ""}">
-      ${mine ? "" : `<div class="msg-avatar">${escapeHTML(avatar)}</div>`}
+      ${mine ? "" : profileAvatarHTML(sender, "msg-avatar")}
       <div class="bubble">
-        ${mine ? "" : `<div class="bubble-author">${escapeHTML(nick)}</div>`}
-        <div class="bubble-text" data-msg-id="${escapeHTML(msg.id)}"></div>
-        <div class="bubble-time">${formatTime(msg.time)}</div>
+        ${mine ? "" : '<div class="bubble-author">' + escapeHTML(sender.nickname) + '</div>'}
+        <div class="bubble-text" data-msg-id="${escapeHTML(message.id)}"></div>
+        <div class="bubble-time">${formatTime(new Date(message.created_at).getTime())}</div>
         ${actions}
       </div>
     </div>
   `;
 }
 
-function renderMessages(conv, messages) {
+function renderMessages(messages) {
   const container = $("chat-msgs");
   if (!container) return;
-
-  const visible = messages.map(msg => messageBubbleHTML(msg)).filter(Boolean);
-
-  container.innerHTML = visible.length
-    ? visible.join("")
-    : `<div class="page-content"><p>Brak wiadomości. Napisz pierwszą!</p></div>`;
-
-  messages.forEach(msg => {
-    const element = container.querySelector(`.bubble-text[data-msg-id="${CSS.escape(msg.id)}"]`);
-    if (element) element.textContent = msg.text;
+  container.innerHTML = messages.length
+    ? messages.map(messageBubbleHTML).join("")
+    : '<div class="page-content"><p>Brak wiadomości. Napisz pierwszą!</p></div>';
+  messages.forEach(message => {
+    const element = container.querySelector('.bubble-text[data-msg-id="' + CSS.escape(message.id) + '"]');
+    if (element) element.textContent = message.content;
   });
 
   container.querySelectorAll("[data-action='report-msg']").forEach(button => {
-    button.addEventListener("click", () => {
-      addChatReport(button.dataset.msgId);
-      const span = document.createElement("span");
-      span.className = "chat-reported";
-      span.textContent = "Zgłoszono ✓";
-      button.replaceWith(span);
+    button.addEventListener("click", async () => {
+      const ok = await submitContentReport("message", button.dataset.msgId, button.dataset.senderId);
+      if (ok) {
+        button.disabled = true;
+        button.textContent = "Zgłoszono";
+      }
     });
   });
-
   container.querySelectorAll("[data-action='block-person']").forEach(button => {
-    button.addEventListener("click", () => {
-      blockUser(button.dataset.personId);
-      openChat(conv.id);
+    button.addEventListener("click", async () => {
+      await blockUser(button.dataset.personId);
+      await openChat(activeConversationId);
     });
   });
-
-  requestAnimationFrame(() => {
-    window.scrollTo(0, document.body.scrollHeight);
-  });
+  requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
 }
 
-function openChat(convId) {
-  const conv = CONVERSATIONS.find(item => item.id === convId);
-
-  if (!conv) {
-    renderChatList();
+async function openChat(conversationId) {
+  if (activeChatChannel) {
+    await supabaseClient.removeChannel(activeChatChannel);
+    activeChatChannel = null;
+  }
+  const { data: conversation, error } = await supabaseClient.from("conversations")
+    .select("id,user_one,user_two")
+    .eq("id", conversationId).single();
+  if (error || !conversation) {
+    console.error("Open conversation error:", error);
+    await renderChatList();
     return;
   }
-
-  const person = conv.type === "direct" ? CHAT_PEOPLE[conv.person] : null;
-  const blocked = person && isBlocked(person.id);
-  const title = person ? person.nickname : conv.name;
-  const avatar = person ? person.avatar : conv.avatar;
+  activeConversationId = conversationId;
+  const otherId = conversation.user_one === currentUser.id ? conversation.user_two : conversation.user_one;
+  await loadProfilesByIds([otherId]);
+  activeChatProfile = getProfileById(otherId) || { id: otherId, nickname: "Uczeń", photo: "" };
+  await loadBlockedUsers();
+  const blocked = isBlocked(otherId);
 
   $("page-content").innerHTML = `
     <div class="chat-head">
       <button type="button" class="chat-back" id="chat-back" aria-label="Powrót do rozmów">‹</button>
-      <div class="conv-avatar small">${escapeHTML(avatar)}</div>
+      ${profileAvatarHTML(activeChatProfile, "conv-avatar small")}
       <div class="chat-head-info">
-        <div class="chat-head-nick">${escapeHTML(title)}</div>
-        <div class="chat-head-status">wersja demonstracyjna</div>
+        <div class="chat-head-nick">${escapeHTML(activeChatProfile.nickname)}</div>
+        <div class="chat-head-status">Prywatna rozmowa · tylko tekst</div>
       </div>
-      ${person ? `
-        <button type="button" class="chat-block-btn" id="chat-block" ${blocked ? "disabled" : ""}>
-          ${blocked ? "Zablokowany" : "Blokuj"}
-        </button>` : ""}
+      <button type="button" class="chat-block-btn" id="chat-block">${blocked ? "Odblokuj" : "Blokuj"}</button>
     </div>
-
     <div class="chat-msgs" id="chat-msgs"></div>
-
-    ${blocked ? `
-      <div class="page-content">
-        <p>Ten użytkownik jest zablokowany. Nie wyświetlasz jego wiadomości i nie możesz wysyłać nowych.</p>
-      </div>` : `
+    ${blocked ? '<div class="page-content"><p>Ten użytkownik jest zablokowany. Odblokuj go, aby ponownie wysyłać wiadomości.</p></div>' : `
       <div class="composer-wrap">
         <form class="chat-composer" id="chat-form">
-          <input id="chat-input" class="chat-input" type="text"
-            maxlength="500" placeholder="Napisz wiadomość..." autocomplete="off">
+          <input id="chat-input" class="chat-input" type="text" maxlength="${MAX_MESSAGE_LENGTH}"
+            placeholder="Napisz wiadomość..." autocomplete="off">
           <button class="chat-send" type="submit" aria-label="Wyślij">➤</button>
         </form>
         <div class="char-hint" id="char-hint">0 / ${MAX_MESSAGE_LENGTH}</div>
       </div>`}
   `;
 
-  $("chat-back").addEventListener("click", () => {
-    renderChatList();
-    window.scrollTo(0, 0);
+  $("chat-back").addEventListener("click", () => renderChatList());
+  $("chat-block").addEventListener("click", async () => {
+    if (isBlocked(otherId)) await unblockUser(otherId);
+    else await blockUser(otherId);
+    await openChat(conversationId);
   });
 
-  if (person) {
-    $("chat-block").addEventListener("click", () => {
-      blockUser(person.id);
-      openChat(conv.id);
-    });
-  }
+  const messages = await loadConversationMessages(conversationId);
+  renderMessages(messages);
 
-  const messages = getConversationMessages(conv.id);
-  renderMessages(conv, messages);
+  if (!blocked) bindComposer(conversationId);
 
-  if (!blocked) {
-    bindComposer(conv, messages);
-  }
+  await supabaseClient.from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("user_id", currentUser.id)
+    .eq("type", "message")
+    .eq("related_id", conversationId)
+    .is("read_at", null);
+  await loadNotifications();
+
+  activeChatChannel = supabaseClient.channel("messages-" + conversationId)
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "messages",
+      filter: "conversation_id=eq." + conversationId
+    }, async () => {
+      const fresh = await loadConversationMessages(conversationId);
+      renderMessages(fresh);
+      await loadNotifications();
+    })
+    .subscribe();
 }
 
-function bindComposer(conv, messages) {
+function bindComposer(conversationId) {
   const form = $("chat-form");
   const input = $("chat-input");
   const hint = $("char-hint");
-
   input.addEventListener("input", () => {
     hint.textContent = input.value.length + " / " + MAX_MESSAGE_LENGTH;
   });
-
-  form.addEventListener("submit", event => {
+  form.addEventListener("submit", async event => {
     event.preventDefault();
-
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    if (text.length > MAX_MESSAGE_LENGTH) {
-      input.value = text.slice(0, MAX_MESSAGE_LENGTH);
-      hint.textContent = MAX_MESSAGE_LENGTH + " / " + MAX_MESSAGE_LENGTH;
+    const content = input.value.trim().slice(0, MAX_MESSAGE_LENGTH);
+    if (!content) return;
+    const button = form.querySelector("button[type=submit]");
+    button.disabled = true;
+    const { error } = await supabaseClient.from("messages").insert({
+      conversation_id: conversationId,
+      sender_id: currentUser.id,
+      content
+    });
+    button.disabled = false;
+    if (error) {
+      console.error("Send message error:", error);
+      alert("Nie udało się wysłać wiadomości. Sprawdź, czy rozmowa nie jest zablokowana.");
       return;
     }
-
-    messages.push({
-      id: "u-" + Date.now() + "-" + Math.floor(Math.random() * 10000),
-      from: "me",
-      text,
-      time: Date.now()
-    });
-
-    saveConversationMessages(conv.id, messages);
-
     input.value = "";
     hint.textContent = "0 / " + MAX_MESSAGE_LENGTH;
-
-    renderMessages(conv, messages);
+    const fresh = await loadConversationMessages(conversationId);
+    renderMessages(fresh);
+    await loadNotifications();
     input.focus();
   });
 }
 
+async function loadNotifications() {
+  if (!currentUser?.id) return [];
+  const { data, error } = await supabaseClient.from("notifications")
+    .select("id,type,title,body,related_user_id,related_id,read_at,created_at")
+    .eq("user_id", currentUser.id)
+    .order("created_at", { ascending: false })
+    .limit(60);
+  if (error) {
+    console.error("Notifications load error:", error);
+    return notificationsCache;
+  }
+  notificationsCache = data || [];
+  updateNotifBadge();
+  return notificationsCache;
+}
+
+function updateNotifBadge() {
+  const badge = $("notif-badge");
+  if (!badge) return;
+  const count = notificationsCache.filter(item => !item.read_at).length;
+  if (count > 0) {
+    badge.textContent = count > 9 ? "9+" : String(count);
+    badge.classList.remove("hidden");
+  } else {
+    badge.classList.add("hidden");
+  }
+}
+
+async function renderNotificationsPage() {
+  await loadNotifications();
+  const items = notificationsCache.map(item => {
+    const date = new Date(item.created_at).toLocaleString("pl-PL", {
+      day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+    });
+    return `
+      <button type="button" class="conv-item notification-item${item.read_at ? "" : " unread"}"
+        data-notification-id="${escapeHTML(item.id)}" data-type="${escapeHTML(item.type)}"
+        data-related-id="${escapeHTML(item.related_id || "")}">
+        <div class="conv-info">
+          <div class="conv-nick">${escapeHTML(item.title)}</div>
+          <div class="conv-last">${escapeHTML(item.body || "")}</div>
+          <div class="section-sub">${escapeHTML(date)}</div>
+        </div>
+      </button>`;
+  }).join("");
+  $("page-content").innerHTML = `
+    <div class="page-content">
+      <h3>Powiadomienia</h3>
+      <p>Zaproszenia, wiadomości i aktywność przy Twojej ankiecie.</p>
+    </div>
+    <div class="conv-list">${items || '<div class="page-content"><p>Nie masz jeszcze powiadomień.</p></div>'}</div>
+  `;
+  $("page-content").querySelectorAll("[data-notification-id]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const notification = notificationsCache.find(item => item.id === button.dataset.notificationId);
+      if (!notification) return;
+      if (!notification.read_at) {
+        await supabaseClient.from("notifications").update({ read_at: new Date().toISOString() })
+          .eq("id", notification.id).eq("user_id", currentUser.id);
+      }
+      await loadNotifications();
+      if (notification.type === "message" && notification.related_id) {
+        await openPage("chat");
+        await openChat(notification.related_id);
+      } else if (notification.type === "friend_request" || notification.type === "friend_accepted") {
+        await openPage("friends");
+      } else {
+        await openPage("profiles");
+      }
+    });
+  });
+}
+
+async function setupRealtimeSubscriptions() {
+  if (notificationsChannel) {
+    await supabaseClient.removeChannel(notificationsChannel);
+    notificationsChannel = null;
+  }
+  notificationsChannel = supabaseClient.channel("notifications-" + currentUser.id)
+    .on("postgres_changes", {
+      event: "*", schema: "public", table: "notifications",
+      filter: "user_id=eq." + currentUser.id
+    }, () => loadNotifications())
+    .subscribe();
+}
 
 // OBSŁUGA PRZYCISKÓW
 
