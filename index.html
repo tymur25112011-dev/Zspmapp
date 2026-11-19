@@ -2783,6 +2783,10 @@ async function openChat(conversationId) {
   activeChatProfile = getProfileById(otherId) || { id: otherId, nickname: "Uczeń", photo: "" };
   await loadBlockedUsers();
   const blocked = isBlocked(otherId);
+  const { data: canSendResult, error: canSendError } = await supabaseClient.rpc("can_send_message", {
+    p_conversation_id: conversationId
+  });
+  const canSend = !canSendError && canSendResult === true;
 
   $("page-content").innerHTML = `
     <div class="chat-head">
@@ -2795,7 +2799,11 @@ async function openChat(conversationId) {
       <button type="button" class="chat-block-btn" id="chat-block">${blocked ? "Odblokuj" : "Blokuj"}</button>
     </div>
     <div class="chat-msgs" id="chat-msgs"></div>
-    ${blocked ? '<div class="page-content"><p>Ten użytkownik jest zablokowany. Odblokuj go, aby ponownie wysyłać wiadomości.</p></div>' : `
+    ${blocked
+      ? '<div class="page-content"><p>Ten użytkownik jest zablokowany. Odblokuj go, aby ponownie wysyłać wiadomości.</p></div>'
+      : !canSend
+        ? '<div class="page-content"><p>Wiadomości w tej rozmowie są obecnie niedostępne.</p></div>'
+        : `
       <div class="composer-wrap">
         <form class="chat-composer" id="chat-form">
           <input id="chat-input" class="chat-input" type="text" maxlength="${MAX_MESSAGE_LENGTH}"
@@ -2816,7 +2824,7 @@ async function openChat(conversationId) {
   const messages = await loadConversationMessages(conversationId);
   renderMessages(messages);
 
-  if (!blocked) bindComposer(conversationId);
+  if (canSend) bindComposer(conversationId);
 
   await supabaseClient.from("notifications")
     .update({ read_at: new Date().toISOString() })
