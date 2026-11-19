@@ -1760,7 +1760,7 @@ async function renderCommunityProfilePage() {
       '<div class="community-profile-note">To jest Twój publiczny profil społeczności. Ankieta poznawania uczniów jest osobną funkcją.</div>' +
       '<button type="button" class="community-questionnaire-link" id="open-own-questionnaire">Otwórz moją ankietę</button>' +
       '</div>';
-    $("community-edit-profile").addEventListener("click", () => renderCommunityProfileEditor(profile));
+    $("community-edit-profile").addEventListener("click", () => renderCommunityProfileEditor(profile, roleBadge));
     $("open-own-questionnaire").addEventListener("click", () => openPage("questionnaire"));
   } catch (error) {
     console.error(error);
@@ -1768,8 +1768,9 @@ async function renderCommunityProfilePage() {
   }
 }
 
-function renderCommunityProfileEditor(profile) {
+function renderCommunityProfileEditor(profile, roleBadge) {
   const host = $("page-content");
+  const accountRole = roleBadge === "admin" ? "admin" : roleBadge === "premium" ? "premium" : "zwykły";
   const current = profile || {nickname:currentUser.name,interests:[],avatar_decoration:"none",banner_theme:"aurora"};
   const bannerChoices = COMMUNITY_BANNERS.map(theme =>
     '<label class="community-theme-choice"><input type="radio" name="community-banner-theme" value="'+theme+'" '+((current.banner_theme||"aurora")===theme?"checked":"")+'><span class="theme-preview theme-'+theme+'"></span><small>'+({aurora:"Aurora",ocean:"Ocean",midnight:"Midnight",nebula:"Nebula",waves:"Waves"}[theme])+'</small></label>'
@@ -1789,7 +1790,7 @@ function renderCommunityProfileEditor(profile) {
       '<div class="community-decoration-grid">'+decorationChoices+'</div></section>' +
       '<section class="community-editor-section"><h4>Informacje</h4><p class="community-public-note">Informacje na tej stronie widzą inni zalogowani użytkownicy. Imię i nazwisko są opcjonalne — nie wpisuj danych, których nie chcesz udostępniać.</p>' +
         '<label class="community-form-field">Nick<input id="community-nickname" maxlength="32" minlength="2" required value="'+escapeHTML(current.nickname||currentUser.name)+'"></label>' +
-        '<label class="community-form-field">Status<input id="community-status" maxlength="80" placeholder="Co u Ciebie?" value="'+escapeHTML(current.status_text||'')+'"></label>' +
+        ' <div class="community-form-field community-account-role"><span>Typ konta</span><strong class="community-role-badge role-'+accountRole+'">'+accountRole.toUpperCase()+'</strong><small>Typ konta jest nadawany przez system lub administratora.</small></div>' +
         '<label class="community-form-field">Opis<textarea id="community-bio" maxlength="500" rows="4" placeholder="Napisz kilka słów o sobie...">'+escapeHTML(current.bio||'')+'</textarea></label>' +
         '<label class="community-form-field">Zainteresowania<input id="community-interests" maxlength="200" placeholder="Muzyka, gry, sport..." value="'+escapeHTML((current.interests||[]).join(", "))+'"></label>' +
         '<label class="community-form-field">Klasa <span>(opcjonalnie)</span><input id="community-class" maxlength="20" value="'+escapeHTML(current.class_name||'')+'" placeholder="np. 1A"></label>' +
@@ -1837,7 +1838,8 @@ function renderCommunityProfileEditor(profile) {
     }
   });
 
-  $("community-profile-form").addEventListener("submit", async event => {
+  const communityForm = $("community-profile-form");
+  communityForm.addEventListener("submit", async event => {
     event.preventDefault();
     const feedback = $("community-editor-feedback");
     const button = event.currentTarget.querySelector('button[type="submit"]');
@@ -1857,13 +1859,13 @@ function renderCommunityProfileEditor(profile) {
       const avatarPath = await uploadAsset(avatarFile,"avatar",current.avatar_path,removeAvatar);
       const bannerPath = await uploadAsset(bannerFile,"banner",current.banner_path,removeBanner);
       const row = {
-        user_id:currentUser.id,nickname,status_text:$("community-status").value.trim(),
+        user_id:currentUser.id,nickname,
         bio:$("community-bio").value.trim(),
         interests:$("community-interests").value.split(",").map(x=>x.trim()).filter(Boolean).slice(0,10),
         class_name:$("community-class").value.trim(),first_name:$("community-first-name").value.trim(),
         last_name:$("community-last-name").value.trim(),avatar_path:avatarPath,banner_path:bannerPath,
-        avatar_decoration:event.currentTarget.querySelector('input[name="community-avatar-decoration"]:checked')?.value||"none",
-        banner_theme:event.currentTarget.querySelector('input[name="community-banner-theme"]:checked')?.value||"aurora",
+        avatar_decoration:communityForm.querySelector('input[name="community-avatar-decoration"]:checked')?.value||"none",
+        banner_theme:communityForm.querySelector('input[name="community-banner-theme"]:checked')?.value||"aurora",
         updated_at:new Date().toISOString()
       };
       const {data,error}=await supabaseClient.from("community_profiles").upsert(row,{onConflict:"user_id"})
