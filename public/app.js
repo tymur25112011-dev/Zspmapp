@@ -337,10 +337,21 @@ const pages = {
     title: "Wesprzyj twórcę",
     subtitle: "Pomóż rozwijać projekt",
     content: `
-      <div class="page-content">
-        <h3>Wesprzyj ZSPM Community</h3>
-        <p>Dziękujemy za wsparcie naszego projektu!</p>
-        <p>Możliwości wsparcia zostaną dodane później.</p>
+      <div class="page-content support-page">
+        <section class="profile-card">
+          <h3>Wesprzyj ZSPM Community</h3>
+          <p>Dziękujemy, że chcesz wesprzeć rozwój projektu!</p>
+          <h4>Przelew bankowy</h4>
+          <p>Możesz wysłać dowolną kwotę ze swojego banku. W aplikacji bankowej wybierz zwykły przelew i wpisz wybraną przez siebie sumę.</p>
+          <div class="support-account-box">
+            <span class="small-label">Numer rachunku</span>
+            <strong>Numer konta zostanie uzupełniony po konfiguracji.</strong>
+            <button type="button" class="primary-btn" disabled>Kopiuj numer konta</button>
+          </div>
+          <p><strong>Tytuł przelewu:</strong> Wsparcie ZSPM Community</p>
+          <p class="muted">Przed zatwierdzeniem sprawdź dane odbiorcy i kwotę w swojej aplikacji bankowej. Wsparcie jest dobrowolne.</p>
+          <p class="muted">Kod QR do szybkiego przelewu dodamy wkrótce.</p>
+        </section>
       </div>
     `
   }
