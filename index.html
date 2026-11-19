@@ -1850,16 +1850,14 @@ function profileCardHTML(profile, own) {
 function renderProfilesPage() {
   const reports = getReports();
   const myProfile = getMyProfile();
-  const myVisible = myProfile && (myProfile.privacy || DEFAULT_PRIVACY).visible !== false;
-
   const cards = [];
 
-  if (myProfile && myVisible) {
+  if (myProfile) {
     cards.push(profileCardHTML({ ...myProfile, id: currentUser.id }, true));
   }
 
   const liveProfiles = publicProfilesCache.filter(profile =>
-    !myProfile || profile.id !== currentUser?.id
+    profile.id !== currentUser?.id && profile.privacy?.visible !== false
   );
   liveProfiles
     .filter(profile => !myProfile || profile.id !== currentUser?.id)
