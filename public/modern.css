@@ -3590,3 +3590,7 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
 .school-timetable-empty p{margin:7px 0 0}
 .school-timetable-note{margin:14px 4px;color:var(--zspm-muted);font-size:10px;line-height:1.5}
 @media(max-width:360px){.school-day-tabs{gap:3px}.school-day-tab{font-size:10px;padding:9px 0}.school-lesson-card{grid-template-columns:32px minmax(0,1fr) auto;gap:8px;padding:11px 9px}.school-lesson-number{width:29px;height:29px}}
+
+
+/* Chat search and admin quick filters */
+.chat-search-input{display:block;width:min(100%,420px);margin:10px 0;padding:10px 13px;border:1px solid var(--zspm-border);border-radius:12px;background:rgba(8,12,28,.72);color:var(--zspm-text);font:inherit;font-size:14px;min-width:0}.chat-search-input::placeholder{color:var(--zspm-muted)}.chat-search-input:focus{outline:2px solid var(--zspm-accent);outline-offset:2px}.admin-search-input{margin:12px 0 16px}.global-chat-head{gap:12px}.global-chat-head>div{min-width:0;flex:1}.global-chat-head .chat-search-input{margin-top:8px}.chat-head-info .chat-search-input{margin-top:7px}.chat-row[hidden],.global-message[hidden],.admin-user-card[hidden],.admin-report[hidden]{display:none!important}
