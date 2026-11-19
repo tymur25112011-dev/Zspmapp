@@ -150,6 +150,7 @@ let onlineUsers = new Set();
 let reportsCache = [];
 let reportedMessageIdsCache = [];
 let chatMessageLikesCache = new Map();
+let chatMessageReactionsCache = new Map();
 let replyToMessageId = null;
 
 function showMessage(id, text, type = "error") {
@@ -2520,14 +2521,24 @@ async function loadConversationMessages(conversationId) {
   const rows = data || [];
   const ids = rows.map(item => item.id);
   chatMessageLikesCache = new Map();
+  chatMessageReactionsCache = new Map();
   if (ids.length) {
-    const {data: likeRows, error: likeError} = await supabaseClient.from("message_likes").select("message_id,user_id").in("message_id",ids);
+    const [{data:likeRows,error:likeError},{data:reactionRows,error:reactionError}] = await Promise.all([
+      supabaseClient.from("message_likes").select("message_id,user_id").in("message_id",ids),
+      supabaseClient.from("message_reactions").select("message_id,user_id,emoji").in("message_id",ids)
+    ]);
     if (likeError) console.warn("Message likes load error:",likeError);
+    if (reactionError) console.warn("Message reactions load error:",reactionError);
     (likeRows || []).forEach(row => {
       const item = chatMessageLikesCache.get(row.message_id) || {count:0,liked:false};
-      item.count++;
-      if (row.user_id === currentUser.id) item.liked = true;
+      item.count++; if (row.user_id === currentUser.id) item.liked = true;
       chatMessageLikesCache.set(row.message_id,item);
+    });
+    (reactionRows || []).forEach(row => {
+      const byEmoji=chatMessageReactionsCache.get(row.message_id)||new Map();
+      const item=byEmoji.get(row.emoji)||{count:0,reacted:false};
+      item.count++; if(row.user_id===currentUser.id)item.reacted=true;
+      byEmoji.set(row.emoji,item); chatMessageReactionsCache.set(row.message_id,byEmoji);
     });
   }
   return rows;
@@ -2542,6 +2553,9 @@ function messageBubbleHTML(message, allMessages = []) {
     : sender.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : "";
   const alreadyReported = reportedMessageIdsCache.includes(message.id);
   const likes = chatMessageLikesCache.get(message.id) || {count:0,liked:false};
+  const reactions = chatMessageReactionsCache.get(message.id) || new Map();
+  const reactionChips = [...reactions.entries()].map(([emoji,v]) => '<button type="button" class="chat-reaction'+(v.reacted?' active':'')+'" data-action="react-msg" data-msg-id="'+escapeHTML(message.id)+'" data-emoji="'+emoji+'">'+emoji+' '+v.count+'</button>').join("");
+  const reactionPicker = ['👍','❤️','😂','🔥','👏','😮'].map(emoji => '<button type="button" class="chat-reaction-pick" data-action="react-msg" data-msg-id="'+escapeHTML(message.id)+'" data-emoji="'+emoji+'">'+emoji+'</button>').join("");
   const parent = allMessages.find(item => item.id === message.reply_to_id);
   const actions = '<div class="bubble-actions">' +
     (mine
@@ -2555,6 +2569,7 @@ function messageBubbleHTML(message, allMessages = []) {
     (parent ? '<div class="bubble-reply-context">↳ ' + escapeHTML(parent.content.slice(0,100)) + '</div>' : '') +
     '<div class="bubble-text" data-msg-id="' + escapeHTML(message.id) + '"></div>' +
     '<div class="bubble-time">' + formatTime(new Date(message.created_at).getTime()) + (message.edited_at ? ' · edytowano' : '') + '</div>' +
+    '<div class="chat-reaction-row">'+reactionChips+'<span class="chat-reaction-picker">'+reactionPicker+'</span></div>' +
     actions + '</div></div>';
 }
 
@@ -2594,6 +2609,14 @@ function renderMessages(messages) {
       if (!confirm("Usunąć tę wiadomość?")) return;
       const {error} = await supabaseClient.from("messages").delete().eq("id",id).eq("sender_id",currentUser.id);
       if (error) return alert("Nie udało się usunąć wiadomości.");
+      await openChat(activeConversationId);
+    } else if (action === "react-msg") {
+      const emoji=button.dataset.emoji;
+      const existing=chatMessageReactionsCache.get(id)?.get(emoji)?.reacted;
+      const result=existing
+        ? await supabaseClient.from("message_reactions").delete().eq("message_id",id).eq("user_id",currentUser.id).eq("emoji",emoji)
+        : await supabaseClient.from("message_reactions").insert({message_id:id,user_id:currentUser.id,emoji});
+      if(result.error)return alert("Nie udało się dodać reakcji.");
       await openChat(activeConversationId);
     } else if (action === "like-msg") {
       const existing = chatMessageLikesCache.get(id)?.liked;
@@ -2691,6 +2714,13 @@ async function openChat(conversationId) {
       const fresh = await loadConversationMessages(conversationId);
       renderMessages(fresh);
       await loadNotifications();
+    })
+    .on("postgres_changes", {
+      event: "*", schema: "public", table: "message_reactions"
+    }, async () => {
+      if (activeConversationId !== conversationId) return;
+      const fresh = await loadConversationMessages(conversationId);
+      renderMessages(fresh);
     })
     .subscribe();
 }
