@@ -669,6 +669,7 @@ async function loadMyProfileFromSupabase() {
 
   myProfileCache = await mapDatabaseProfile(data);
   if (myProfileCache) {
+    myProfileCache.isAdmin = isAdmin;
     myProfileCache.badge = isAdmin ? "admin" : currentUserBadge;
 
     const profiles = getUserProfiles();
@@ -756,6 +757,7 @@ async function loadPublicProfilesFromSupabase() {
 
   const visibleRows = (data || []).filter(row => row.id !== currentUser?.id);
   const ids = visibleRows.map(row => row.id);
+  const adminIds = await loadAdminFlagsByIds(ids);
   let badgeMap = new Map();
   if (ids.length) {
     const { data: badges, error: badgeError } = await supabaseClient
@@ -765,7 +767,10 @@ async function loadPublicProfilesFromSupabase() {
   }
   publicProfilesCache = (await Promise.all(visibleRows.map(async row => {
     const profile = await mapDatabaseProfile(row);
-    if (profile) profile.badge = badgeMap.get(row.id) || null;
+    if (profile) {
+      profile.isAdmin = adminIds.has(row.id);
+      profile.badge = profile.isAdmin ? "admin" : (badgeMap.get(row.id) || null);
+    }
     return profile;
   }))).filter(Boolean);
   return publicProfilesCache;
@@ -897,7 +902,7 @@ function profileCardHTML(profile, own) {
     ? `<div class="profile-klasa">Klasa ${escapeHTML(profile.klasa)}</div>`
     : "";
 
-  const roleBadge = profile.id === currentUser?.id && isAdmin
+  const roleBadge = profile.isAdmin || (profile.id === currentUser?.id && isAdmin)
     ? '<span class="user-role-badge admin-role">ADMIN</span>'
     : profile.badge === "premium"
       ? '<span class="user-role-badge premium-role">PREMIUM</span>' : "";
@@ -1403,6 +1408,17 @@ function getProfileById(id) {
   return publicProfilesCache.find(profile => profile.id === id) || null;
 }
 
+async function loadAdminFlagsByIds(ids) {
+  const uniqueIds = [...new Set((ids || []).filter(Boolean))];
+  if (!uniqueIds.length) return new Set();
+  const { data, error } = await supabaseClient.rpc("get_public_admin_status", { p_user_ids: uniqueIds });
+  if (error) {
+    console.warn("Admin status lookup failed:", error);
+    return new Set();
+  }
+  return new Set((data || []).filter(row => row.is_admin).map(row => row.user_id));
+}
+
 async function loadProfilesByIds(ids) {
   const uniqueIds = [...new Set((ids || []).filter(Boolean))];
   if (!uniqueIds.length) return [];
@@ -1415,11 +1431,15 @@ async function loadProfilesByIds(ids) {
     return [];
   }
   const mapped = (await Promise.all((data || []).map(row => mapDatabaseProfile(row)))).filter(Boolean);
+  const adminIds = await loadAdminFlagsByIds(uniqueIds);
   const { data: badgeRows, error: badgeError } = await supabaseClient
     .from("user_badges").select("user_id,badge").in("user_id", uniqueIds);
   if (badgeError) console.warn("Related profile badges load error:", badgeError);
   const badgeMap = new Map((badgeRows || []).map(row => [row.user_id, row.badge]));
-  mapped.forEach(profile => { profile.badge = badgeMap.get(profile.id) || null; });
+  mapped.forEach(profile => {
+    profile.isAdmin = adminIds.has(profile.id);
+    profile.badge = profile.isAdmin ? "admin" : (badgeMap.get(profile.id) || null);
+  });
   const byId = new Map(publicProfilesCache.map(profile => [profile.id, profile]));
   mapped.forEach(profile => byId.set(profile.id, profile));
   publicProfilesCache = [...byId.values()].filter(profile => profile.id !== currentUser?.id);
@@ -1777,7 +1797,7 @@ async function renderChatList() {
       <button type="button" class="conv-item" data-conv="${escapeHTML(conv.id)}">
         ${profileAvatarHTML(profile, "conv-avatar")}
         <div class="conv-info">
-          <div class="conv-nick">${escapeHTML(profile.nickname)}</div>
+          <div class="conv-nick">${escapeHTML(profile.nickname)}${profile.isAdmin ? '<span class="user-role-badge admin-role">ADMIN</span>' : profile.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : ""}</div>
           <div class="conv-last">${escapeHTML(preview)}</div>
         </div>
       </button>
@@ -1787,7 +1807,7 @@ async function renderChatList() {
   $("page-content").innerHTML = `
     <button type="button" class="global-chat-entry" id="open-global-chat">
       <span class="global-chat-entry-icon">🌐</span>
-      <span class="global-chat-entry-copy"><strong>Общий чат</strong><small>Общение всех пользователей</small></span>
+      <span class="global-chat-entry-copy"><strong>Czat ogólny</strong><small>Rozmowa wszystkich użytkowników</small></span>
       <span class="global-chat-entry-arrow">›</span>
     </button>
     <div class="page-content">
@@ -1830,7 +1850,7 @@ async function openGlobalChat() {
     const mine = item.sender_id === currentUser.id;
     const profile = mine ? getMyProfile() : getProfileById(item.sender_id);
     const nickname = profile?.nickname || "Użytkownik";
-    const role = mine && isAdmin ? '<span class="user-role-badge admin-role">ADMIN</span>' :
+    const role = (mine ? isAdmin : profile?.isAdmin) ? '<span class="user-role-badge admin-role">ADMIN</span>' :
       profile?.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : "";
     return '<article class="global-message' + (mine ? ' own' : '') + '"><div class="global-message-meta"><strong>' +
       escapeHTML(nickname) + '</strong>' + role + '<time>' + escapeHTML(formatTime(item.created_at)) +
@@ -1870,7 +1890,7 @@ async function openGlobalChat() {
       const fresh=payload.new; await loadProfilesByIds([fresh.sender_id]);
       const mine=fresh.sender_id===currentUser.id, profile=mine?getMyProfile():getProfileById(fresh.sender_id);
       const nickname=profile?.nickname||"Użytkownik";
-      const role=mine&&isAdmin?'<span class="user-role-badge admin-role">ADMIN</span>':
+      const role=(mine?isAdmin:profile?.isAdmin)?'<span class="user-role-badge admin-role">ADMIN</span>':
         profile?.badge==="premium"?'<span class="user-role-badge premium-role">PREMIUM</span>':"";
       const article=document.createElement("article"); article.className="global-message"+(mine?" own":"");
       article.innerHTML='<div class="global-message-meta"><strong>'+escapeHTML(nickname)+'</strong>'+role+
@@ -1905,6 +1925,9 @@ function messageBubbleHTML(message) {
   const mine = message.sender_id === currentUser.id;
   const profile = mine ? getMyProfile() : getProfileById(message.sender_id);
   const sender = profile || { nickname: "Uczeń", photo: "" };
+  const senderBadge = (mine ? isAdmin : sender.isAdmin)
+    ? '<span class="user-role-badge admin-role">ADMIN</span>'
+    : sender.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : "";
   const alreadyReported = reportedMessageIdsCache.includes(message.id);
   const actions = mine ? "" : `
     <div class="bubble-actions">
@@ -1918,7 +1941,7 @@ function messageBubbleHTML(message) {
     <div class="chat-row${mine ? " mine" : ""}">
       ${mine ? "" : profileAvatarHTML(sender, "msg-avatar")}
       <div class="bubble">
-        ${mine ? "" : '<div class="bubble-author">' + escapeHTML(sender.nickname) + '</div>'}
+        ${mine ? "" : '<div class="bubble-author">' + escapeHTML(sender.nickname) + senderBadge + '</div>'}
         <div class="bubble-text" data-msg-id="${escapeHTML(message.id)}"></div>
         <div class="bubble-time">${formatTime(new Date(message.created_at).getTime())}</div>
         ${actions}
