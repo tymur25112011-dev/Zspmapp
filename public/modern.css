@@ -3609,3 +3609,17 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
 .chat-head-info .chat-search-box{width:min(100%,390px);margin:8px 0 0}
 .global-search-box{width:min(100%,520px);margin:12px 0 14px}
 @media(max-width:560px){.chat-search-box{width:100%;border-radius:13px}.chat-search-box .chat-search-input{height:42px;font-size:13px}.chat-search-box .chat-search-icon{flex-basis:38px}}
+
+
+/* Pinned chat messages */
+.chat-pinned-list{display:flex;flex-direction:column;gap:7px;margin:10px 0 12px;padding:11px 12px;border:1px solid rgba(111,145,225,.25);border-radius:14px;background:linear-gradient(135deg,rgba(32,48,83,.72),rgba(16,26,49,.86));box-shadow:0 5px 16px rgba(0,0,0,.12)}
+.chat-pinned-title{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#cbd8fa;font-size:12px;font-weight:800;letter-spacing:.02em}
+.chat-pinned-title small{color:#8fa2ca;font-size:11px;font-weight:600}
+.chat-pinned-item{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:8px 9px;border-radius:10px;background:rgba(255,255,255,.045)}
+.chat-pinned-copy{display:flex;flex:1;flex-direction:column;gap:3px;min-width:0}
+.chat-pinned-copy strong{color:#a9c2ff;font-size:11px}
+.chat-pinned-copy span{overflow:hidden;color:var(--zspm-text);font-size:12px;line-height:1.4;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.chat-unpin-btn{flex:0 0 30px;width:30px;height:30px;border:1px solid rgba(255,255,255,.09);border-radius:9px;background:rgba(255,255,255,.07);color:#cbd5ed;font-size:20px;cursor:pointer}
+.chat-unpin-btn:hover{background:rgba(255,100,120,.16);color:#ffb5c0}
+.pin-msg-action{color:#a9c2ff!important}
+.pin-msg-action:hover{background:rgba(100,140,255,.13)!important}
