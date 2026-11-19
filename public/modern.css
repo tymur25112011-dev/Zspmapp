@@ -3148,3 +3148,17 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
 .donation-admin-form button{grid-column:1/-1}.donation-admin-list{margin-top:13px}.donation-admin-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--zspm-border)}
 .donation-admin-row>div{display:flex;flex-direction:column;gap:4px}.donation-admin-row strong{font-size:12px}.donation-admin-row small{font-size:11px;color:var(--zspm-blue);font-weight:800}
 @media(max-width:420px){.donation-admin-form{grid-template-columns:1fr}.donation-admin-form button{grid-column:auto}.ranking-tabs button{font-size:10px}}
+
+
+/* Consistent SVG icon styling for the new community sections. */
+#app .menu-icon { display:flex; align-items:center; min-height:32px; }
+#app .menu-icon svg { width:26px; height:26px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+#app .information-icon { display:flex; align-items:center; justify-content:center; width:42px; height:42px; margin-bottom:12px; border:1px solid var(--zspm-border); border-radius:13px; background:var(--zspm-blue-soft); color:var(--zspm-blue); }
+#app .information-icon svg { width:23px; height:23px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+#app .ideas-intro { display:flex; align-items:center; gap:12px; }
+#app .ideas-intro-icon { display:grid; place-items:center; flex:0 0 42px; width:42px; height:42px; border:1px solid var(--zspm-border); border-radius:13px; background:var(--zspm-blue-soft); color:var(--zspm-blue); }
+#app .ideas-intro-icon svg { width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+#app .idea-vote { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+#app .idea-vote svg { width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+#app .idea-delete { display:grid; place-items:center; width:34px; height:34px; border-radius:10px; }
+#app .idea-delete svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
