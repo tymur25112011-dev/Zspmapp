@@ -937,29 +937,21 @@ function profileCardHTML(profile, own) {
 function renderProfilesPage() {
   const reports = getReports();
   const myProfile = getMyProfile();
-  const cards = [];
-
-  if (myProfile) {
-    cards.push(profileCardHTML({ ...myProfile, id: currentUser.id }, true));
-  }
-
-  const liveProfiles = publicProfilesCache.filter(profile =>
-    profile.id !== currentUser?.id && profile.privacy?.visible !== false
-  );
-  liveProfiles
-    .filter(profile => !myProfile || profile.id !== currentUser?.id)
-    .forEach(profile => {
-      const reported = reports.includes(profile.id);
-      const card = profileCardHTML(profile, false)
-        .replace(
-          `<button class="report-btn" data-action="report" data-profile-id="${profile.id}">Zgłoś profil</button>`,
-          reported
-            ? `<button class="report-btn" disabled>Zgłoszono profil</button>`
-            : `<button class="report-btn" data-action="report" data-profile-id="${profile.id}">Zgłoś profil</button>`
-        );
-      cards.push(card);
-    });
-
+  const profiles = publicProfilesCache.filter(profile => profile.id !== currentUser?.id && profile.privacy?.visible !== false);
+  if (myProfile && currentUser?.id) profiles.push({ ...myProfile, id: currentUser.id, isAdmin: Boolean(myProfile.isAdmin || isAdmin) });
+  // Pin only the account verified as admin by Supabase, never by nickname.
+  profiles.sort((a, b) => Number(Boolean(b.isAdmin)) - Number(Boolean(a.isAdmin)));
+  const cards = profiles.map(profile => {
+    const own = profile.id === currentUser?.id;
+    const reported = reports.includes(profile.id);
+    let card = profileCardHTML(profile, own);
+    if (!own) {
+      const reportButton = '<button class="report-btn" data-action="report" data-profile-id="' + profile.id + '">Zgłoś profil</button>';
+      const replacementButton = reported ? '<button class="report-btn" disabled>Zgłoszono profil</button>' : reportButton;
+      card = card.replace(reportButton, replacementButton);
+    }
+    return card;
+  });
   return `
     <div class="profiles-page-header">
       <div class="page-content">
@@ -975,7 +967,6 @@ function renderProfilesPage() {
     <div class="profile-grid">${cards.join("")}</div>
   `;
 }
-
 function bindProfilesPage() {
   const container = $("page-content");
 
