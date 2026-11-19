@@ -139,6 +139,7 @@ let activeConversationId = null;
 let activeChatProfile = null;
 let activeChatChannel = null;
 let chatListChannel = null;
+let globalChatChannel = null;
 let notificationsChannel = null;
 let friendsChannel = null;
 let socialChannel = null;
@@ -1725,6 +1726,7 @@ function myDisplayInfo() {
 }
 
 async function renderChatList() {
+  if (globalChatChannel) { await supabaseClient.removeChannel(globalChatChannel); globalChatChannel = null; }
   if (activeChatChannel) {
     await supabaseClient.removeChannel(activeChatChannel);
     activeChatChannel = null;
@@ -1778,13 +1780,18 @@ async function renderChatList() {
   }).join("");
 
   $("page-content").innerHTML = `
+    <button type="button" class="global-chat-entry" id="open-global-chat">
+      <span class="global-chat-entry-icon">🌐</span>
+      <span class="global-chat-entry-copy"><strong>Общий чат</strong><small>Общение всех пользователей</small></span>
+      <span class="global-chat-entry-arrow">›</span>
+    </button>
     <div class="page-content">
       <h3>Rozmowy prywatne</h3>
       <p>Możesz pisać do zaakceptowanych znajomych. Czat obsługuje wyłącznie wiadomości tekstowe.</p>
-      ${currentMute ? '<p class="admin-feedback">Wysyłanie wiadomości jest tymczasowo wyłączone. Powód: ' + escapeHTML(currentMute.reason) + '. Do: ' + escapeHTML(formatModerationExpiry(currentMute.expires_at)) + '</p>' : ''}
     </div>
     <div class="conv-list">${items || '<div class="page-content"><p>Nie masz jeszcze rozmów. Dodaj znajomego, aby rozpocząć czat.</p></div>'}</div>
   `;
+  $("open-global-chat").addEventListener("click", openGlobalChat);
   $("page-content").querySelectorAll("[data-conv]").forEach(button => {
     button.addEventListener("click", () => openChat(button.dataset.conv));
   });
@@ -1798,6 +1805,83 @@ async function renderChatList() {
     })
     .subscribe();
 }
+
+
+async function openGlobalChat() {
+  if (activeChatChannel) { await supabaseClient.removeChannel(activeChatChannel); activeChatChannel = null; }
+  if (chatListChannel) { await supabaseClient.removeChannel(chatListChannel); chatListChannel = null; }
+  if (globalChatChannel) { await supabaseClient.removeChannel(globalChatChannel); globalChatChannel = null; }
+  activeConversationId = null;
+  const { data, error } = await supabaseClient.from("global_chat_messages")
+    .select("id,sender_id,content,created_at").order("created_at", {ascending:false}).limit(100);
+  if (error) {
+    console.error("Global chat load error:", error);
+    $("page-content").innerHTML = '<div class="page-content"><p>Nie удалось загрузить общий чат. Попробуй обновить страницу.</p></div>';
+    return;
+  }
+  const messages = (data || []).reverse();
+  await loadProfilesByIds(messages.map(item => item.sender_id));
+  const rows = messages.map(item => {
+    const mine = item.sender_id === currentUser.id;
+    const profile = mine ? getMyProfile() : getProfileById(item.sender_id);
+    const nickname = profile?.nickname || "Участник";
+    const role = mine && isAdmin ? '<span class="user-role-badge admin-role">ADMIN</span>' :
+      profile?.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : "";
+    return '<article class="global-message' + (mine ? ' own' : '') + '"><div class="global-message-meta"><strong>' +
+      escapeHTML(nickname) + '</strong>' + role + '<time>' + escapeHTML(formatTime(item.created_at)) +
+      '</time></div><p>' + escapeHTML(item.content) + '</p>' +
+      (!mine ? '<button type="button" class="global-report-btn" data-report-user="' + escapeHTML(item.sender_id) +
+      '" data-report-message="' + escapeHTML(item.id) + '">Zgłoś</button>' : '') + '</article>';
+  }).join("");
+  $("page-content").innerHTML =
+    '<div class="global-chat-head"><button type="button" class="chat-back" id="global-chat-back">‹</button><div><strong>Общий чат</strong><small>Все пользователи приложения</small></div></div>' +
+    '<div class="global-chat-notice">Пожалуйста, общайтесь уважительно. Не публикуйте личные данные.</div>' +
+    '<div class="global-chat-messages" id="global-chat-messages">' + (rows || '<p class="global-chat-empty">Пока сообщений нет. Начни общение первым!</p>') + '</div>' +
+    (currentMute ? '<div class="global-chat-muted">Отправка сообщений временно отключена.<br>Причина: ' + escapeHTML(currentMute.reason) +
+      '<br>До: ' + escapeHTML(formatModerationExpiry(currentMute.expires_at)) + '</div>' :
+      '<form class="global-chat-composer" id="global-chat-form"><input id="global-chat-input" maxlength="500" autocomplete="off" placeholder="Написать в общий чат…"><button type="submit" aria-label="Отправить">➤</button></form>');
+  $("global-chat-back").addEventListener("click", renderChatList);
+  $("page-content").querySelectorAll("[data-report-message]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const ok = await submitContentReport("message", button.dataset.reportMessage, button.dataset.reportUser);
+      if (ok) { button.disabled = true; button.textContent = "Zgłoszono"; }
+    });
+  });
+  if (!currentMute) {
+    $("global-chat-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const input = $("global-chat-input"), content = input.value.trim();
+      if (!content) return;
+      const button = event.currentTarget.querySelector("button"); button.disabled = true;
+      const { error: sendError } = await supabaseClient.from("global_chat_messages").insert({sender_id:currentUser.id,content});
+      button.disabled = false;
+      if (sendError) { console.error("Global chat send error:",sendError); alert("Не удалось отправить сообщение. Возможно, действует Mute."); return; }
+      input.value = ""; input.focus();
+    });
+  }
+  const box = $("global-chat-messages"); if (box) box.scrollTop = box.scrollHeight;
+  globalChatChannel = supabaseClient.channel("global-chat-live")
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"global_chat_messages"},async payload=>{
+      const fresh=payload.new; await loadProfilesByIds([fresh.sender_id]);
+      const mine=fresh.sender_id===currentUser.id, profile=mine?getMyProfile():getProfileById(fresh.sender_id);
+      const nickname=profile?.nickname||"Участник";
+      const role=mine&&isAdmin?'<span class="user-role-badge admin-role">ADMIN</span>':
+        profile?.badge==="premium"?'<span class="user-role-badge premium-role">PREMIUM</span>':"";
+      const article=document.createElement("article"); article.className="global-message"+(mine?" own":"");
+      article.innerHTML='<div class="global-message-meta"><strong>'+escapeHTML(nickname)+'</strong>'+role+
+        '<time>'+escapeHTML(formatTime(fresh.created_at))+'</time></div><p>'+escapeHTML(fresh.content)+'</p>'+
+        (!mine?'<button type="button" class="global-report-btn" data-report-user="'+escapeHTML(fresh.sender_id)+
+        '" data-report-message="'+escapeHTML(fresh.id)+'">Zgłoś</button>':"");
+      const target=$("global-chat-messages"); if(!target)return;
+      target.querySelector(".global-chat-empty")?.remove(); target.appendChild(article);
+      article.querySelector("[data-report-message]")?.addEventListener("click",async event=>{
+        const button=event.currentTarget,ok=await submitContentReport("message",button.dataset.reportMessage,button.dataset.reportUser);
+        if(ok){button.disabled=true;button.textContent="Zgłoszono";}
+      });
+      target.scrollTop=target.scrollHeight;
+    }).subscribe();
+}
+
 
 async function loadConversationMessages(conversationId) {
   const { data, error } = await supabaseClient.from("messages")
