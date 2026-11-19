@@ -141,6 +141,7 @@ let activeChatProfile = null;
 let activeChatChannel = null;
 let chatListChannel = null;
 let globalChatChannel = null;
+let activeGlobalRoomId = null;
 let notificationsChannel = null;
 let friendsChannel = null;
 let socialChannel = null;
@@ -1672,12 +1673,12 @@ function renderSettingsPage() {
 // PUBLIC COMMUNITY PROFILES — independent from student discovery questionnaires.
 const COMMUNITY_ASSET_BUCKET = "community-profile-assets";
 const COMMUNITY_BANNERS = ["aurora","ocean","midnight","nebula","waves"];
-const AVATAR_DECORATIONS = ["none","orbit","glow","crown","ice","arch","halo"];
+const AVATAR_DECORATIONS = ["none","orbit","glow","crown","ice","arch","halo","comet","spark","prism","flame"];
 
 async function loadCommunityProfile(userId) {
   if (!userId || !supabaseClient) return null;
   const { data, error } = await supabaseClient.from("community_profiles")
-    .select("user_id,nickname,status_text,bio,interests,class_name,first_name,last_name,avatar_path,banner_path,avatar_decoration,banner_theme,created_at,updated_at")
+    .select("user_id,nickname,status_text,status_mode,bio,interests,class_name,first_name,last_name,avatar_path,banner_path,avatar_decoration,banner_theme,created_at,updated_at")
     .eq("user_id", userId).maybeSingle();
   if (error) {
     console.error("Community profile load error:", error);
@@ -1709,6 +1710,11 @@ function communityBannerMarkup(profile) {
 
 function communityAchievements(profile, roleBadge) {
   const items = [{icon:"✦",name:"Członek społeczności",desc:"Dołączył do ZSPM Community"}];
+  const keys = new Set(profile?.achievementKeys || []);
+  if (keys.has("first_message")) items.push({icon:"💬",name:"Pierwsza wiadomość",desc:"Rozpoczął rozmowę w społeczności"});
+  if (keys.has("messages_10")) items.push({icon:"🗨️",name:"Rozmowny",desc:"Wysłał 10 wiadomości"});
+  if (keys.has("messages_100")) items.push({icon:"🏅",name:"Aktywny rozmówca",desc:"Wysłał 100 wiadomości"});
+  if (keys.has("level_5")) items.push({icon:"⭐",name:"Poziom 5",desc:"Osiągnął 5 poziom społeczności"});
   if (profile?.bio && profile?.interests?.length && profile?.avatar_path) {
     items.push({icon:"◆",name:"Dopracowany profil",desc:"Uzupełnione informacje i avatar"});
   }
@@ -1724,7 +1730,7 @@ function communityProfileHTML(profile, roleBadge, own) {
   const accountRole = roleBadge === "admin" ? "admin" : roleBadge === "premium" ? "premium" : "zwykły";
   const joined = profile?.created_at ? new Date(profile.created_at).toLocaleDateString("pl-PL",{month:"long",year:"numeric"}) : "Niedawno";
   const profileId = profile?.user_id || profile?.id || "";
-  const isOnline = onlineUsers.has(profileId);
+  const isOnline = profile?.status_mode === "invisible" ? false : onlineUsers.has(profileId);
   const presenceHTML = '<span class="community-presence '+(isOnline?'is-online':'is-offline')+'" data-presence-user="'+escapeHTML(profileId)+'"><i></i>'+(isOnline?'Online':'Offline')+'</span>';
   const friendProfile = {...profile,id:profileId};
   const socialActions = own ? '' : '<div class="community-profile-actions">'+friendButtonHTML(friendProfile)+'</div>';
@@ -1735,11 +1741,13 @@ function communityProfileHTML(profile, roleBadge, own) {
         '<div class="community-profile-heading"><h2>' + escapeHTML(profile?.nickname || "Uczeń") + '</h2>' +
           (name ? '<p class="community-profile-realname">' + escapeHTML(name) + '</p>' : '') +
           '<div class="community-profile-meta">'+presenceHTML+'<p class="community-profile-status community-role-badge role-' + accountRole + '">' + accountRole.toUpperCase() + '</p></div>' +
+          (profile?.status_text ? '<p class="community-custom-status">'+escapeHTML(profile.status_text)+'</p>' : '') +
         '</div>' +
         (own ? '<button type="button" class="community-edit-btn" id="community-edit-profile">✎ Edytuj profil</button>' : '') +
       '</div>' + socialActions +
       '<div class="community-profile-columns">' +
         '<section class="community-profile-section"><h3>O mnie</h3><p>' + escapeHTML(profile?.bio || "Ten użytkownik nie dodał jeszcze opisu.") + '</p>' +
+          '<div class="community-level-card"><div class="community-level-top"><strong>Poziom '+(profile?.progress?.level || 1)+'</strong><span>'+(profile?.progress?.xp || 0)+' XP</span></div><div class="community-level-track"><i style="width:'+Math.min(100,(profile?.progress?.xp || 0)%100)+'%"></i></div><small>'+(100-((profile?.progress?.xp || 0)%100))+' XP do następnego poziomu</small></div>' +
           (profile?.class_name ? '<div class="community-info-line"><span>Klasa</span><strong>' + escapeHTML(profile.class_name) + '</strong></div>' : '') +
           '<div class="community-info-line"><span>Dołączył(a)</span><strong>' + escapeHTML(joined) + '</strong></div>' +
           (interests.length ? '<div class="community-interests">' + interests.map(x=>'<span>'+escapeHTML(x)+'</span>').join("") + '</div>' : '') +
@@ -1757,11 +1765,17 @@ async function renderCommunityProfilePage() {
   try {
     communityProfileCache = await loadCommunityProfile(currentUser.id);
     const profile = communityProfileCache || {
-      user_id:currentUser.id,nickname:currentUser.name,status_text:"",bio:"",interests:[],
+      user_id:currentUser.id,nickname:currentUser.name,status_text:"",status_mode:"online",bio:"",interests:[],
       class_name:"",first_name:"",last_name:"",avatar_path:null,banner_path:null,
       avatar_decoration:"none",banner_theme:"aurora",created_at:new Date().toISOString()
     };
-    const {data:badgeRow} = await supabaseClient.from("user_badges").select("badge").eq("user_id",currentUser.id).maybeSingle();
+    const [{data:badgeRow},{data:progressRow},{data:achievementRows}] = await Promise.all([
+      supabaseClient.from("user_badges").select("badge").eq("user_id",currentUser.id).maybeSingle(),
+      supabaseClient.from("community_progress").select("xp,level,message_count").eq("user_id",currentUser.id).maybeSingle(),
+      supabaseClient.from("community_achievements").select("achievement_key").eq("user_id",currentUser.id)
+    ]);
+    profile.progress = progressRow || {xp:0,level:1,message_count:0};
+    profile.achievementKeys = (achievementRows || []).map(row=>row.achievement_key);
     const roleBadge = isAdmin ? "admin" : (badgeRow?.badge || currentUserBadge);
     host.innerHTML = '<div class="community-profile-page">' +
       communityProfileHTML(profile, roleBadge, true) +
@@ -1779,12 +1793,12 @@ async function renderCommunityProfilePage() {
 function renderCommunityProfileEditor(profile, roleBadge) {
   const host = $("page-content");
   const accountRole = roleBadge === "admin" ? "admin" : roleBadge === "premium" ? "premium" : "zwykły";
-  const current = profile || {nickname:currentUser.name,interests:[],avatar_decoration:"none",banner_theme:"aurora"};
+  const current = profile || {nickname:currentUser.name,interests:[],avatar_decoration:"none",banner_theme:"aurora",status_mode:"online"};
   const bannerChoices = COMMUNITY_BANNERS.map(theme =>
     '<label class="community-theme-choice"><input type="radio" name="community-banner-theme" value="'+theme+'" '+((current.banner_theme||"aurora")===theme?"checked":"")+'><span class="theme-preview theme-'+theme+'"></span><small>'+({aurora:"Aurora",ocean:"Ocean",midnight:"Midnight",nebula:"Nebula",waves:"Waves"}[theme])+'</small></label>'
   ).join("");
   const decorationChoices = AVATAR_DECORATIONS.map(theme =>
-    '<label class="community-decoration-choice"><input type="radio" name="community-avatar-decoration" value="'+theme+'" '+((current.avatar_decoration||"none")===theme?"checked":"")+'><span class="decor-preview decor-'+theme+'">'+(theme==="none"?"○":theme==="orbit"?"◉":theme==="glow"?"✧":theme==="crown"?"♛":theme==="ice"?"❄":theme==="arch"?"⌒":"☼")+'</span><small>'+({none:"Brak",orbit:"Orbit",glow:"Glow",crown:"Korona",ice:"Ice",arch:"Łuk",halo:"Aureola"}[theme])+'</small></label>'
+    '<label class="community-decoration-choice"><input type="radio" name="community-avatar-decoration" value="'+theme+'" '+((current.avatar_decoration||"none")===theme?"checked":"")+'><span class="decor-preview decor-'+theme+'">'+(theme==="none"?"○":theme==="orbit"?"◉":theme==="glow"?"✧":theme==="crown"?"♛":theme==="ice"?"❄":theme==="arch"?"⌒":theme==="halo"?"☼":theme==="comet"?"☄":theme==="spark"?"✦":theme==="prism"?"◇":"♨")+'</span><small>'+({none:"Brak",orbit:"Orbit",glow:"Glow",crown:"Korona",ice:"Ice",arch:"Łuk",halo:"Aureola",comet:"Kometa",spark:"Iskry",prism:"Pryzmat",flame:"Płomień"}[theme])+'</small></label>'
   ).join("");
   const avatarUrl = communityAssetUrl(current.avatar_path);
   const bannerUrl = communityAssetUrl(current.banner_path);
@@ -1799,6 +1813,8 @@ function renderCommunityProfileEditor(profile, roleBadge) {
       '<section class="community-editor-section"><h4>Informacje</h4><p class="community-public-note">Informacje na tej stronie widzą inni zalogowani użytkownicy. Imię i nazwisko są opcjonalne — nie wpisuj danych, których nie chcesz udostępniać.</p>' +
         '<label class="community-form-field">Nick<input id="community-nickname" maxlength="32" minlength="2" required value="'+escapeHTML(current.nickname||currentUser.name)+'"></label>' +
         ' <div class="community-form-field community-account-role"><span>Typ konta</span><strong class="community-role-badge role-'+accountRole+'">'+accountRole.toUpperCase()+'</strong><small>Typ konta jest nadawany przez system lub administratora.</small></div>' +
+        '<label class="community-form-field">Status <span>(widoczny dla innych)</span><input id="community-status-text" maxlength="80" value="'+escapeHTML(current.status_text||'')+'" placeholder="np. Uczę się do sprawdzianu"></label>' +
+        '<label class="community-form-field">Dostępność<select id="community-status-mode"><option value="online" '+((current.status_mode||"online")==="online"?"selected":"")+'>Online</option><option value="busy" '+(current.status_mode==="busy"?"selected":"")+'>Zajęty</option><option value="dnd" '+(current.status_mode==="dnd"?"selected":"")+'>Nie przeszkadzać</option><option value="invisible" '+(current.status_mode==="invisible"?"selected":"")+'>Niewidoczny</option></select></label>' +
         '<label class="community-form-field">Opis<textarea id="community-bio" maxlength="500" rows="4" placeholder="Napisz kilka słów o sobie...">'+escapeHTML(current.bio||'')+'</textarea></label>' +
         '<label class="community-form-field">Zainteresowania<input id="community-interests" maxlength="200" placeholder="Muzyka, gry, sport..." value="'+escapeHTML((current.interests||[]).join(", "))+'"></label>' +
         '<label class="community-form-field">Klasa <span>(opcjonalnie)</span><input id="community-class" maxlength="20" value="'+escapeHTML(current.class_name||'')+'" placeholder="np. 1A"></label>' +
@@ -1868,6 +1884,7 @@ function renderCommunityProfileEditor(profile, roleBadge) {
       const bannerPath = await uploadAsset(bannerFile,"banner",current.banner_path,removeBanner);
       const row = {
         user_id:currentUser.id,nickname,
+        status_text:$("community-status-text").value.trim(),status_mode:$("community-status-mode").value,
         bio:$("community-bio").value.trim(),
         interests:$("community-interests").value.split(",").map(x=>x.trim()).filter(Boolean).slice(0,10),
         class_name:$("community-class").value.trim(),first_name:$("community-first-name").value.trim(),
@@ -1927,12 +1944,16 @@ async function openCommunityProfile(userId) {
     alert("Nie udało się otworzyć profilu.");
     return;
   }
-  if (!profile) profile = {user_id:userId,nickname:"Uczeń",status_text:"",bio:"",interests:[],avatar_decoration:"none",banner_theme:"aurora"};
+  if (!profile) profile = {user_id:userId,nickname:"Uczeń",status_text:"",status_mode:"online",bio:"",interests:[],avatar_decoration:"none",banner_theme:"aurora"};
   await Promise.all([loadFriendsData(),loadBlockedUsers()]);
-  const [{data:badgeRow},{data:adminRows}] = await Promise.all([
+  const [{data:badgeRow},{data:adminRows},{data:progressRow},{data:achievementRows}] = await Promise.all([
     supabaseClient.from("user_badges").select("badge").eq("user_id",userId).maybeSingle(),
-    loadAdminFlagsByIds([userId]).then(ids=>({data:[{is_admin:ids.has(userId)}]}))
+    loadAdminFlagsByIds([userId]).then(ids=>({data:[{is_admin:ids.has(userId)}]})),
+    supabaseClient.from("community_progress").select("xp,level,message_count").eq("user_id",userId).maybeSingle(),
+    supabaseClient.from("community_achievements").select("achievement_key").eq("user_id",userId)
   ]);
+  profile.progress = progressRow || {xp:0,level:1,message_count:0};
+  profile.achievementKeys = (achievementRows || []).map(row=>row.achievement_key);
   const roleBadge = adminRows?.[0]?.is_admin ? "admin" : (badgeRow?.badge || null);
   const own = userId === currentUser?.id;
   const overlay=document.createElement("div");
@@ -2415,106 +2436,75 @@ async function renderChatList() {
 }
 
 
-async function openGlobalChat() {
-  if (activeChatChannel) { await supabaseClient.removeChannel(activeChatChannel); activeChatChannel = null; }
-  if (chatListChannel) { await supabaseClient.removeChannel(chatListChannel); chatListChannel = null; }
-  if (globalChatChannel) { await supabaseClient.removeChannel(globalChatChannel); globalChatChannel = null; }
-  activeConversationId = null;
-  const { data, error } = await supabaseClient.from("global_chat_messages")
-    .select("id,sender_id,content,created_at,edited_at,reply_to_id").order("created_at", {ascending:false}).limit(100);
-  if (error) {
-    console.error("Global chat load error:", error);
-    $("page-content").innerHTML = '<div class="page-content"><p>Nie udało się załadować czatu ogólnego. Odśwież stronę.</p></div>';
-    return;
-  }
-  const messages = (data || []).reverse();
-  await loadProfilesByIds(messages.map(item => item.sender_id));
-  const ids = messages.map(item => item.id);
-  const {data: likeRows} = ids.length
-    ? await supabaseClient.from("global_chat_message_likes").select("message_id,user_id").in("message_id",ids)
-    : {data:[]};
-  const likeMap = new Map();
-  (likeRows || []).forEach(row => {
-    const item = likeMap.get(row.message_id) || {count:0,liked:false};
-    item.count++; if (row.user_id === currentUser.id) item.liked = true;
-    likeMap.set(row.message_id,item);
-  });
-  const byId = new Map(messages.map(item => [item.id,item]));
-  const rows = messages.map(item => {
-    const mine = item.sender_id === currentUser.id;
-    const profile = mine ? getMyProfile() : getProfileById(item.sender_id);
-    const nickname = profile?.nickname || "Użytkownik";
-    const role = (mine ? isAdmin : profile?.isAdmin) ? '<span class="user-role-badge admin-role">ADMIN</span>' :
-      profile?.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : "";
-    const likes = likeMap.get(item.id) || {count:0,liked:false};
-    const parent = byId.get(item.reply_to_id);
-    return '<article class="global-message' + (mine ? ' own' : '') + '" data-global-message="' + item.id + '">' +
-      '<div class="global-message-meta"><strong>' + escapeHTML(nickname) + '</strong>' + role +
-      '<time>' + escapeHTML(formatTime(item.created_at)) + (item.edited_at ? ' · edytowano' : '') + '</time></div>' +
-      (parent ? '<div class="bubble-reply-context">↳ ' + escapeHTML(parent.content.slice(0,100)) + '</div>' : '') +
-      '<p>' + escapeHTML(item.content) + '</p><div class="bubble-actions">' +
-      (mine ? '<button type="button" class="msg-action" data-global-action="edit" data-id="' + item.id + '">Edytuj</button><button type="button" class="msg-action danger" data-global-action="delete" data-id="' + item.id + '">Usuń</button>' :
-        '<button type="button" class="msg-action" data-global-action="report" data-id="' + item.id + '" data-user="' + item.sender_id + '">Zgłoś</button>') +
-      '<button type="button" class="msg-action" data-global-action="reply" data-id="' + item.id + '">Odpowiedz</button>' +
-      '<button type="button" class="msg-action' + (likes.liked ? ' liked' : '') + '" data-global-action="like" data-id="' + item.id + '">♥ ' + likes.count + '</button></div></article>';
+async function openGlobalChat(roomId = null) {
+  if(activeChatChannel){await supabaseClient.removeChannel(activeChatChannel);activeChatChannel=null;}
+  if(chatListChannel){await supabaseClient.removeChannel(chatListChannel);chatListChannel=null;}
+  if(globalChatChannel){await supabaseClient.removeChannel(globalChatChannel);globalChatChannel=null;}
+  activeConversationId=null;activeGlobalRoomId=roomId||null;
+  let query=supabaseClient.from("global_chat_messages").select("id,sender_id,content,created_at,edited_at,reply_to_id,room_id").order("created_at",{ascending:false}).limit(100);
+  query=activeGlobalRoomId?query.eq("room_id",activeGlobalRoomId):query.is("room_id",null);
+  const [{data,error},{data:roomsData,error:roomsError}]=await Promise.all([query,supabaseClient.from("chat_rooms").select("id,slug,name,description,icon").eq("is_active",true).order("sort_order")]);
+  if(error){console.error("Global chat load error:",error);$("page-content").innerHTML='<div class="page-content"><p>Nie udało się załadować czatu. Odśwież stronę.</p></div>';return;}
+  if(roomsError)console.warn("Chat rooms load error:",roomsError);
+  const messages=(data||[]).reverse(),rooms=roomsData||[];await loadProfilesByIds(messages.map(x=>x.sender_id));
+  const ids=messages.map(x=>x.id);
+  const [{data:likeRows},{data:reactionRows}]=await Promise.all([
+    ids.length?supabaseClient.from("global_chat_message_likes").select("message_id,user_id").in("message_id",ids):Promise.resolve({data:[]}),
+    ids.length?supabaseClient.from("global_chat_message_reactions").select("message_id,user_id,emoji").in("message_id",ids):Promise.resolve({data:[]})
+  ]);
+  const likeMap=new Map(),reactionMap=new Map();
+  (likeRows||[]).forEach(r=>{const v=likeMap.get(r.message_id)||{count:0,liked:false};v.count++;if(r.user_id===currentUser.id)v.liked=true;likeMap.set(r.message_id,v);});
+  (reactionRows||[]).forEach(r=>{const m=reactionMap.get(r.message_id)||new Map(),v=m.get(r.emoji)||{count:0,reacted:false};v.count++;if(r.user_id===currentUser.id)v.reacted=true;m.set(r.emoji,v);reactionMap.set(r.message_id,m);});
+  const byId=new Map(messages.map(x=>[x.id,x]));
+  const rows=messages.map(item=>{
+    const mine=item.sender_id===currentUser.id,profile=mine?getMyProfile():getProfileById(item.sender_id);
+    const role=(mine?isAdmin:profile?.isAdmin)?'<span class="user-role-badge admin-role">ADMIN</span>':profile?.badge==="premium"?'<span class="user-role-badge premium-role">PREMIUM</span>':"";
+    const likes=likeMap.get(item.id)||{count:0,liked:false},parent=byId.get(item.reply_to_id),reactions=reactionMap.get(item.id)||new Map();
+    const chips=[...reactions.entries()].map(([emoji,v])=>'<button type="button" class="chat-reaction'+(v.reacted?' active':'')+'" data-global-action="react" data-id="'+item.id+'" data-emoji="'+emoji+'">'+emoji+' '+v.count+'</button>').join("");
+    const picker=['👍','❤️','😂','🔥','👏','😮'].map(emoji=>'<button type="button" class="chat-reaction-pick" data-global-action="react" data-id="'+item.id+'" data-emoji="'+emoji+'">'+emoji+'</button>').join("");
+    return '<article class="global-message'+(mine?' own':'')+'" data-global-message="'+item.id+'"><div class="global-message-meta"><strong>'+escapeHTML(mine?(getMyProfile()?.nickname||currentUser.name):(profile?.nickname||"Użytkownik"))+'</strong>'+role+'<time>'+escapeHTML(formatTime(item.created_at))+(item.edited_at?' · edytowano':'')+'</time></div>'+
+      (parent?'<div class="bubble-reply-context">↳ '+escapeHTML(parent.content.slice(0,100))+'</div>':'')+'<p>'+escapeHTML(item.content)+'</p><div class="chat-reaction-row">'+chips+'<span class="chat-reaction-picker">'+picker+'</span></div><div class="bubble-actions">'+
+      (mine?'<button type="button" class="msg-action" data-global-action="edit" data-id="'+item.id+'">Edytuj</button><button type="button" class="msg-action danger" data-global-action="delete" data-id="'+item.id+'">Usuń</button>':'<button type="button" class="msg-action" data-global-action="report" data-id="'+item.id+'" data-user="'+item.sender_id+'">Zgłoś</button>')+
+      '<button type="button" class="msg-action" data-global-action="reply" data-id="'+item.id+'">Odpowiedz</button><button type="button" class="msg-action'+(likes.liked?' liked':'')+'" data-global-action="like" data-id="'+item.id+'">♥ '+likes.count+'</button></div></article>';
   }).join("");
-  $("page-content").innerHTML =
-    '<div class="global-chat-head"><button type="button" class="chat-back" id="global-chat-back">‹</button><div><strong>Czat ogólny</strong><small>Wszyscy użytkownicy aplikacji</small></div></div>' +
-    '<div class="global-chat-notice">Rozmawiaj z szacunkiem. Nie publikuj danych osobowych.</div>' +
-    '<div class="global-chat-messages" id="global-chat-messages">' + (rows || '<p class="global-chat-empty">Nie ma jeszcze wiadomości. Napisz pierwszą!</p>') + '</div>' +
-    (currentMute ? '<div class="global-chat-muted">Wysyłanie wiadomości jest tymczasowo wyłączone.<br>Powód: ' + escapeHTML(currentMute.reason) +
-      '<br>Do: ' + escapeHTML(formatModerationExpiry(currentMute.expires_at)) + '</div>' :
-      '<form class="global-chat-composer" id="global-chat-form"><div id="global-reply-hint" class="chat-reply-hint hidden"></div><input id="global-chat-input" maxlength="500" autocomplete="off" placeholder="Napisz na czacie ogólnym…"><button type="submit" aria-label="Wyślij">➤</button></form>');
-  $("global-chat-back").addEventListener("click", renderChatList);
-  $("page-content").querySelectorAll("[data-global-action]").forEach(button => button.addEventListener("click", async () => {
-    const id = button.dataset.id, action = button.dataset.globalAction, message = byId.get(id);
-    if (action === "report") {
-      const reason = "";
-      const ok = await submitContentReport("message",id,button.dataset.user,reason);
-      if (ok) {button.textContent="Zgłoszono";button.disabled=true;}
-    } else if (action === "reply") {
-      replyToMessageId = id;
-      const input = $("global-chat-input"); if (input) {input.placeholder="Odpowiedź na wiadomość…";input.focus();}
-      const hint = $("global-reply-hint"); if (hint) {hint.textContent="Odpowiadasz: "+(message?.content || "").slice(0,90);hint.classList.remove("hidden");}
-    } else if (action === "edit") {
-      const value = prompt("Edytuj wiadomość:",message?.content || "");
-      if (value === null) return;
-      const content=value.trim().slice(0,500); if(!content)return alert("Wiadomość nie może być pusta.");
+  const tabs='<div class="chat-room-tabs"><button type="button" class="chat-room-tab'+(!activeGlobalRoomId?' active':'')+'" data-chat-room="">🌐 Ogólny</button>'+rooms.map(r=>'<button type="button" class="chat-room-tab'+(r.id===activeGlobalRoomId?' active':'')+'" data-chat-room="'+r.id+'">'+escapeHTML(r.icon)+' '+escapeHTML(r.name)+'</button>').join("")+'</div>';
+  const room=rooms.find(r=>r.id===activeGlobalRoomId);
+  $("page-content").innerHTML='<div class="global-chat-head"><button type="button" class="chat-back" id="global-chat-back">‹</button><div><strong>'+(room?escapeHTML(room.icon+" "+room.name):"Czat ogólny")+'</strong><small>'+(room?escapeHTML(room.description):"Rozmowa wszystkich użytkowników")+'</small></div></div>'+tabs+
+    '<div class="global-chat-notice">Rozmawiaj z szacunkiem. Nie publikuj danych osobowych.</div><div class="global-chat-messages" id="global-chat-messages">'+(rows||'<p class="global-chat-empty">Nie ma jeszcze wiadomości. Napisz pierwszą!</p>')+'</div>'+
+    (currentMute?'<div class="global-chat-muted">Wysyłanie wiadomości jest tymczasowo wyłączone.<br>Powód: '+escapeHTML(currentMute.reason)+'<br>Do: '+escapeHTML(formatModerationExpiry(currentMute.expires_at))+'</div>':'<form class="global-chat-composer" id="global-chat-form"><div id="global-reply-hint" class="chat-reply-hint hidden"></div><input id="global-chat-input" maxlength="500" autocomplete="off" placeholder="Napisz na czacie…"><button type="submit" aria-label="Wyślij">➤</button></form>');
+  $("global-chat-back").addEventListener("click",renderChatList);
+  $("page-content").querySelectorAll("[data-chat-room]").forEach(b=>b.addEventListener("click",()=>openGlobalChat(b.dataset.chatRoom||null)));
+  $("page-content").querySelectorAll("[data-global-action]").forEach(button=>button.addEventListener("click",async()=>{
+    const id=button.dataset.id,action=button.dataset.globalAction,message=byId.get(id);
+    if(action==="react"){
+      const emoji=button.dataset.emoji,exists=(reactionRows||[]).some(r=>r.message_id===id&&r.user_id===currentUser.id&&r.emoji===emoji);
+      const result=exists?await supabaseClient.from("global_chat_message_reactions").delete().eq("message_id",id).eq("user_id",currentUser.id).eq("emoji",emoji):await supabaseClient.from("global_chat_message_reactions").insert({message_id:id,user_id:currentUser.id,emoji});
+      if(result.error)return alert("Nie udało się dodać reakcji.");await openGlobalChat(activeGlobalRoomId);
+    }else if(action==="report"){
+      const ok=await submitContentReport("message",id,button.dataset.user,"");if(ok){button.textContent="Zgłoszono";button.disabled=true;}
+    }else if(action==="reply"){
+      replyToMessageId=id;const input=$("global-chat-input");if(input){input.placeholder="Odpowiedź na wiadomość…";input.focus();}
+      const hint=$("global-reply-hint");if(hint){hint.textContent="Odpowiadasz: "+(message?.content||"").slice(0,90);hint.classList.remove("hidden");}
+    }else if(action==="edit"){
+      const value=prompt("Edytuj wiadomość:",message?.content||"");if(value===null)return;const content=value.trim().slice(0,500);if(!content)return alert("Wiadomość nie może być pusta.");
       const {error}=await supabaseClient.from("global_chat_messages").update({content,edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",currentUser.id);
-      if(error)return alert("Nie udało się edytować wiadomości.");
-      await openGlobalChat();
-    } else if (action === "delete") {
-      if(!confirm("Usunąć tę wiadomość?"))return;
-      const {error}=await supabaseClient.from("global_chat_messages").delete().eq("id",id).eq("sender_id",currentUser.id);
-      if(error)return alert("Nie udało się usunąć wiadomości.");
-      await openGlobalChat();
-    } else if (action === "like") {
-      const liked=likeMap.get(id)?.liked;
-      const result=liked
-        ? await supabaseClient.from("global_chat_message_likes").delete().eq("message_id",id).eq("user_id",currentUser.id)
-        : await supabaseClient.from("global_chat_message_likes").insert({message_id:id,user_id:currentUser.id});
-      if(result.error)return alert("Nie udało się zmienić polubienia.");
-      await openGlobalChat();
+      if(error)return alert("Nie udało się edytować wiadomości.");await openGlobalChat(activeGlobalRoomId);
+    }else if(action==="delete"){
+      if(!confirm("Usunąć tę wiadomość?"))return;const {error}=await supabaseClient.from("global_chat_messages").delete().eq("id",id).eq("sender_id",currentUser.id);
+      if(error)return alert("Nie udało się usunąć wiadomości.");await openGlobalChat(activeGlobalRoomId);
+    }else if(action==="like"){
+      const liked=likeMap.get(id)?.liked,result=liked?await supabaseClient.from("global_chat_message_likes").delete().eq("message_id",id).eq("user_id",currentUser.id):await supabaseClient.from("global_chat_message_likes").insert({message_id:id,user_id:currentUser.id});
+      if(result.error)return alert("Nie udało się zmienić polubienia.");await openGlobalChat(activeGlobalRoomId);
     }
   }));
-  if (!currentMute) {
-    $("global-chat-form").addEventListener("submit", async event => {
-      event.preventDefault();
-      const input = $("global-chat-input"), content = input.value.trim();
-      if (!content) return;
-      const button = event.currentTarget.querySelector("button"); button.disabled = true;
-      const { error: sendError } = await supabaseClient.from("global_chat_messages").insert({sender_id:currentUser.id,content,reply_to_id:replyToMessageId});
-      button.disabled = false;
-      if (sendError) { console.error("Global chat send error:",sendError); alert("Nie udało się wysłać wiadomości. Możliwe, że obowiązuje wyciszenie."); return; }
-      replyToMessageId=null; input.value = ""; await openGlobalChat();
-    });
-  }
-  const box = $("global-chat-messages"); if (box) box.scrollTop = box.scrollHeight;
-  globalChatChannel = supabaseClient.channel("global-chat-live")
-     .on("postgres_changes",{event:"*",schema:"public",table:"global_chat_messages"},async payload=>{
-      const fresh=payload.new;
-      if ($("global-chat-messages")) await openGlobalChat();
-    }).subscribe();
+  if(!currentMute)$("global-chat-form").addEventListener("submit",async event=>{
+    event.preventDefault();const input=$("global-chat-input"),content=input.value.trim();if(!content)return;const button=event.currentTarget.querySelector("button");button.disabled=true;
+    const {error:sendError}=await supabaseClient.from("global_chat_messages").insert({sender_id:currentUser.id,content,reply_to_id:replyToMessageId,room_id:activeGlobalRoomId});
+    button.disabled=false;if(sendError){console.error("Global chat send error:",sendError);alert("Nie udało się wysłać wiadomości. Możliwe, że obowiązuje wyciszenie.");return;}
+    replyToMessageId=null;input.value="";await openGlobalChat(activeGlobalRoomId);
+  });
+  const box=$("global-chat-messages");if(box)box.scrollTop=box.scrollHeight;
+  globalChatChannel=supabaseClient.channel("global-chat-live").on("postgres_changes",{event:"*",schema:"public",table:"global_chat_messages"},async()=>{if($("global-chat-messages"))await openGlobalChat(activeGlobalRoomId);}).subscribe();
 }
 
 async function loadConversationMessages(conversationId) {
