@@ -1,7 +1,8 @@
-const CACHE_NAME = "zspm-community-shell-v49";
+const CACHE_NAME = "zspm-community-shell-v50";
 const APP_SHELL = [
   "./",
   "./index.html",
+  "./download.html",
   "./public/modern.css?v=38",
   "./public/app.js?v=16",
   "./public/support-config.js?v=2",
@@ -46,7 +47,7 @@ self.addEventListener("fetch", event => {
           }
           return response;
         })
-        .catch(() => caches.match("./index.html"))
+        .catch(async () => (await caches.match(request)) || caches.match("./index.html"))
     );
     return;
   }
