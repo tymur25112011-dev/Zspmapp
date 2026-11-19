@@ -1831,7 +1831,7 @@ function renderCommunityProfileEditor(profile) {
     const preview = host.querySelector(".editor-avatar");
     if (avatarFile && preview) {
       const img = preview.querySelector("img") || document.createElement("img");
-      img.src = URL.createObjectURL(avatarFile); img.alt = "Podgląd avatara";
+      img.className = "community-avatar-img"; img.src = URL.createObjectURL(avatarFile); img.alt = "Podgląd avatara";
       preview.querySelector(".community-avatar-fallback")?.remove();
       if (!img.parentNode) preview.prepend(img);
     }
