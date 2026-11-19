@@ -1711,7 +1711,7 @@ function communityAchievements(profile, roleBadge) {
     items.push({icon:"◆",name:"Dopracowany profil",desc:"Uzupełnione informacje i avatar"});
   }
   if (roleBadge === "premium") items.push({icon:"✧",name:"PREMIUM",desc:"Wyróżnienie społeczności"});
-  if (isAdmin && profile?.user_id === currentUser?.id) items.push({icon:"★",name:"Administrator",desc:"Opieka nad społecznością"});
+  if (roleBadge === "admin") items.push({icon:"★",name:"Administrator",desc:"Opieka nad społecznością"});
   return items;
 }
 
@@ -1798,6 +1798,10 @@ function renderCommunityProfileEditor(profile) {
       '<button type="submit" class="main-btn community-save-btn">Zapisz profil</button></form></div>';
 
   $("community-editor-back").addEventListener("click", () => renderCommunityProfilePage());
+  host.querySelectorAll('input[name="community-banner-theme"]').forEach(input => input.addEventListener("change", () => {
+    bannerPreview.className = "community-editor-banner theme-" + input.value;
+    if (!bannerFile && !current.banner_path) bannerPreview.style.backgroundImage = "";
+  }));
   let avatarFile = null, bannerFile = null;
   const bannerPreview = $("community-banner-preview");
   $("community-banner-file").addEventListener("change", e => {
@@ -1862,7 +1866,7 @@ function renderCommunityProfileEditor(profile) {
 
 function compressCommunityImage(file, maxSide) {
   return new Promise((resolve,reject)=>{
-    if (!file || !/^image\\/(jpeg|png|webp)$/i.test(file.type)) return reject(new Error("Wybierz obraz JPG, PNG lub WebP."));
+    if (!file || !/^image\/(jpeg|png|webp)$/i.test(file.type)) return reject(new Error("Wybierz obraz JPG, PNG lub WebP."));
     if (file.size > 5*1024*1024) return reject(new Error("Maksymalny rozmiar pliku to 5 MB."));
     const reader=new FileReader();
     reader.onerror=()=>reject(new Error("Nie udało się odczytać obrazu."));
