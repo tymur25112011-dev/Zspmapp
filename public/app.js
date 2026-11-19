@@ -144,6 +144,8 @@ let globalChatChannel = null;
 let notificationsChannel = null;
 let friendsChannel = null;
 let socialChannel = null;
+let presenceChannel = null;
+let onlineUsers = new Set();
 let reportsCache = [];
 let reportedMessageIdsCache = [];
 let chatMessageLikesCache = new Map();
@@ -1670,7 +1672,7 @@ function renderSettingsPage() {
 // PUBLIC COMMUNITY PROFILES — independent from student discovery questionnaires.
 const COMMUNITY_ASSET_BUCKET = "community-profile-assets";
 const COMMUNITY_BANNERS = ["aurora","ocean","midnight","nebula","waves"];
-const AVATAR_DECORATIONS = ["none","orbit","glow","crown","ice"];
+const AVATAR_DECORATIONS = ["none","orbit","glow","crown","ice","arch","halo"];
 
 async function loadCommunityProfile(userId) {
   if (!userId || !supabaseClient) return null;
@@ -1721,16 +1723,21 @@ function communityProfileHTML(profile, roleBadge, own) {
   const achievements = communityAchievements(profile, roleBadge);
   const accountRole = roleBadge === "admin" ? "admin" : roleBadge === "premium" ? "premium" : "zwykły";
   const joined = profile?.created_at ? new Date(profile.created_at).toLocaleDateString("pl-PL",{month:"long",year:"numeric"}) : "Niedawno";
+  const profileId = profile?.user_id || profile?.id || "";
+  const isOnline = onlineUsers.has(profileId);
+  const presenceHTML = '<span class="community-presence '+(isOnline?'is-online':'is-offline')+'" data-presence-user="'+escapeHTML(profileId)+'"><i></i>'+(isOnline?'Online':'Offline')+'</span>';
+  const friendProfile = {...profile,id:profileId};
+  const socialActions = own ? '' : '<div class="community-profile-actions">'+friendButtonHTML(friendProfile)+'</div>';
   return '<article class="community-profile-card">' +
     communityBannerMarkup(profile) +
     '<div class="community-profile-main">' +
       '<div class="community-profile-identity">' + communityAvatarMarkup(profile) +
         '<div class="community-profile-heading"><h2>' + escapeHTML(profile?.nickname || "Uczeń") + '</h2>' +
           (name ? '<p class="community-profile-realname">' + escapeHTML(name) + '</p>' : '') +
-          '<p class="community-profile-status community-role-badge role-' + accountRole + '">' + accountRole.toUpperCase() + '</p>' +
+          '<div class="community-profile-meta">'+presenceHTML+'<p class="community-profile-status community-role-badge role-' + accountRole + '">' + accountRole.toUpperCase() + '</p></div>' +
         '</div>' +
         (own ? '<button type="button" class="community-edit-btn" id="community-edit-profile">✎ Edytuj profil</button>' : '') +
-      '</div>' +
+      '</div>' + socialActions +
       '<div class="community-profile-columns">' +
         '<section class="community-profile-section"><h3>O mnie</h3><p>' + escapeHTML(profile?.bio || "Ten użytkownik nie dodał jeszcze opisu.") + '</p>' +
           (profile?.class_name ? '<div class="community-info-line"><span>Klasa</span><strong>' + escapeHTML(profile.class_name) + '</strong></div>' : '') +
@@ -1777,7 +1784,7 @@ function renderCommunityProfileEditor(profile, roleBadge) {
     '<label class="community-theme-choice"><input type="radio" name="community-banner-theme" value="'+theme+'" '+((current.banner_theme||"aurora")===theme?"checked":"")+'><span class="theme-preview theme-'+theme+'"></span><small>'+({aurora:"Aurora",ocean:"Ocean",midnight:"Midnight",nebula:"Nebula",waves:"Waves"}[theme])+'</small></label>'
   ).join("");
   const decorationChoices = AVATAR_DECORATIONS.map(theme =>
-    '<label class="community-decoration-choice"><input type="radio" name="community-avatar-decoration" value="'+theme+'" '+((current.avatar_decoration||"none")===theme?"checked":"")+'><span class="decor-preview decor-'+theme+'">'+(theme==="none"?"○":theme==="orbit"?"◉":theme==="glow"?"✧":theme==="crown"?"♛":"❄")+'</span><small>'+({none:"Brak",orbit:"Orbit",glow:"Glow",crown:"Crown",ice:"Ice"}[theme])+'</small></label>'
+    '<label class="community-decoration-choice"><input type="radio" name="community-avatar-decoration" value="'+theme+'" '+((current.avatar_decoration||"none")===theme?"checked":"")+'><span class="decor-preview decor-'+theme+'">'+(theme==="none"?"○":theme==="orbit"?"◉":theme==="glow"?"✧":theme==="crown"?"♛":theme==="ice"?"❄":theme==="arch"?"⌒":"☼")+'</span><small>'+({none:"Brak",orbit:"Orbit",glow:"Glow",crown:"Korona",ice:"Ice",arch:"Łuk",halo:"Aureola"}[theme])+'</small></label>'
   ).join("");
   const avatarUrl = communityAssetUrl(current.avatar_path);
   const bannerUrl = communityAssetUrl(current.banner_path);
@@ -1921,6 +1928,7 @@ async function openCommunityProfile(userId) {
     return;
   }
   if (!profile) profile = {user_id:userId,nickname:"Uczeń",status_text:"",bio:"",interests:[],avatar_decoration:"none",banner_theme:"aurora"};
+  await Promise.all([loadFriendsData(),loadBlockedUsers()]);
   const [{data:badgeRow},{data:adminRows}] = await Promise.all([
     supabaseClient.from("user_badges").select("badge").eq("user_id",userId).maybeSingle(),
     loadAdminFlagsByIds([userId]).then(ids=>({data:[{is_admin:ids.has(userId)}]}))
@@ -1937,6 +1945,22 @@ async function openCommunityProfile(userId) {
   overlay.querySelector(".community-profile-close").addEventListener("click",close);
   overlay.addEventListener("click",e=>{if(e.target===overlay)close();});
   overlay.querySelector("#community-edit-profile")?.addEventListener("click",()=>{close();openPage("my-profile");});
+  overlay.querySelectorAll("[data-action='add-friend']").forEach(button=>button.addEventListener("click",async()=>{
+    button.disabled=true; const error=await sendFriendInvite(button.dataset.personId);
+    if(error) alert(error); close(); await openCommunityProfile(userId);
+  }));
+  overlay.querySelectorAll("[data-action='cancel-invite']").forEach(button=>button.addEventListener("click",async()=>{
+    await cancelFriendInvite(button.dataset.requestId); close(); await openCommunityProfile(userId);
+  }));
+  overlay.querySelectorAll("[data-action='accept-invite']").forEach(button=>button.addEventListener("click",async()=>{
+    await acceptFriendInvite(button.dataset.requestId); close(); await openCommunityProfile(userId);
+  }));
+  overlay.querySelectorAll("[data-action='block-person']").forEach(button=>button.addEventListener("click",async()=>{
+    if(!confirm("Zablokować tego użytkownika?")) return; await blockUser(userId); close();
+  }));
+  overlay.querySelectorAll("[data-action='unblock']").forEach(button=>button.addEventListener("click",async()=>{
+    await unblockUser(userId); close(); await openCommunityProfile(userId);
+  }));
   const esc=e=>{if(e.key==="Escape"){close();document.removeEventListener("keydown",esc);}};
   document.addEventListener("keydown",esc);
 }
@@ -2803,6 +2827,25 @@ async function setupRealtimeSubscriptions() {
     await supabaseClient.removeChannel(socialChannel);
     socialChannel = null;
   }
+  if (presenceChannel) { await supabaseClient.removeChannel(presenceChannel); presenceChannel = null; }
+  onlineUsers = new Set();
+  presenceChannel = supabaseClient.channel("community-presence", {config:{presence:{key:currentUser.id}}})
+    .on("presence", {event:"sync"}, () => {
+      const state = presenceChannel?.presenceState?.() || {};
+      onlineUsers = new Set(Object.keys(state));
+      document.querySelectorAll("[data-presence-user]").forEach(node => {
+        const online = onlineUsers.has(node.dataset.presenceUser);
+        node.classList.toggle("is-online", online);
+        node.classList.toggle("is-offline", !online);
+        if (node.lastChild) node.lastChild.textContent = online ? "Online" : "Offline";
+      });
+    })
+    .subscribe(async status => {
+      if (status === "SUBSCRIBED" && currentUser?.id) {
+        const {error} = await presenceChannel.track({user_id:currentUser.id,online_at:new Date().toISOString()});
+        if (error) console.warn("Presence tracking failed:",error);
+      }
+    });
   notificationsChannel = supabaseClient.channel("notifications-" + currentUser.id)
     .on("postgres_changes", {
       event: "*", schema: "public", table: "notifications",
@@ -2969,6 +3012,8 @@ async function logout() {
     await supabaseClient.removeChannel(socialChannel);
     socialChannel = null;
   }
+  if (presenceChannel) { await supabaseClient.removeChannel(presenceChannel); presenceChannel = null; }
+  onlineUsers = new Set();
   if (supabaseClient) {
     const { error } = await supabaseClient.auth.signOut();
     if (error) {
