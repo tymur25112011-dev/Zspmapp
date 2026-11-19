@@ -1719,36 +1719,37 @@ async function refreshPhonePushSettings() {
 // USTAWIENIA
 
 function renderSettingsPage() {
-  const myProfile=getMyProfile();
-  const privacy=myProfile?.privacy||{...DEFAULT_PRIVACY};
+  const myProfile=getMyProfile(),privacy=myProfile?.privacy||{...DEFAULT_PRIVACY};
   const selectedTheme=document.documentElement.dataset.theme||"system";
   const christmasEnabled=!document.getElementById("christmas-decorations")?.classList.contains("hidden");
+  const languages=[["pl","🇵🇱","Polski"],["en","🇬🇧","English"],["ru","🇷🇺","Русский"],["uk","🇺🇦","Українська"]];
+  const themes=[
+    ["system","◐",appLanguage==="ru"?"Системная":appLanguage==="uk"?"Системна":appLanguage==="en"?"System":"Systemowy",appLanguage==="ru"?"Стандартный вид":appLanguage==="uk"?"Стандартний вигляд":appLanguage==="en"?"Default appearance":"Domyślny wygląd"],
+    ["dark","☾","DarkOS",appLanguage==="ru"?"Тёмная синяя тема":appLanguage==="uk"?"Темна синя тема":appLanguage==="en"?"Deep blue dark theme":"Ciemny niebieski motyw"],
+    ["liquid-glass","✧","Liquid Glass",appLanguage==="ru"?"Стеклянные эффекты":appLanguage==="uk"?"Скляні ефекти":appLanguage==="en"?"Glass interface effects":"Szklane efekty interfejsu"]
+  ];
   $("page-content").innerHTML=`
-    <div class="page-content"><h3>${tr("lang")}</h3><p>${tr("intro")}</p>
-      <div class="field theme-select-field"><label for="app-language-select">${tr("lang")}</label>
-        <select id="app-language-select" class="settings-select">
-          <option value="pl" ${appLanguage==="pl"?"selected":""}>🇵🇱 Polski</option>
-          <option value="en" ${appLanguage==="en"?"selected":""}>🇬🇧 English</option>
-          <option value="ru" ${appLanguage==="ru"?"selected":""}>🇷🇺 Русский</option>
-          <option value="uk" ${appLanguage==="uk"?"selected":""}>🇺🇦 Українська</option>
-        </select></div></div>
-    <div class="page-content"><h3>${tr("appearance")}</h3><p>${tr("appearanceDesc")}</p>
-      <div class="field theme-select-field"><label for="theme-select">${tr("theme")}</label><select id="theme-select" class="settings-select">
-        <option value="system" ${selectedTheme==="system"?"selected":""}>System · Standard</option><option value="dark" ${selectedTheme==="dark"?"selected":""}>DarkOS</option><option value="liquid-glass" ${selectedTheme==="liquid-glass"?"selected":""}>Liquid Glass</option></select></div>
-      <div class="switch-row"><div><div class="switch-label">Christmas Update</div><div class="switch-hint">${appLanguage==="ru"?"Временное рождественское оформление: гирлянда, снег, ёлка и снеговик.":appLanguage==="uk"?"Тимчасове різдвяне оформлення: гірлянда, сніг, ялинка та сніговик.":appLanguage==="en"?"Temporary Christmas decorations: garland, snow, tree and snowman.":"Tymczasowe dekoracje świąteczne: girlanda, śnieg, choinka i bałwan."}</div></div><label class="toggle"><input type="checkbox" id="christmas-toggle" ${christmasEnabled?"checked":""}><span class="slider"></span></label></div></div>
-    <div class="page-content"><h3>${tr("push")}</h3><p>${tr("pushDesc")}</p><p id="push-settings-status" class="switch-hint">${tr("pushCheck")}</p>
-      <button type="button" class="main-btn" id="push-enable-button">${tr("pushOn")}</button><button type="button" class="logout" id="push-disable-button" hidden>${tr("pushOff")}</button></div>
+    <section class="page-content settings-choice-panel language-panel">
+      <div class="settings-panel-heading"><span class="settings-panel-icon">文</span><div><h3>${tr("lang")}</h3><p>${tr("intro")}</p></div></div>
+      <div class="settings-language-grid">${languages.map(([id,flag,name])=>`<button type="button" class="settings-choice language-choice ${appLanguage===id?"selected":""}" data-language-choice="${id}" aria-pressed="${appLanguage===id}"><span class="choice-flag">${flag}</span><span class="choice-copy"><strong>${name}</strong><small>${name}</small></span><span class="choice-check">✓</span></button>`).join("")}</div>
+    </section>
+    <section class="page-content settings-choice-panel theme-panel">
+      <div class="settings-panel-heading"><span class="settings-panel-icon">◈</span><div><h3>${tr("appearance")}</h3><p>${tr("appearanceDesc")}</p></div></div>
+      <div class="settings-theme-grid">${themes.map(([id,icon,name,desc])=>`<button type="button" class="settings-choice theme-choice theme-${id} ${selectedTheme===id?"selected":""}" data-theme-choice="${id}" aria-pressed="${selectedTheme===id}"><span class="theme-preview"><i></i><i></i><i></i></span><span class="choice-copy"><strong>${icon} ${name}</strong><small>${desc}</small></span><span class="choice-check">✓</span></button>`).join("")}</div>
+      <div class="switch-row"><div><div class="switch-label">Christmas Update</div><div class="switch-hint">${appLanguage==="ru"?"Временное рождественское оформление: гирлянда, снег, ёлка и снеговик.":appLanguage==="uk"?"Тимчасове різдвяне оформлення: гірлянда, сніг, ялинка та сніговик.":appLanguage==="en"?"Temporary Christmas decorations: garland, snow, tree and snowman.":"Tymczasowe dekoracje świąteczne: girlanda, śnieg, choinka i bałwan."}</div></div><label class="toggle"><input type="checkbox" id="christmas-toggle" ${christmasEnabled?"checked":""}><span class="slider"></span></label></div>
+    </section>
+    <div class="page-content"><h3>${tr("push")}</h3><p>${tr("pushDesc")}</p><p id="push-settings-status" class="switch-hint">${tr("pushCheck")}</p><button type="button" class="main-btn" id="push-enable-button">${tr("pushOn")}</button><button type="button" class="logout" id="push-disable-button" hidden>${tr("pushOff")}</button></div>
     <div class="page-content"><h3>${tr("privacy")}</h3><p>${tr("privacyDesc")}</p>
       <div class="switch-row"><div><div class="switch-label">${tr("visible")}</div><div class="switch-hint">${tr("visibleDesc")}</div></div><label class="toggle"><input type="checkbox" id="privacy-visible" ${privacy.visible!==false?"checked":""}><span class="slider"></span></label></div>
       <div class="switch-row"><div><div class="switch-label">${tr("showClass")}</div><div class="switch-hint">${tr("classDesc")}</div></div><label class="toggle"><input type="checkbox" id="privacy-class" ${privacy.showClass!==false?"checked":""}><span class="slider"></span></label></div>
       <div class="switch-row"><div><div class="switch-label">${tr("showInterests")}</div><div class="switch-hint">${tr("interestsDesc")}</div></div><label class="toggle"><input type="checkbox" id="privacy-interests" ${privacy.showInterests!==false?"checked":""}><span class="slider"></span></label></div></div>
     <button class="logout" id="logout-button">${tr("logout")}</button>`;
-  $("app-language-select").addEventListener("change",e=>setAppLanguage(e.target.value));
+  document.querySelectorAll("[data-language-choice]").forEach(b=>b.addEventListener("click",()=>setAppLanguage(b.dataset.languageChoice)));
+  document.querySelectorAll("[data-theme-choice]").forEach(b=>b.addEventListener("click",()=>{applyTheme(b.dataset.themeChoice);renderSettingsPage();}));
   const on=$("push-enable-button"),off=$("push-disable-button");
   if(on)on.addEventListener("click",async()=>{on.disabled=true;try{await enablePhonePush();}catch(error){const st=$("push-settings-status");if(st)st.textContent=error.message||"Error";}finally{on.disabled=false;await refreshPhonePushSettings();}});
   if(off)off.addEventListener("click",async()=>{off.disabled=true;try{await disablePhonePush();}catch(error){const st=$("push-settings-status");if(st)st.textContent=error.message||"Error";}finally{off.disabled=false;await refreshPhonePushSettings();}});
   refreshPhonePushSettings();
-  $("theme-select").addEventListener("change",e=>applyTheme(e.target.value));
   $("christmas-toggle").addEventListener("change",e=>applyChristmasDecorations(e.target.checked));
   const privacyInputs={visible:$("privacy-visible"),showClass:$("privacy-class"),showInterests:$("privacy-interests")};
   Object.keys(privacyInputs).forEach(key=>privacyInputs[key].addEventListener("change",()=>{const old=getMyProfile();saveMyProfile({nickname:old?.nickname||currentUser.name,klasa:old?.klasa||"",bio:old?.bio||"",interests:old?.interests||[],photo:old?.photo||"",photoPath:old?.photoPath||null,privacy:{visible:privacyInputs.visible.checked,showClass:privacyInputs.showClass.checked,showInterests:privacyInputs.showInterests.checked}}).catch(error=>{console.error("Privacy settings save error:",error);alert("Nie udało się zapisać ustawień prywatności. Spróbuj ponownie.");});}));
