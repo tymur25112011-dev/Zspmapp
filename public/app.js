@@ -347,7 +347,7 @@ const pages = {
           <p>Możesz wysłać dowolną kwotę ze swojego banku. W aplikacji bankowej wybierz zwykły przelew i wpisz wybraną przez siebie sumę.</p>
           <div class="support-account-box">
             <span class="small-label">Numer rachunku</span>
-            <strong class="support-account-number" id="support-account-display">Numer rachunku zostanie uzupełniony.</strong>
+            <strong class="support-account-number" id="support-account-display">${SUPPORT_ACCOUNT_NUMBER || "Numer rachunku zostanie uzupełniony."}</strong>
             <button type="button" class="support-copy-btn" id="copy-support-account">⧉ <span>Kopiuj numer konta</span></button>
             <p class="support-copy-status" id="support-copy-status" aria-live="polite"></p>
           </div>
@@ -1940,17 +1940,27 @@ document.addEventListener("click", async event => {
     return;
   }
   try {
+    let copied = false;
     if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(SUPPORT_ACCOUNT_NUMBER);
-    } else {
+      try {
+        await navigator.clipboard.writeText(SUPPORT_ACCOUNT_NUMBER);
+        copied = true;
+      } catch (clipboardError) {
+        // Continue with the legacy fallback used by some mobile browsers.
+      }
+    }
+    if (!copied) {
       const field = document.createElement("textarea");
       field.value = SUPPORT_ACCOUNT_NUMBER;
       field.setAttribute("readonly", "");
       field.style.position = "fixed";
-      field.style.opacity = "0";
+      field.style.left = "-9999px";
+      field.style.top = "0";
       document.body.appendChild(field);
+      field.focus();
       field.select();
-      const copied = document.execCommand("copy");
+      field.setSelectionRange(0, field.value.length);
+      copied = document.execCommand("copy");
       field.remove();
       if (!copied) throw new Error("Clipboard unavailable");
     }
