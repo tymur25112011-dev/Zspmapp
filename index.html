@@ -1207,6 +1207,7 @@ const CHRISTMAS_KEY = "zspm_christmas_decorations";
 function applyChristmasDecorations(enabled) {
   const active = enabled !== false;
   document.documentElement.classList.toggle("christmas-enabled", active);
+  document.body.classList.toggle("christmas-enabled", active);
   const decorations = document.getElementById("christmas-decorations");
   if (decorations) decorations.classList.toggle("hidden", !active);
   try {
@@ -2252,7 +2253,7 @@ function renderSettingsPage() {
         <select id="theme-select" class="settings-select">
           <option value="system" ${selectedTheme === "system" ? "selected" : ""}>System</option>
           <option value="dark" ${selectedTheme === "dark" ? "selected" : ""}>Dark</option>
-          <option value="liquid-glass" ${selectedTheme === "liquid-glass" ? "selected" : ""}>OS Liquid Glass</option>
+          <option value="liquid-glass" ${selectedTheme === "liquid-glass" ? "selected" : ""}>iOS Liquid Glass</option>
         </select>
       </div>
       <div class="switch-row">
