@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "ZSPM Community",
+  "short_name": "ZSPM",
+  "description": "Społeczność uczniów ZSPM — poznawaj, rozmawiaj i nawiązuj znajomości.",
+  "lang": "pl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b0d1c",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "./public/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
