@@ -1256,6 +1256,15 @@ const DEMO_PROFILES = [
 let currentUser = null;
 let myProfileCache = null;
 let publicProfilesCache = [];
+let profileSocialCache = {};
+let friendsDataCache = { incoming: [], outgoing: [], friends: [] };
+let blockedUsersCache = [];
+let notificationsCache = [];
+let conversationsCache = [];
+let activeConversationId = null;
+let activeChatProfile = null;
+let activeChatChannel = null;
+let notificationsChannel = null;
 
 function showMessage(id, text, type = "error") {
   const element = $(id);
@@ -1682,35 +1691,62 @@ function addReport(profileId) {
 
 
 function getProfileSocialData() {
-  if (!currentUser) return {};
-  try {
-    const all = JSON.parse(localStorage.getItem(PROFILE_SOCIAL_KEY) || "{}");
-    const data = all[currentUser.email];
-    return data && typeof data === "object" ? data : {};
-  } catch (error) {
-    return {};
-  }
+  return profileSocialCache;
 }
 
-function saveProfileSocialData(data) {
-  if (!currentUser) return;
-  let all = {};
-  try {
-    all = JSON.parse(localStorage.getItem(PROFILE_SOCIAL_KEY) || "{}");
-  } catch (error) {
-    all = {};
+async function loadProfileSocialData(profileIds) {
+  profileSocialCache = {};
+  const ids = [...new Set((profileIds || []).filter(Boolean))];
+  if (!ids.length || !supabaseClient) return profileSocialCache;
+
+  const [likesResult, commentsResult] = await Promise.all([
+    supabaseClient.from("profile_likes")
+      .select("profile_id,user_id")
+      .in("profile_id", ids),
+    supabaseClient.from("profile_comments")
+      .select("id,profile_id,author_id,content,created_at")
+      .in("profile_id", ids)
+      .order("created_at", { ascending: true })
+  ]);
+
+  if (likesResult.error) console.error("Profile likes load error:", likesResult.error);
+  if (commentsResult.error) console.error("Profile comments load error:", commentsResult.error);
+
+  const comments = commentsResult.data || [];
+  const authorIds = [...new Set(comments.map(item => item.author_id).filter(Boolean))];
+  let authorMap = new Map();
+  if (authorIds.length) {
+    const { data, error } = await supabaseClient.from("public_profiles")
+      .select("id,nickname")
+      .in("id", authorIds);
+    if (error) console.error("Comment authors load error:", error);
+    (data || []).forEach(item => authorMap.set(item.id, item.nickname));
   }
-  all[currentUser.email] = data;
-  localStorage.setItem(PROFILE_SOCIAL_KEY, JSON.stringify(all));
+
+  ids.forEach(id => {
+    const likes = (likesResult.data || []).filter(item => item.profile_id === id);
+    const profileComments = comments.filter(item => item.profile_id === id);
+    profileSocialCache[id] = {
+      liked: likes.some(item => item.user_id === currentUser?.id),
+      likes: likes.length,
+      comments: profileComments.map(item => ({
+        id: item.id,
+        author_id: item.author_id,
+        author: authorMap.get(item.author_id) || "Uczeń",
+        text: item.content,
+        time: new Date(item.created_at).getTime()
+      }))
+    };
+  });
+  return profileSocialCache;
 }
 
 function profileSocialHTML(profile) {
-  const data = getProfileSocialData();
-  const item = data[profile.id] && typeof data[profile.id] === "object"
-    ? data[profile.id] : { liked: false, likes: 0, comments: [] };
+  const item = profileSocialCache[profile.id] || { liked: false, likes: 0, comments: [] };
   const liked = item.liked === true;
   const likes = Math.max(0, Number(item.likes) || 0);
   const comments = Array.isArray(item.comments) ? item.comments : [];
+  const own = profile.id === currentUser?.id;
   const commentsHTML = comments.map((comment, index) =>
     '<div class="profile-comment' + (index >= 2 ? ' profile-comment-extra" hidden' : '') + '">' +
     '<strong>' + escapeHTML(comment.author || "Uczeń") +
@@ -1722,11 +1758,11 @@ function profileSocialHTML(profile) {
 
   return '<div class="profile-social">' +
     '<div class="profile-social-actions">' +
-    '<button type="button" class="social-like' + (liked ? ' liked' : '') +
+    (own ? '' : '<button type="button" class="social-like' + (liked ? ' liked' : '') +
     '" data-action="toggle-like" data-profile-id="' + escapeHTML(profile.id) +
     '" aria-pressed="' + (liked ? 'true' : 'false') + '">' +
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.7c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11A4.7 4.7 0 0 1 12 6.1a4.7 4.7 0 0 1 8.8 2.6Z"/></svg>' +
-    (liked ? 'Lubisz' : 'Lubię to') + ' <span>' + likes + '</span></button>' +
+    (liked ? 'Lubisz' : 'Lubię to') + ' <span>' + likes + '</span></button>') +
     '<span class="profile-comment-count">' + comments.length + ' komentarzy</span></div>' +
     '<div class="profile-comments">' +
     (commentsHTML || '<p class="no-comments">Jeszcze nie ma komentarzy.</p>') +
@@ -1798,14 +1834,14 @@ function renderProfilesPage() {
   const cards = [];
 
   if (myProfile && myVisible) {
-    cards.push(profileCardHTML({ ...myProfile, id: "own" }, true));
+    cards.push(profileCardHTML({ ...myProfile, id: currentUser.id }, true));
   }
 
   const liveProfiles = publicProfilesCache.filter(profile =>
     !myProfile || profile.id !== currentUser?.id
   );
-  [...liveProfiles, ...DEMO_PROFILES]
-    .filter(profile => !myProfile || profile.nickname !== myProfile.nickname)
+  liveProfiles
+    .filter(profile => !myProfile || profile.id !== currentUser?.id)
     .forEach(profile => {
       const reported = reports.includes(profile.id);
       const card = profileCardHTML(profile, false)
@@ -1828,7 +1864,7 @@ function renderProfilesPage() {
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         Utwórz ankietę
       </button>
-      <p class="demo-note">Wersja demonstracyjna: reakcje i komentarze zapisują się tylko w tej przeglądarce. Przykładowe profile nie przedstawiają prawdziwych uczniów.</p>
+      <p class="section-sub">Polubienia i komentarze są widoczne dla użytkowników, którzy mogą zobaczyć daną ankietę.</p>
     </div>
     <div class="profile-grid">${cards.join("")}</div>
   `;
@@ -1837,7 +1873,9 @@ function renderProfilesPage() {
 function bindProfilesPage() {
   const container = $("page-content");
 
-  const rerenderProfiles = () => {
+  const rerenderProfiles = async () => {
+    await loadFriendsData();
+    await loadProfileSocialData([currentUser?.id, ...publicProfilesCache.map(item => item.id)]);
     $("page-content").innerHTML = renderProfilesPage();
     bindProfilesPage();
     updateNotifBadge();
@@ -1848,47 +1886,52 @@ function bindProfilesPage() {
   });
 
   container.querySelectorAll("[data-action='add-friend']").forEach(button => {
-    button.addEventListener("click", () => {
-      sendFriendInvite(button.dataset.personId);
-      rerenderProfiles();
+    button.addEventListener("click", async () => {
+      const error = await sendFriendInvite(button.dataset.personId);
+      if (error) alert(error);
+      await rerenderProfiles();
     });
   });
 
   container.querySelectorAll("[data-action='cancel-invite']").forEach(button => {
-    button.addEventListener("click", () => {
-      cancelFriendInvite(button.dataset.personId);
-      rerenderProfiles();
+    button.addEventListener("click", async () => {
+      await cancelFriendInvite(button.dataset.requestId);
+      await rerenderProfiles();
     });
   });
 
   container.querySelectorAll("[data-action='accept-invite']").forEach(button => {
-    button.addEventListener("click", () => {
-      acceptFriendInvite(button.dataset.personId);
-      rerenderProfiles();
+    button.addEventListener("click", async () => {
+      await acceptFriendInvite(button.dataset.requestId);
+      await rerenderProfiles();
     });
   });
 
   container.querySelectorAll("[data-action='unblock']").forEach(button => {
-    button.addEventListener("click", () => {
-      unblockUser(button.dataset.personId);
-      rerenderProfiles();
+    button.addEventListener("click", async () => {
+      await unblockUser(button.dataset.personId);
+      await rerenderProfiles();
     });
   });
 
-
   container.querySelectorAll("[data-action='toggle-like']").forEach(button => {
-    button.addEventListener("click", () => {
-      const data = getProfileSocialData();
-      const id = button.dataset.profileId;
-      const item = data[id] && typeof data[id] === "object"
-        ? data[id] : { liked: false, likes: 0, comments: [] };
-      const wasLiked = item.liked === true;
-      item.liked = !wasLiked;
-      item.likes = Math.max(0, Number(item.likes) || 0) + (wasLiked ? -1 : 1);
-      item.comments = Array.isArray(item.comments) ? item.comments : [];
-      data[id] = item;
-      saveProfileSocialData(data);
-      rerenderProfiles();
+    button.addEventListener("click", async () => {
+      const profileId = button.dataset.profileId;
+      const current = profileSocialCache[profileId] || { liked: false };
+      let result;
+      if (current.liked) {
+        result = await supabaseClient.from("profile_likes")
+          .delete().eq("profile_id", profileId).eq("user_id", currentUser.id);
+      } else {
+        result = await supabaseClient.from("profile_likes")
+          .insert({ profile_id: profileId, user_id: currentUser.id });
+      }
+      if (result.error) {
+        console.error("Like update error:", result.error);
+        alert("Nie udało się zaktualizować polubienia.");
+        return;
+      }
+      await rerenderProfiles();
     });
   });
 
@@ -1897,7 +1940,6 @@ function bindProfilesPage() {
       const social = button.closest(".profile-social");
       const comments = social && social.querySelector(".profile-comments");
       if (!comments) return;
-
       const expanded = button.getAttribute("aria-expanded") !== "true";
       comments.querySelectorAll(".profile-comment-extra").forEach(comment => {
         comment.hidden = !expanded;
@@ -1909,35 +1951,45 @@ function bindProfilesPage() {
   });
 
   container.querySelectorAll(".profile-comment-form").forEach(form => {
-    form.addEventListener("submit", event => {
+    form.addEventListener("submit", async event => {
       event.preventDefault();
       const input = form.querySelector("input[name='comment']");
-      const value = input.value.trim();
-      if (!value) return;
-      const data = getProfileSocialData();
-      const id = form.dataset.profileId;
-      const item = data[id] && typeof data[id] === "object"
-        ? data[id] : { liked: false, likes: 0, comments: [] };
-      item.comments = Array.isArray(item.comments) ? item.comments : [];
-      if (item.comments.length >= 50) {
+      const value = input.value.trim().slice(0, 240);
+      const profileId = form.dataset.profileId;
+      if (!value || !profileId) return;
+      const existing = profileSocialCache[profileId]?.comments || [];
+      if (existing.length >= 50) {
         alert("Osiągnięto limit komentarzy dla tej ankiety.");
         return;
       }
-      item.comments.push({
-        author: myDisplayInfo().nickname,
-        text: value.slice(0, 240),
-        time: Date.now()
+      const { error } = await supabaseClient.from("profile_comments").insert({
+        profile_id: profileId,
+        author_id: currentUser.id,
+        content: value
       });
-      data[id] = item;
-      saveProfileSocialData(data);
-      rerenderProfiles();
+      if (error) {
+        console.error("Comment save error:", error);
+        alert("Nie udało się dodać komentarza.");
+        return;
+      }
+      await rerenderProfiles();
     });
   });
 
   container.querySelectorAll("[data-action='report']").forEach(button => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const profileId = button.dataset.profileId;
-      addReport(profileId);
+      const { error } = await supabaseClient.from("content_reports").insert({
+        reporter_id: currentUser.id,
+        reported_user_id: profileId,
+        target_type: "profile",
+        target_id: profileId
+      });
+      if (error) {
+        console.error("Profile report error:", error);
+        alert("Nie udało się wysłać zgłoszenia.");
+        return;
+      }
       button.disabled = true;
       button.textContent = "Zgłoszono profil";
     });
