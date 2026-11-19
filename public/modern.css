@@ -3376,3 +3376,27 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
  .community-profile-overlay{padding:8px;align-items:start}
  .community-profile-dialog{margin:auto 0;max-height:95vh}
 }
+
+
+/* Avatar editor containment and profile header spacing fixes */
+.community-avatar-editor-row{display:flex;align-items:center;gap:18px;min-width:0}
+.community-avatar-editor-row>.community-avatar-wrap{width:84px!important;height:84px!important;min-width:84px;max-width:84px;flex:0 0 84px;overflow:visible}
+.community-avatar-editor-row .community-avatar-img,
+.community-avatar-editor-row .community-avatar-fallback,
+.community-avatar-wrap>.community-avatar-img{display:block!important;position:absolute!important;inset:5px!important;width:calc(100% - 10px)!important;height:calc(100% - 10px)!important;max-width:none!important;max-height:none!important;object-fit:cover!important;border-radius:50%!important}
+.community-avatar-wrap{overflow:hidden}
+.community-avatar-wrap .community-avatar-ring{z-index:2}
+.community-avatar-editor-row>.community-avatar-wrap{overflow:hidden}
+.community-avatar-editor-row>.community-avatar-wrap .community-avatar-ring{inset:-5px}
+.community-avatar-editor-row>div:not(.community-avatar-wrap){display:flex;align-items:center;gap:9px;flex-wrap:wrap;min-width:0}
+.community-profile-identity{display:grid;grid-template-columns:112px minmax(0,1fr) auto;align-items:end;gap:18px}
+.community-profile-heading{min-width:0;padding:0 0 9px;margin:0}
+.community-edit-btn{align-self:end;margin-bottom:9px;white-space:nowrap}
+@media(max-width:640px){
+ .community-profile-identity{display:grid;grid-template-columns:88px minmax(0,1fr);align-items:end;gap:12px;margin-top:-43px}
+ .community-profile-identity>.community-avatar-wrap{grid-column:1;grid-row:1;width:88px;height:88px}
+ .community-profile-heading{grid-column:2;grid-row:1;padding:0 0 5px;margin:0;min-width:0}
+ .community-edit-btn{grid-column:1/-1;grid-row:2;justify-self:stretch;margin:4px 0 0}
+ .community-profile-heading h2{overflow-wrap:anywhere}
+ .community-avatar-editor-row>.community-avatar-wrap{width:84px!important;height:84px!important;min-width:84px;max-width:84px}
+}
