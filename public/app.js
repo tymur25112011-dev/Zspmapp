@@ -126,6 +126,7 @@ const DEMO_PROFILES = [
 let currentUser = null;
 let isAdmin = false;
 let isBanned = false;
+let currentMute = null;
 let currentUserBadge = null;
 let myProfileCache = null;
 let publicProfilesCache = [];
@@ -306,6 +307,8 @@ async function enterApp() {
     .order("created_at", { ascending: false });
   const activeBan = (ownModeration || []).find(item => item.action === "ban" &&
     (!item.expires_at || new Date(item.expires_at).getTime() > Date.now()));
+  currentMute = (ownModeration || []).find(item => item.action === "mute" &&
+    (!item.expires_at || new Date(item.expires_at).getTime() > Date.now())) || null;
   isBanned = Boolean(activeBan && !isAdmin);
   if (isBanned) {
     $("home-page").classList.add("hidden");
@@ -315,7 +318,8 @@ async function enterApp() {
     $("page-content").innerHTML = '<div class="page-content moderation-lock"><h3>Twoje konto jest tymczasowo zablokowane</h3><p>Powód: ' +
       escapeHTML(activeBan.reason) + '</p><p>Termin: ' +
       (activeBan.expires_at ? escapeHTML(new Date(activeBan.expires_at).toLocaleString("pl-PL")) : "Bezterminowo") +
-      '</p><p>Jeśli uważasz, że to pomyłka, skontaktuj się z administratorem.</p></div>';
+      '</p><p>Jeśli uważasz, że to pomyłka, skontaktuj się z administratorem.</p><button type="button" class="main-btn" id="ban-logout">Wyloguj się</button></div>';
+    $("ban-logout").addEventListener("click", logout);
     return;
   }
 
@@ -1777,6 +1781,7 @@ async function renderChatList() {
     <div class="page-content">
       <h3>Rozmowy prywatne</h3>
       <p>Możesz pisać do zaakceptowanych znajomych. Czat obsługuje wyłącznie wiadomości tekstowe.</p>
+      ${currentMute ? '<p class="admin-feedback">Wysyłanie wiadomości jest tymczasowo wyłączone. Powód: ' + escapeHTML(currentMute.reason) + '. Do: ' + escapeHTML(formatModerationExpiry(currentMute.expires_at)) + '</p>' : ''}
     </div>
     <div class="conv-list">${items || '<div class="page-content"><p>Nie masz jeszcze rozmów. Dodaj znajomego, aby rozpocząć czat.</p></div>'}</div>
   `;
@@ -2242,6 +2247,7 @@ async function logout() {
   isAdmin = false;
   isBanned = false;
   currentUserBadge = null;
+  currentMute = null;
   myProfileCache = null;
   publicProfilesCache = [];
   profileSocialCache = {};
