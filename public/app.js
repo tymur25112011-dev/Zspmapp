@@ -145,6 +145,8 @@ let friendsChannel = null;
 let socialChannel = null;
 let reportsCache = [];
 let reportedMessageIdsCache = [];
+let chatMessageLikesCache = new Map();
+let replyToMessageId = null;
 
 function showMessage(id, text, type = "error") {
   const element = $(id);
@@ -508,29 +510,41 @@ async function renderAdminPage() {
       '</strong><small>' + Number(row.amount).toFixed(2).replace(".", ",") + ' zł</small></div>' +
       '<button type="button" class="admin-small-btn" data-donation-remove="' + row.user_id + '">Usuń z rankingu</button></div>';
   }).join("");
+  const messageReportIds = (reportsResult.data || []).filter(r => r.target_type === "message").map(r => r.target_id);
+  const [privateReported, globalReported] = await Promise.all([
+    messageReportIds.length ? supabaseClient.from("messages").select("id,content").in("id",messageReportIds) : Promise.resolve({data:[]}),
+    messageReportIds.length ? supabaseClient.from("global_chat_messages").select("id,content").in("id",messageReportIds) : Promise.resolve({data:[]})
+  ]);
+  const reportedText = new Map([...(privateReported.data || []), ...(globalReported.data || [])].map(m => [m.id,m.content]));
   const reportsHtml = (reportsResult.data || []).map(report =>
     '<div class="admin-report"><strong>' + escapeHTML(nameById.get(report.reported_user_id) || "Nieznany użytkownik") +
     '</strong><small>' + escapeHTML(report.target_type === "message" ? "Zgłoszona wiadomość" : "Zgłoszony profil") +
     ' · ' + escapeHTML(new Date(report.created_at).toLocaleString("pl-PL")) + '</small>' +
-    '<p>' + escapeHTML(report.reason || "Użytkownik nie podał dodatkowego opisu.") + '</p></div>'
+    (report.target_type === "message" ? '<blockquote class="admin-reported-content">' + escapeHTML(reportedText.get(report.target_id) || "Wiadomość została usunięta.") + '</blockquote>' : '') +
+    '<p>' + escapeHTML(report.reason || "Brak dodatkowego opisu.") + '</p></div>'
   ).join("");
 
   host.innerHTML = '<div class="admin-overview"><div class="admin-stat"><strong>' + profiles.length +
     '</strong><span>Widoczne profile</span></div><div class="admin-stat"><strong>' +
     (reportsResult.data || []).length + '</strong><span>Zgłoszenia</span></div><div class="admin-stat"><strong>' +
     (moderationResult.data || []).length + '</strong><span>Kary</span></div></div>' +
-    '<div class="page-content admin-intro"><h3>🛡️ Panel administracji</h3><p>Panel jest przypisany do konta administratora i chroniony przez Supabase.</p></div>' +
-    '<h3 class="admin-section-title">Użytkownicy i moderacja</h3>' +
-    '<div class="admin-user-list">' + (usersHtml || '<div class="page-content"><p>Brak widocznych profili.</p></div>') + '</div>' +
-    '<h3 class="admin-section-title">Ranking wpłat (ręczne zarządzanie)</h3>' +
+    '<div class="page-content admin-intro"><h3>Panel administracji</h3><p>Zarządzaj społecznością, wiadomościami i zgłoszeniami.</p></div>' +
+    '<div class="admin-tabs" role="tablist">' +
+      '<button type="button" class="admin-tab active" data-admin-tab="users">Użytkownicy</button>' +
+      '<button type="button" class="admin-tab" data-admin-tab="reports">Zgłoszenia (' + (reportsResult.data || []).length + ')</button>' +
+      '<button type="button" class="admin-tab" data-admin-tab="donations">Donaty</button>' +
+    '</div>' +
+    '<section class="admin-panel active" data-admin-panel="users"><h3 class="admin-section-title">Użytkownicy i moderacja</h3>' +
+    '<div class="admin-user-list">' + (usersHtml || '<div class="page-content"><p>Brak widocznych profili.</p></div>') + '</div></section>' +
+    '<section class="admin-panel" data-admin-panel="donations"><h3 class="admin-section-title">Ranking wpłat</h3>' +
     '<section class="donation-admin-card"><p>Wybierz użytkownika i wpisz łączną kwotę potwierdzonych wpłat. Miejsca w rankingu ustawią się automatycznie.</p>' +
     '<div class="donation-admin-form"><label>Użytkownik<select id="donation-user-select">' +
     profiles.map(profile => '<option value="' + profile.id + '">' + escapeHTML(profile.nickname) + '</option>').join("") +
     '</select></label><label>Kwota (zł)<input id="donation-amount-input" type="number" min="0" max="1000000" step="0.01" placeholder="100.00"></label>' +
     '<button type="button" class="admin-action-btn" id="donation-save">Zapisz kwotę</button></div>' +
-    '<div class="donation-admin-list">' + (donationRowsHtml || '<p class="muted">Nie dodano jeszcze żadnych osób do rankingu.</p>') + '</div></section>' +
-    '<h3 class="admin-section-title">Ostatnie zgłoszenia</h3>' +
-    '<div class="admin-report-list">' + (reportsHtml || '<div class="page-content"><p>Nie ma nowych zgłoszeń.</p></div>') + '</div>' +
+    '<div class="donation-admin-list">' + (donationRowsHtml || '<p class="muted">Nie dodano jeszcze żadnych osób do rankingu.</p>') + '</div></section></section>' +
+    '<section class="admin-panel" data-admin-panel="reports"><h3 class="admin-section-title">Zgłoszenia użytkowników i wiadomości</h3>' +
+    '<div class="admin-report-list">' + (reportsHtml || '<div class="page-content"><p>Nie ma nowych zgłoszeń.</p></div>') + '</div></section>' +
     '<p class="admin-feedback" id="admin-feedback" aria-live="polite"></p>';
 
   const donationSave = host.querySelector("#donation-save");
@@ -610,6 +624,11 @@ async function renderAdminPage() {
     });
   });
 }
+
+  host.querySelectorAll("[data-admin-tab]").forEach(tab => tab.addEventListener("click", () => {
+    host.querySelectorAll("[data-admin-tab]").forEach(item => item.classList.toggle("active", item === tab));
+    host.querySelectorAll("[data-admin-panel]").forEach(panel => panel.classList.toggle("active", panel.dataset.adminPanel === tab.dataset.adminTab));
+  }));
 
 
 async function openPage(page) {
@@ -1803,12 +1822,13 @@ async function unblockUser(personId) {
   await loadBlockedUsers();
 }
 
-async function submitContentReport(targetType, targetId, reportedUserId) {
+async function submitContentReport(targetType, targetId, reportedUserId, reason = "") {
   const { error } = await supabaseClient.from("content_reports").insert({
     reporter_id: currentUser.id,
     reported_user_id: reportedUserId,
     target_type: targetType,
-    target_id: targetId
+    target_id: targetId,
+    reason: String(reason || "").trim().slice(0,500)
   });
   if (error) {
     console.error("Content report error:", error);
@@ -2138,7 +2158,7 @@ async function openGlobalChat() {
 
 async function loadConversationMessages(conversationId) {
   const { data, error } = await supabaseClient.from("messages")
-    .select("id,conversation_id,sender_id,content,created_at")
+    .select("id,conversation_id,sender_id,content,created_at,edited_at,reply_to_id")
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: true })
     .limit(200);
@@ -2146,10 +2166,23 @@ async function loadConversationMessages(conversationId) {
     console.error("Messages load error:", error);
     return [];
   }
-  return data || [];
+  const rows = data || [];
+  const ids = rows.map(item => item.id);
+  chatMessageLikesCache = new Map();
+  if (ids.length) {
+    const {data: likeRows, error: likeError} = await supabaseClient.from("message_likes").select("message_id,user_id").in("message_id",ids);
+    if (likeError) console.warn("Message likes load error:",likeError);
+    (likeRows || []).forEach(row => {
+      const item = chatMessageLikesCache.get(row.message_id) || {count:0,liked:false};
+      item.count++;
+      if (row.user_id === currentUser.id) item.liked = true;
+      chatMessageLikesCache.set(row.message_id,item);
+    });
+  }
+  return rows;
 }
 
-function messageBubbleHTML(message) {
+function messageBubbleHTML(message, allMessages = []) {
   const mine = message.sender_id === currentUser.id;
   const profile = mine ? getMyProfile() : getProfileById(message.sender_id);
   const sender = profile || { nickname: "Uczeń", photo: "" };
@@ -2157,54 +2190,69 @@ function messageBubbleHTML(message) {
     ? '<span class="user-role-badge admin-role">ADMIN</span>'
     : sender.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : "";
   const alreadyReported = reportedMessageIdsCache.includes(message.id);
-  const actions = mine ? "" : `
-    <div class="bubble-actions">
-      ${alreadyReported
-        ? '<span class="chat-reported">Zgłoszono</span>'
-        : '<button type="button" class="msg-action" data-action="report-msg" data-msg-id="' + escapeHTML(message.id) + '" data-sender-id="' + escapeHTML(message.sender_id) + '">Zgłoś</button>'}
-      <button type="button" class="msg-action" data-action="block-person"
-        data-person-id="${escapeHTML(message.sender_id)}">Blokuj</button>
-    </div>`;
-  return `
-    <div class="chat-row${mine ? " mine" : ""}">
-      ${mine ? "" : profileAvatarHTML(sender, "msg-avatar")}
-      <div class="bubble">
-        ${mine ? "" : '<div class="bubble-author">' + escapeHTML(sender.nickname) + senderBadge + '</div>'}
-        <div class="bubble-text" data-msg-id="${escapeHTML(message.id)}"></div>
-        <div class="bubble-time">${formatTime(new Date(message.created_at).getTime())}</div>
-        ${actions}
-      </div>
-    </div>
-  `;
+  const likes = chatMessageLikesCache.get(message.id) || {count:0,liked:false};
+  const parent = allMessages.find(item => item.id === message.reply_to_id);
+  const actions = '<div class="bubble-actions">' +
+    (mine
+      ? '<button type="button" class="msg-action" data-action="edit-msg" data-msg-id="' + escapeHTML(message.id) + '">Edytuj</button><button type="button" class="msg-action danger" data-action="delete-msg" data-msg-id="' + escapeHTML(message.id) + '">Usuń</button>'
+      : (alreadyReported ? '<span class="chat-reported">Zgłoszono</span>' : '<button type="button" class="msg-action" data-action="report-msg" data-msg-id="' + escapeHTML(message.id) + '" data-sender-id="' + escapeHTML(message.sender_id) + '">Zgłoś</button>') +
+        '<button type="button" class="msg-action" data-action="block-person" data-person-id="' + escapeHTML(message.sender_id) + '">Blokuj</button>') +
+    '<button type="button" class="msg-action" data-action="reply-msg" data-msg-id="' + escapeHTML(message.id) + '">Odpowiedz</button>' +
+    '<button type="button" class="msg-action' + (likes.liked ? ' liked' : '') + '" data-action="like-msg" data-msg-id="' + escapeHTML(message.id) + '">♥ ' + likes.count + '</button></div>';
+  return '<div class="chat-row' + (mine ? ' mine' : '') + '"><div class="bubble">' +
+    (mine ? '' : '<div class="bubble-author">' + escapeHTML(sender.nickname) + senderBadge + '</div>') +
+    (parent ? '<div class="bubble-reply-context">↳ ' + escapeHTML(parent.content.slice(0,100)) + '</div>' : '') +
+    '<div class="bubble-text" data-msg-id="' + escapeHTML(message.id) + '"></div>' +
+    '<div class="bubble-time">' + formatTime(new Date(message.created_at).getTime()) + (message.edited_at ? ' · edytowano' : '') + '</div>' +
+    actions + '</div></div>';
 }
 
 function renderMessages(messages) {
   const container = $("chat-msgs");
   if (!container) return;
   container.innerHTML = messages.length
-    ? messages.map(messageBubbleHTML).join("")
+    ? messages.map(message => messageBubbleHTML(message, messages)).join("")
     : '<div class="page-content"><p>Brak wiadomości. Napisz pierwszą!</p></div>';
   messages.forEach(message => {
     const element = container.querySelector('.bubble-text[data-msg-id="' + CSS.escape(message.id) + '"]');
     if (element) element.textContent = message.content;
   });
-
-  container.querySelectorAll("[data-action='report-msg']").forEach(button => {
-    button.addEventListener("click", async () => {
-      const ok = await submitContentReport("message", button.dataset.msgId, button.dataset.senderId);
-      if (ok) {
-        reportedMessageIdsCache.push(button.dataset.msgId);
-        button.disabled = true;
-        button.textContent = "Zgłoszono";
-      }
-    });
-  });
-  container.querySelectorAll("[data-action='block-person']").forEach(button => {
-    button.addEventListener("click", async () => {
-      await blockUser(button.dataset.personId);
+  container.querySelectorAll("[data-action]").forEach(button => button.addEventListener("click", async () => {
+    const action = button.dataset.action, id = button.dataset.msgId;
+    if (action === "report-msg") {
+      const reason = prompt("Powód zgłoszenia (opcjonalnie):") || "";
+      const ok = await submitContentReport("message", id, button.dataset.senderId, reason);
+      if (ok) { reportedMessageIdsCache.push(id); button.textContent = "Zgłoszono"; button.disabled = true; }
+    } else if (action === "block-person") {
+      await blockUser(button.dataset.personId); await openChat(activeConversationId);
+    } else if (action === "reply-msg") {
+      replyToMessageId = id;
+      const input = $("chat-input");
+      if (input) { input.placeholder = "Odpowiedź na wiadomość…"; input.focus(); }
+      const hint = $("char-hint"); if (hint) hint.textContent = "Odpowiadasz na wybraną wiadomość";
+    } else if (action === "edit-msg") {
+      const current = messages.find(item => item.id === id);
+      const value = prompt("Edytuj wiadomość:", current?.content || "");
+      if (value === null) return;
+      const content = value.trim().slice(0,MAX_MESSAGE_LENGTH);
+      if (!content) return alert("Wiadomość nie może być pusta.");
+      const {error} = await supabaseClient.from("messages").update({content,edited_at:new Date().toISOString()}).eq("id",id).eq("sender_id",currentUser.id);
+      if (error) return alert("Nie udało się edytować wiadomości.");
       await openChat(activeConversationId);
-    });
-  });
+    } else if (action === "delete-msg") {
+      if (!confirm("Usunąć tę wiadomość?")) return;
+      const {error} = await supabaseClient.from("messages").delete().eq("id",id).eq("sender_id",currentUser.id);
+      if (error) return alert("Nie udało się usunąć wiadomości.");
+      await openChat(activeConversationId);
+    } else if (action === "like-msg") {
+      const existing = chatMessageLikesCache.get(id)?.liked;
+      const result = existing
+        ? await supabaseClient.from("message_likes").delete().eq("message_id",id).eq("user_id",currentUser.id)
+        : await supabaseClient.from("message_likes").insert({message_id:id,user_id:currentUser.id});
+      if (result.error) return alert("Nie udało się zmienić polubienia.");
+      await openChat(activeConversationId);
+    }
+  }));
   requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
 }
 
@@ -2312,7 +2360,8 @@ function bindComposer(conversationId) {
     const { error } = await supabaseClient.from("messages").insert({
       conversation_id: conversationId,
       sender_id: currentUser.id,
-      content
+      content,
+      reply_to_id: replyToMessageId
     });
     button.disabled = false;
     if (error) {
@@ -2321,6 +2370,8 @@ function bindComposer(conversationId) {
       return;
     }
     input.value = "";
+    replyToMessageId = null;
+    input.placeholder = "Napisz wiadomość...";
     hint.textContent = "0 / " + MAX_MESSAGE_LENGTH;
     const fresh = await loadConversationMessages(conversationId);
     renderMessages(fresh);
