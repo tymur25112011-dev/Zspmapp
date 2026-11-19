@@ -820,3 +820,65 @@ body {
   color: inherit !important;
   stroke: currentColor !important;
 }
+
+
+/* Consistent modern action buttons for comments and account menu */
+#page-content .profile-card .profile-comments-toggle {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  width: auto !important;
+  min-width: 94px !important;
+  min-height: 34px !important;
+  margin: 0 0 8px !important;
+  padding: 7px 13px !important;
+  border: 1px solid rgba(55, 132, 224, .34) !important;
+  border-radius: 999px !important;
+  background: var(--zspm-blue-soft, rgba(55, 132, 224, .12)) !important;
+  color: var(--zspm-blue, #3985df) !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease !important;
+}
+#page-content .profile-card .profile-comments-toggle:hover {
+  background: rgba(55, 132, 224, .19) !important;
+  border-color: rgba(55, 132, 224, .58) !important;
+  transform: translateY(-1px) !important;
+}
+#page-content .profile-card .profile-comments-toggle:active {
+  transform: translateY(0) scale(.98) !important;
+}
+#page-content .profile-card .profile-comment-extra[hidden] {
+  display: none !important;
+}
+#page-content .profile-card .profile-comment-extra:not([hidden]) {
+  display: flex !important;
+}
+
+#app .account-menu-wrap #account-menu #account-logout {
+  min-height: 46px !important;
+  border: 1px solid rgba(220, 91, 119, .32) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, rgba(220, 91, 119, .13), rgba(220, 91, 119, .07)) !important;
+  color: var(--zspm-text, #e9eef8) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: .01em !important;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease !important;
+}
+#app .account-menu-wrap #account-menu #account-logout svg {
+  color: #e47791 !important;
+}
+#app .account-menu-wrap #account-menu #account-logout:hover {
+  background: linear-gradient(135deg, rgba(220, 91, 119, .23), rgba(220, 91, 119, .13)) !important;
+  border-color: rgba(220, 91, 119, .58) !important;
+  color: var(--zspm-text, #e9eef8) !important;
+  transform: translateY(-1px) !important;
+}
