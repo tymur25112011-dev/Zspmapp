@@ -1076,8 +1076,8 @@ button { cursor: pointer; }
 
         <button class="menu-item" data-page="chat">
           <div class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9 9 0 0 1-4-.9L3 21l1.9-4.5A8.5 8.5 0 1 1 21 11.5Z"/></svg></div>
-          <h3>Czat szkolny</h3>
-          <p>Rozmawiaj z uczniami</p>
+          <h3>Wiadomości</h3>
+          <p>Prywatne rozmowy ze znajomymi</p>
         </button>
 
         <button class="menu-item" data-page="friends">
@@ -1268,6 +1268,7 @@ let notificationsChannel = null;
 let friendsChannel = null;
 let socialChannel = null;
 let reportsCache = [];
+let reportedMessageIdsCache = [];
 
 function showMessage(id, text, type = "error") {
   const element = $(id);
@@ -1706,6 +1707,7 @@ async function loadReports() {
     return reportsCache;
   }
   reportsCache = (data || []).filter(item => item.target_type === "profile").map(item => item.target_id);
+  reportedMessageIdsCache = (data || []).filter(item => item.target_type === "message").map(item => item.target_id);
   return reportsCache;
 }
 
@@ -2715,10 +2717,12 @@ function messageBubbleHTML(message) {
   const mine = message.sender_id === currentUser.id;
   const profile = mine ? getMyProfile() : getProfileById(message.sender_id);
   const sender = profile || { nickname: "Uczeń", photo: "" };
+  const alreadyReported = reportedMessageIdsCache.includes(message.id);
   const actions = mine ? "" : `
     <div class="bubble-actions">
-      <button type="button" class="msg-action" data-action="report-msg"
-        data-msg-id="${escapeHTML(message.id)}" data-sender-id="${escapeHTML(message.sender_id)}">Zgłoś</button>
+      ${alreadyReported
+        ? '<span class="chat-reported">Zgłoszono</span>'
+        : '<button type="button" class="msg-action" data-action="report-msg" data-msg-id="' + escapeHTML(message.id) + '" data-sender-id="' + escapeHTML(message.sender_id) + '">Zgłoś</button>'}
       <button type="button" class="msg-action" data-action="block-person"
         data-person-id="${escapeHTML(message.sender_id)}">Blokuj</button>
     </div>`;
@@ -2750,6 +2754,7 @@ function renderMessages(messages) {
     button.addEventListener("click", async () => {
       const ok = await submitContentReport("message", button.dataset.msgId, button.dataset.senderId);
       if (ok) {
+        reportedMessageIdsCache.push(button.dataset.msgId);
         button.disabled = true;
         button.textContent = "Zgłoszono";
       }
@@ -3081,6 +3086,7 @@ async function logout() {
   blockedUsersCache = [];
   notificationsCache = [];
   reportsCache = [];
+  reportedMessageIdsCache = [];
   conversationsCache = [];
   activeConversationId = null;
   activeChatProfile = null;
