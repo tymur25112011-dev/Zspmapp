@@ -2537,3 +2537,236 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
 @media (prefers-reduced-motion: reduce) {
   .christmas-garland i { animation: none !important; }
 }
+
+
+/* Theme correction: System keeps the refined DarkOS component styling;
+   DarkOS itself is strictly matte monochrome, with no blue accents. */
+:root[data-theme="system"] {
+  color-scheme: light;
+  --zspm-bg: #f3f7fc;
+  --zspm-panel: #ffffff;
+  --zspm-panel-2: #f6f9fe;
+  --zspm-input: #f8faff;
+  --zspm-border: rgba(48,91,143,.14);
+  --zspm-text: #17283d;
+  --zspm-muted: #687d97;
+  --zspm-blue: #347fdf;
+  --zspm-blue-2: #2468c3;
+  --zspm-blue-soft: rgba(52,127,223,.09);
+  --zspm-shadow: 0 10px 32px rgba(28,62,104,.07);
+}
+:root[data-theme="system"] body {
+  background:
+    radial-gradient(ellipse at 8% 0%, rgba(52,127,223,.09), transparent 34rem),
+    #f3f7fc;
+}
+:root[data-theme="system"] #app .card,
+:root[data-theme="system"] #app .page-content,
+:root[data-theme="system"] #app .profile-card,
+:root[data-theme="system"] #app .chat-head,
+:root[data-theme="system"] #app .conv-item,
+:root[data-theme="system"] #app .menu-item,
+:root[data-theme="system"] #auth .card {
+  border-radius: 20px;
+  box-shadow: 0 10px 32px rgba(28,62,104,.07);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+:root[data-theme="system"] #app .menu-item:hover,
+:root[data-theme="system"] #app .conv-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 34px rgba(28,62,104,.11);
+}
+:root[data-theme="system"] #app .bottom-nav {
+  background: rgba(255,255,255,.94);
+  border: 1px solid rgba(48,91,143,.12);
+  box-shadow: 0 10px 30px rgba(28,62,104,.1);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+:root[data-theme="system"] #app .hero {
+  background: linear-gradient(135deg,#347fdf,#2468c3 62%,#1d579f);
+  border: 1px solid rgba(255,255,255,.3);
+  box-shadow: 0 16px 36px rgba(36,104,195,.2);
+}
+:root[data-theme="system"] #app .menu-icon {
+  border-radius: 14px;
+  background: rgba(52,127,223,.09);
+  border: 1px solid rgba(52,127,223,.13);
+}
+:root[data-theme="system"] #app .main-btn,
+:root[data-theme="system"] #app .accept-btn,
+:root[data-theme="system"] #app .chat-send {
+  background: linear-gradient(135deg,#347fdf,#2468c3);
+  border: 1px solid rgba(255,255,255,.18);
+}
+:root[data-theme="system"] #app .bubble {
+  border-radius: 17px;
+  box-shadow: 0 5px 16px rgba(28,62,104,.06);
+}
+:root[data-theme="system"] #app .chat-row.mine .bubble {
+  background: linear-gradient(135deg,#347fdf,#2468c3);
+}
+:root[data-theme="system"] #app .nav-item.active {
+  font-weight: 750;
+}
+:root[data-theme="system"] #app .profile-card.own {
+  border-color: rgba(52,127,223,.4);
+}
+:root[data-theme="system"] #app .switch-row {
+  border-color: rgba(48,91,143,.12);
+}
+
+/* DarkOS: matte graphite / black / grey only. No blue hues or gradients. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --zspm-bg: #101010;
+  --zspm-panel: #1a1a1a;
+  --zspm-panel-2: #242424;
+  --zspm-input: #141414;
+  --zspm-border: rgba(255,255,255,.09);
+  --zspm-text: #f1f1f1;
+  --zspm-muted: #a0a0a0;
+  --zspm-blue: #d0d0d0;
+  --zspm-blue-2: #858585;
+  --zspm-blue-soft: rgba(255,255,255,.055);
+  --zspm-shadow: 0 14px 34px rgba(0,0,0,.3);
+}
+:root[data-theme="dark"] html,
+:root[data-theme="dark"] body {
+  background: #101010;
+}
+:root[data-theme="dark"] body {
+  background: linear-gradient(180deg,#111 0%,#151515 55%,#101010 100%);
+  color: #f1f1f1;
+}
+:root[data-theme="dark"] #app .card,
+:root[data-theme="dark"] #app .page-content,
+:root[data-theme="dark"] #app .profile-card,
+:root[data-theme="dark"] #app .chat-head,
+:root[data-theme="dark"] #app .conv-item,
+:root[data-theme="dark"] #app .menu-item,
+:root[data-theme="dark"] #app .account-menu,
+:root[data-theme="dark"] #auth .card {
+  background: #1a1a1a;
+  border: 1px solid #303030;
+  box-shadow: 0 12px 30px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.025);
+  color: #f1f1f1;
+}
+:root[data-theme="dark"] #app .bottom-nav {
+  background: rgba(25,25,25,.97);
+  border: 1px solid #333;
+  box-shadow: 0 10px 30px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+:root[data-theme="dark"] #app .nav-item,
+:root[data-theme="dark"] #app .nav-item.active {
+  color: #d2d2d2;
+}
+:root[data-theme="dark"] #app .hero {
+  background: #252525;
+  border: 1px solid #393939;
+  box-shadow: 0 12px 28px rgba(0,0,0,.24);
+}
+:root[data-theme="dark"] #app .hero h3,
+:root[data-theme="dark"] #app .hero p {
+  color: #f0f0f0;
+}
+:root[data-theme="dark"] #app .logo-icon,
+:root[data-theme="dark"] #app .small-logo-icon,
+:root[data-theme="dark"] #app .profile-avatar,
+:root[data-theme="dark"] #app .conv-avatar,
+:root[data-theme="dark"] #app .msg-avatar,
+:root[data-theme="dark"] #app .avatar {
+  background: linear-gradient(145deg,#555,#303030);
+  border: 1px solid #666;
+  box-shadow: none;
+}
+:root[data-theme="dark"] #app .menu-icon {
+  color: #d0d0d0;
+  background: #252525;
+  border: 1px solid #3a3a3a;
+  box-shadow: none;
+}
+:root[data-theme="dark"] #app .main-btn,
+:root[data-theme="dark"] #app .accept-btn,
+:root[data-theme="dark"] #app .chat-send,
+:root[data-theme="dark"] #app .profile-comment-form button {
+  background: #dedede;
+  color: #171717;
+  border: 1px solid #eee;
+  box-shadow: none;
+}
+:root[data-theme="dark"] #app .main-btn:hover,
+:root[data-theme="dark"] #app .accept-btn:hover,
+:root[data-theme="dark"] #app .chat-send:hover {
+  background: #fff;
+}
+:root[data-theme="dark"] #app .field input,
+:root[data-theme="dark"] #app .field textarea,
+:root[data-theme="dark"] #app .chat-input,
+:root[data-theme="dark"] #app .profile-comment-form input,
+:root[data-theme="dark"] #auth .field input {
+  background: #141414;
+  border-color: #393939;
+  color: #f1f1f1;
+}
+:root[data-theme="dark"] #app .field input:focus,
+:root[data-theme="dark"] #app .field textarea:focus,
+:root[data-theme="dark"] #app .chat-input:focus {
+  border-color: #929292;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.06);
+}
+:root[data-theme="dark"] #app .interest-tag,
+:root[data-theme="dark"] #app .pill-btn,
+:root[data-theme="dark"] #app .social-like {
+  background: #292929;
+  border-color: #414141;
+  color: #e0e0e0;
+}
+:root[data-theme="dark"] #app .bubble {
+  background: #242424;
+  border: 1px solid #383838;
+  color: #eee;
+}
+:root[data-theme="dark"] #app .chat-row.mine .bubble {
+  background: #393939;
+  border-color: #505050;
+  color: #fff;
+}
+:root[data-theme="dark"] #app .bubble-author,
+:root[data-theme="dark"] #app .profile-comment strong,
+:root[data-theme="dark"] #app a,
+:root[data-theme="dark"] #app .switch button,
+:root[data-theme="dark"] #app .chat-back,
+:root[data-theme="dark"] #app .profile-comments-toggle {
+  color: #d0d0d0;
+}
+:root[data-theme="dark"] #app .toggle .slider {
+  background: #454545;
+}
+:root[data-theme="dark"] #app .toggle input:checked + .slider {
+  background: #bcbcbc;
+}
+:root[data-theme="dark"] #app .logout,
+:root[data-theme="dark"] #app .report-btn,
+:root[data-theme="dark"] #app .chat-block-btn {
+  background: #302626;
+  border-color: #514040;
+  color: #e3caca;
+}
+:root[data-theme="dark"] #app .composer-wrap {
+  background: linear-gradient(to top,#101010 72%,transparent);
+}
+:root[data-theme="dark"] #app button:focus-visible,
+:root[data-theme="dark"] #app a:focus-visible,
+:root[data-theme="dark"] #auth button:focus-visible {
+  outline-color: #c7c7c7;
+}
+:root[data-theme="dark"] #app .profile-card.own {
+  border-color: #777;
+}
+:root[data-theme="dark"] #app .you-badge {
+  background: #555;
+  color: #fff;
+}
