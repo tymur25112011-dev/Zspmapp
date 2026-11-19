@@ -662,12 +662,13 @@ async function loadMyProfileFromSupabase() {
   myProfileCache = await mapDatabaseProfile(data);
   if (myProfileCache) {
     myProfileCache.badge = isAdmin ? "admin" : currentUserBadge;
-    if (isAdmin) $("user-name").innerHTML = escapeHTML(myProfileCache.nickname) + ' <span class="user-role-badge admin-role">ADMIN</span>';
-    else if (currentUserBadge === "premium") $("user-name").innerHTML = escapeHTML(myProfileCache.nickname) + ' <span class="user-role-badge premium-role">PREMIUM</span>';
+
     const profiles = getUserProfiles();
     profiles[currentUser.email] = myProfileCache;
     saveUserProfiles(profiles);
-    $("user-name").textContent = myProfileCache.nickname;
+    $("user-name").innerHTML = escapeHTML(myProfileCache.nickname) +
+      (isAdmin ? ' <span class="user-role-badge admin-role">ADMIN</span>' :
+        currentUserBadge === "premium" ? ' <span class="user-role-badge premium-role">PREMIUM</span>' : "");
   }
   return myProfileCache;
 }
