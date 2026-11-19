@@ -2857,10 +2857,14 @@ async function setupRealtimeSubscriptions() {
       const state = presenceChannel?.presenceState?.() || {};
       onlineUsers = new Set(Object.keys(state));
       document.querySelectorAll("[data-presence-user]").forEach(node => {
-        const online = onlineUsers.has(node.dataset.presenceUser);
-        node.classList.toggle("is-online", online);
-        node.classList.toggle("is-offline", !online);
-        if (node.lastChild) node.lastChild.textContent = online ? "Online" : "Offline";
+        const mode = node.dataset.statusMode || "online";
+        const online = mode === "invisible" ? false : onlineUsers.has(node.dataset.presenceUser);
+        node.classList.toggle("is-online", mode === "online" && online);
+        node.classList.toggle("is-offline", mode === "online" && !online || mode === "invisible");
+        node.classList.toggle("is-dnd", mode === "dnd");
+        node.classList.toggle("is-busy", mode === "busy");
+        const label = mode === "dnd" ? "Nie przeszkadzać" : mode === "busy" ? "Zajęty" : online ? "Online" : "Offline";
+        if (node.lastChild) node.lastChild.textContent = label;
       });
     })
     .subscribe(async status => {
