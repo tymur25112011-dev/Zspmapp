@@ -1094,9 +1094,9 @@ function renderSettingsPage() {
       <div class="field theme-select-field">
         <label for="theme-select">Motyw</label>
         <select id="theme-select" class="settings-select">
-          <option value="system" ${selectedTheme === "system" ? "selected" : ""}>System</option>
-          <option value="dark" ${selectedTheme === "dark" ? "selected" : ""}>Dark</option>
-          <option value="liquid-glass" ${selectedTheme === "liquid-glass" ? "selected" : ""}>iOS Liquid Glass</option>
+          <option value="system" ${selectedTheme === "system" ? "selected" : ""}>System · Standard</option>
+          <option value="dark" ${selectedTheme === "dark" ? "selected" : ""}>DarkOS</option>
+          <option value="liquid-glass" ${selectedTheme === "liquid-glass" ? "selected" : ""}>Liquid Glass</option>
         </select>
       </div>
       <div class="switch-row">
