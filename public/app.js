@@ -1783,9 +1783,9 @@ function renderCommunityProfileEditor(profile) {
     '<div class="community-editor-head"><button type="button" class="pill-btn" id="community-editor-back">‹ Wróć</button><div><h3>Personalizacja profilu</h3><p>Ustaw wygląd, który widzą inni użytkownicy.</p></div></div>' +
     '<form id="community-profile-form">' +
       '<section class="community-editor-section"><h4>Baner profilu</h4><div class="community-editor-banner '+('theme-'+(current.banner_theme||"aurora"))+'" id="community-banner-preview" '+(bannerUrl?'style="background-image:url(&quot;'+escapeHTML(bannerUrl)+'&quot;)"':'')+'></div>' +
-      '<label class="community-upload-btn">Wgraj własny baner<input id="community-banner-file" type="file" accept="image/jpeg,image/png,image/webp" hidden></label>' +
+      '<label class="community-upload-btn">Wgraj własny baner<input id="community-banner-file" type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button type="button" class="pill-btn" id="community-clear-banner">Użyj gotowego banera</button>' +
       '<div class="community-theme-grid">'+bannerChoices+'</div></section>' +
-      '<section class="community-editor-section"><h4>Avatar i dekoracje</h4><div class="community-avatar-editor-row">'+communityAvatarMarkup(current,"editor-avatar")+'<label class="community-upload-btn">Zmień avatar<input id="community-avatar-file" type="file" accept="image/jpeg,image/png,image/webp" hidden></label></div>' +
+      '<section class="community-editor-section"><h4>Avatar i dekoracje</h4><div class="community-avatar-editor-row">'+communityAvatarMarkup(current,"editor-avatar")+'<div><label class="community-upload-btn">Zmień avatar<input id="community-avatar-file" type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button type="button" class="pill-btn" id="community-clear-avatar">Usuń avatar</button></div></div>' +
       '<div class="community-decoration-grid">'+decorationChoices+'</div></section>' +
       '<section class="community-editor-section"><h4>Informacje</h4>' +
         '<label class="community-form-field">Nick<input id="community-nickname" maxlength="32" minlength="2" required value="'+escapeHTML(current.nickname||currentUser.name)+'"></label>' +
@@ -1802,17 +1802,32 @@ function renderCommunityProfileEditor(profile) {
     bannerPreview.className = "community-editor-banner theme-" + input.value;
     if (!bannerFile && !current.banner_path) bannerPreview.style.backgroundImage = "";
   }));
-  let avatarFile = null, bannerFile = null;
+  let avatarFile = null, bannerFile = null, removeAvatar = false, removeBanner = false;
   const bannerPreview = $("community-banner-preview");
   $("community-banner-file").addEventListener("change", e => {
     bannerFile = e.target.files?.[0] || null;
+    removeBanner = false;
     if (bannerFile) {
       const url = URL.createObjectURL(bannerFile);
       bannerPreview.style.backgroundImage = 'url("'+url+'")';
     }
   });
+  $("community-clear-banner").addEventListener("click", () => {
+    bannerFile = null; removeBanner = true; $("community-banner-file").value = "";
+    bannerPreview.style.backgroundImage = "";
+  });
+  $("community-clear-avatar").addEventListener("click", () => {
+    avatarFile = null; removeAvatar = true; $("community-avatar-file").value = "";
+    const preview = host.querySelector(".editor-avatar");
+    preview?.querySelector("img")?.remove();
+    if (preview && !preview.querySelector(".community-avatar-fallback")) {
+      const fallback = document.createElement("div"); fallback.className = "community-avatar-fallback";
+      fallback.textContent = (current.nickname || "U").trim().slice(0,1).toUpperCase(); preview.prepend(fallback);
+    }
+  });
   $("community-avatar-file").addEventListener("change", e => {
     avatarFile = e.target.files?.[0] || null;
+    removeAvatar = false;
     const preview = host.querySelector(".editor-avatar");
     if (avatarFile && preview) {
       const img = preview.querySelector("img") || document.createElement("img");
@@ -1830,7 +1845,8 @@ function renderCommunityProfileEditor(profile) {
     if (nickname.length < 2) { feedback.textContent = "Nick musi mieć co najmniej 2 znaki."; return; }
     button.disabled = true; button.textContent = "Zapisywanie...";
     try {
-      const uploadAsset = async (file, kind, oldPath) => {
+      const uploadAsset = async (file, kind, oldPath, removeExisting) => {
+        if (removeExisting) return null;
         if (!file) return oldPath || null;
         const blob = await compressCommunityImage(file, kind === "banner" ? 1600 : 512);
         const path = currentUser.id + "/" + kind + "-" + Date.now() + ".jpg";
@@ -1838,8 +1854,8 @@ function renderCommunityProfileEditor(profile) {
         if (error) throw error;
         return path;
       };
-      const avatarPath = await uploadAsset(avatarFile,"avatar",current.avatar_path);
-      const bannerPath = await uploadAsset(bannerFile,"banner",current.banner_path);
+      const avatarPath = await uploadAsset(avatarFile,"avatar",current.avatar_path,removeAvatar);
+      const bannerPath = await uploadAsset(bannerFile,"banner",current.banner_path,removeBanner);
       const row = {
         user_id:currentUser.id,nickname,status_text:$("community-status").value.trim(),
         bio:$("community-bio").value.trim(),
@@ -1854,6 +1870,11 @@ function renderCommunityProfileEditor(profile) {
         .select("user_id,nickname,status_text,bio,interests,class_name,first_name,last_name,avatar_path,banner_path,avatar_decoration,banner_theme,created_at,updated_at").single();
       if (error) throw error;
       communityProfileCache=data;
+      const obsoleteAssets = [current.avatar_path && current.avatar_path !== avatarPath ? current.avatar_path : null, current.banner_path && current.banner_path !== bannerPath ? current.banner_path : null].filter(Boolean);
+      if (obsoleteAssets.length) {
+        const {error:cleanupError} = await supabaseClient.storage.from(COMMUNITY_ASSET_BUCKET).remove(obsoleteAssets);
+        if (cleanupError) console.warn("Old community profile assets cleanup failed:",cleanupError);
+      }
       $("user-name").textContent = nickname;
       await renderCommunityProfilePage();
     } catch (error) {
