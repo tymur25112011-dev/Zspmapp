@@ -1137,6 +1137,34 @@ const $ = id => document.getElementById(id);
 
 const THEME_KEY = "zspm_community_theme";
 
+const SUPABASE_CONFIG = window.ZSPM_SUPABASE_CONFIG || {};
+const supabaseClient = (
+  window.supabase &&
+  typeof SUPABASE_CONFIG.url === "string" &&
+  SUPABASE_CONFIG.url.startsWith("https://") &&
+  typeof SUPABASE_CONFIG.publishableKey === "string" &&
+  SUPABASE_CONFIG.publishableKey.startsWith("sb_publishable_")
+) ? window.supabase.createClient(
+  SUPABASE_CONFIG.url,
+  SUPABASE_CONFIG.publishableKey,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  }
+) : null;
+
+function getAppUser(user) {
+  if (!user) return null;
+  return {
+    id: user.id,
+    name: user.user_metadata?.nickname || user.email?.split("@")[0] || "Uczeń",
+    email: user.email || ""
+  };
+}
+
 function applyTheme(theme) {
   const selectedTheme = theme === "light" ? "light" : "dark";
   document.documentElement.dataset.theme = selectedTheme;
@@ -1151,8 +1179,6 @@ try {
   applyTheme("dark");
 }
 
-const STORAGE_KEY = "zspm_demo_accounts";
-const SESSION_KEY = "zspm_demo_session";
 const PROFILES_KEY = "zspm_demo_profiles";
 const REPORTS_KEY = "zspm_demo_reports";
 const PROFILE_SOCIAL_KEY = "zspm_demo_profile_social";
@@ -1234,39 +1260,24 @@ function showRegister() {
   $("register-form").classList.remove("hidden");
 }
 
-function getAccounts() {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    return [];
-  }
-}
-
-async function hashPassword(password) {
-  if (!window.crypto || !window.crypto.subtle) {
-    throw new Error("Wymagane jest bezpieczne połączenie HTTPS.");
-  }
-
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hash = await crypto.subtle.digest("SHA-256", data);
-
-  return Array.from(new Uint8Array(hash))
-    .map(byte => byte.toString(16).padStart(2, "0"))
-    .join("");
+function authUnavailableMessage() {
+  return "Logowanie jest chwilowo niedostępne. Odśwież stronę i spróbuj ponownie.";
 }
 
 $("go-login").addEventListener("click", showLogin);
 $("go-register").addEventListener("click", showRegister);
 
 
-// REJESTRACJA
+// REJESTRACJA — SUPABASE AUTH
 
 $("register").addEventListener("submit", async event => {
   event.preventDefault();
-
   clearMessage("register-message");
+
+  if (!supabaseClient) {
+    showMessage("register-message", authUnavailableMessage());
+    return;
+  }
 
   const name = $("reg-name").value.trim();
   const email = $("reg-email").value.trim().toLowerCase();
@@ -1282,39 +1293,37 @@ $("register").addEventListener("submit", async event => {
     return;
   }
 
-  const accounts = getAccounts();
-
-  if (accounts.some(account => account.email === email)) {
-    showMessage("register-message", "Ten adres e-mail jest już zarejestrowany. Zaloguj się.");
-    return;
-  }
-
   const button = $("register").querySelector("button[type=submit]");
   button.disabled = true;
   button.textContent = "Tworzenie konta...";
 
   try {
-    const passwordHash = await hashPassword(password);
-
-    accounts.push({
-      name,
+    const { data, error } = await supabaseClient.auth.signUp({
       email,
-      passwordHash
+      password,
+      options: {
+        data: { nickname: name }
+      }
     });
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts));
+    if (error) throw error;
 
-    currentUser = { name, email };
-
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
-
-    enterApp();
-
+    if (data.session && data.user) {
+      currentUser = getAppUser(data.user);
+      enterApp();
+    } else {
+      showMessage(
+        "register-message",
+        "Konto zostało utworzone. Sprawdź pocztę i potwierdź adres e-mail, a następnie zaloguj się.",
+        "success"
+      );
+    }
   } catch (error) {
-    showMessage(
-      "register-message",
-      error.message || "Wystąpił błąd. Spróbuj ponownie."
-    );
+    console.error("Supabase registration error:", error);
+    const message = /already registered|already exists|user already/i.test(error.message || "")
+      ? "Ten adres e-mail jest już zarejestrowany. Zaloguj się."
+      : (error.message || "Nie udało się utworzyć konta. Spróbuj ponownie.");
+    showMessage("register-message", message);
   } finally {
     button.disabled = false;
     button.textContent = "Utwórz konto →";
@@ -1322,43 +1331,42 @@ $("register").addEventListener("submit", async event => {
 });
 
 
-// LOGOWANIE
+// LOGOWANIE — SUPABASE AUTH
 
 $("login").addEventListener("submit", async event => {
   event.preventDefault();
-
   clearMessage("login-message");
 
-  const email = $("login-email").value.trim().toLowerCase();
-  const password = $("login-password").value;
-
-  const accounts = getAccounts();
-  const account = accounts.find(item => item.email === email);
-
-  if (!account) {
-    showMessage("login-message", "Nie znaleziono konta. Zarejestruj się najpierw.");
+  if (!supabaseClient) {
+    showMessage("login-message", authUnavailableMessage());
     return;
   }
 
+  const email = $("login-email").value.trim().toLowerCase();
+  const password = $("login-password").value;
+  const button = $("login").querySelector("button[type=submit]");
+  button.disabled = true;
+  button.textContent = "Logowanie...";
+
   try {
-    const passwordHash = await hashPassword(password);
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
 
-    if (passwordHash !== account.passwordHash) {
-      showMessage("login-message", "Nieprawidłowe hasło. Spróbuj ponownie.");
-      return;
-    }
+    if (error) throw error;
 
-    currentUser = {
-      name: account.name,
-      email: account.email
-    };
-
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
-
+    currentUser = getAppUser(data.user);
     enterApp();
-
   } catch (error) {
-    showMessage("login-message", "Nie udało się zalogować. Spróbuj ponownie.");
+    console.error("Supabase login error:", error);
+    const message = /email not confirmed/i.test(error.message || "")
+      ? "Najpierw potwierdź adres e-mail, korzystając z wiadomości od Supabase."
+      : "Nieprawidłowy e-mail lub hasło. Sprawdź dane i spróbuj ponownie.";
+    showMessage("login-message", message);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Zaloguj się →";
   }
 });
 
@@ -2736,43 +2744,47 @@ document.querySelectorAll("[data-page]").forEach(button => {
 
 // WYLOGOWANIE
 
-function logout() {
+async function logout() {
+  if (supabaseClient) {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) console.error("Supabase sign-out error:", error);
+  }
+
   currentUser = null;
-
-  sessionStorage.removeItem(SESSION_KEY);
-
   $("app").classList.add("hidden");
   $("auth").classList.remove("hidden");
-
   $("register").reset();
   $("login").reset();
-
   showRegister();
 }
 
 
-// PRZYWRACANIE SESJI
+// PRZYWRACANIE SESJI SUPABASE
 
-try {
-  const savedSession = sessionStorage.getItem(SESSION_KEY);
-
-  if (savedSession) {
-    currentUser = JSON.parse(savedSession);
-
-    if (
-      currentUser &&
-      typeof currentUser.name === "string" &&
-      typeof currentUser.email === "string"
-    ) {
-      enterApp();
-    } else {
-      currentUser = null;
-      sessionStorage.removeItem(SESSION_KEY);
-    }
+async function restoreSupabaseSession() {
+  if (!supabaseClient) {
+    showMessage("register-message", authUnavailableMessage());
+    return;
   }
-} catch (error) {
-  sessionStorage.removeItem(SESSION_KEY);
+
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) throw error;
+
+    if (data.session?.user) {
+      currentUser = getAppUser(data.session.user);
+      enterApp();
+    }
+  } catch (error) {
+    console.error("Supabase session restore error:", error);
+    showMessage(
+      "register-message",
+      "Nie udało się przywrócić sesji. Odśwież stronę i spróbuj ponownie."
+    );
+  }
 }
+
+restoreSupabaseSession();
 </script>
 
 <script>
