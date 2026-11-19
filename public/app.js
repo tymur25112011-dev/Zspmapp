@@ -1841,7 +1841,7 @@ async function openGlobalChat() {
     .select("id,sender_id,content,created_at").order("created_at", {ascending:false}).limit(100);
   if (error) {
     console.error("Global chat load error:", error);
-    $("page-content").innerHTML = '<div class="page-content"><p>Nie удалось загрузить общий чат. Попробуй обновить страницу.</p></div>';
+    $("page-content").innerHTML = '<div class="page-content"><p>Nie udało się załadować czatu ogólnego. Odśwież stronę.</p></div>';
     return;
   }
   const messages = (data || []).reverse();
@@ -1864,7 +1864,7 @@ async function openGlobalChat() {
     '<div class="global-chat-messages" id="global-chat-messages">' + (rows || '<p class="global-chat-empty">Nie ma jeszcze wiadomości. Napisz pierwszą!</p>') + '</div>' +
     (currentMute ? '<div class="global-chat-muted">Wysyłanie wiadomości jest tymczasowo wyłączone.<br>Powód: ' + escapeHTML(currentMute.reason) +
       '<br>Do: ' + escapeHTML(formatModerationExpiry(currentMute.expires_at)) + '</div>' :
-      '<form class="global-chat-composer" id="global-chat-form"><input id="global-chat-input" maxlength="500" autocomplete="off" placeholder="Napisz na czacie ogólnym…"><button type="submit" aria-label="Отправить">➤</button></form>');
+      '<form class="global-chat-composer" id="global-chat-form"><input id="global-chat-input" maxlength="500" autocomplete="off" placeholder="Napisz na czacie ogólnym…"><button type="submit" aria-label="Wyślij">➤</button></form>');
   $("global-chat-back").addEventListener("click", renderChatList);
   $("page-content").querySelectorAll("[data-report-message]").forEach(button => {
     button.addEventListener("click", async () => {
@@ -2013,7 +2013,7 @@ async function openChat(conversationId) {
       <button type="button" class="chat-back" id="chat-back" aria-label="Powrót do rozmów">‹</button>
       ${profileAvatarHTML(activeChatProfile, "conv-avatar small")}
       <div class="chat-head-info">
-        <div class="chat-head-nick">${escapeHTML(activeChatProfile.nickname)}</div>
+        <div class="chat-head-nick">${escapeHTML(activeChatProfile.nickname)}${activeChatProfile.isAdmin ? '<span class="user-role-badge admin-role">ADMIN</span>' : activeChatProfile.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : ""}</div>
         <div class="chat-head-status">Prywatna rozmowa · tylko tekst</div>
       </div>
       <button type="button" class="chat-block-btn" id="chat-block">${blocked ? "Odblokuj" : "Blokuj"}</button>
