@@ -1587,7 +1587,8 @@ async function saveMyProfile(profile) {
   }
 
   const previous = getMyProfile();
-  let photoPath = profile.photoPath || previous?.photoPath || null;
+  const oldPhotoPath = previous?.photoPath || null;
+  let photoPath = profile.photoPath || oldPhotoPath;
   let photoUrl = profile.photo || previous?.photo || "";
 
   if (profile.photo && profile.photo.startsWith("data:image/")) {
@@ -1604,20 +1605,7 @@ async function saveMyProfile(profile) {
     if (uploadError) throw uploadError;
     photoPath = newPath;
     photoUrl = supabaseClient.storage.from("profile-photos").getPublicUrl(newPath).data.publicUrl;
-
-    if (previous?.photoPath && previous.photoPath !== newPath) {
-      const { error: removeError } = await supabaseClient.storage
-        .from("profile-photos")
-        .remove([previous.photoPath]);
-      if (removeError) console.warn("Old profile photo cleanup failed:", removeError);
-    }
   } else if (!profile.photo) {
-    if (previous?.photoPath) {
-      const { error: removeError } = await supabaseClient.storage
-        .from("profile-photos")
-        .remove([previous.photoPath]);
-      if (removeError) console.warn("Profile photo cleanup failed:", removeError);
-    }
     photoPath = null;
     photoUrl = "";
   }
@@ -1641,6 +1629,13 @@ async function saveMyProfile(profile) {
     .single();
 
   if (error) throw error;
+
+  if (oldPhotoPath && oldPhotoPath !== photoPath) {
+    const { error: removeError } = await supabaseClient.storage
+      .from("profile-photos")
+      .remove([oldPhotoPath]);
+    if (removeError) console.warn("Old profile photo cleanup failed:", removeError);
+  }
 
   myProfileCache = mapDatabaseProfile(data);
   const profiles = getUserProfiles();
