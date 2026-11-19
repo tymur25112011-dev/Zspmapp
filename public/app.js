@@ -1808,14 +1808,21 @@ async function renderCommunityProfilePage() {
   }
 }
 
-function renderCommunityProfileEditor(profile, roleBadge) {
+async function renderCommunityProfileEditor(profile, roleBadge) {
+  const [{data:levelRow},{data:cosmeticRows}] = await Promise.all([
+    supabaseClient.from("community_progress").select("level").eq("user_id",currentUser.id).maybeSingle(),
+    supabaseClient.from("community_cosmetics").select("cosmetic_type,cosmetic_value,unlock_level").eq("is_active",true)
+  ]);
+  const currentLevel = levelRow?.level || 1;
+  const unlockedCosmetics = new Set((cosmeticRows||[]).filter(item=>item.unlock_level<=currentLevel).map(item=>item.cosmetic_type+":"+item.cosmetic_value));
+
   const host = $("page-content");
   const accountRole = roleBadge === "admin" ? "admin" : roleBadge === "premium" ? "premium" : "zwykły";
   const current = profile || {nickname:currentUser.name,interests:[],avatar_decoration:"none",banner_theme:"aurora",status_mode:"online"};
-  const bannerChoices = COMMUNITY_BANNERS.map(theme =>
+  const bannerChoices = COMMUNITY_BANNERS.filter(theme => theme === current.banner_theme || unlockedCosmetics.has("banner_theme:"+theme)).map(theme =>
     '<label class="community-theme-choice"><input type="radio" name="community-banner-theme" value="'+theme+'" '+((current.banner_theme||"aurora")===theme?"checked":"")+'><span class="theme-preview theme-'+theme+'"></span><small>'+({aurora:"Aurora",ocean:"Ocean",midnight:"Midnight",nebula:"Nebula",waves:"Waves"}[theme])+'</small></label>'
   ).join("");
-  const decorationChoices = AVATAR_DECORATIONS.map(theme =>
+  const decorationChoices = AVATAR_DECORATIONS.filter(theme => theme === "none" || theme === current.avatar_decoration || unlockedCosmetics.has("avatar_decoration:"+theme)).map(theme =>
     '<label class="community-decoration-choice"><input type="radio" name="community-avatar-decoration" value="'+theme+'" '+((current.avatar_decoration||"none")===theme?"checked":"")+'><span class="decor-preview decor-'+theme+'">'+(theme==="none"?"○":theme==="orbit"?"◉":theme==="glow"?"✧":theme==="crown"?"♛":theme==="ice"?"❄":theme==="arch"?"⌒":theme==="halo"?"☼":theme==="comet"?"☄":theme==="spark"?"✦":theme==="prism"?"◇":"♨")+'</span><small>'+({none:"Brak",orbit:"Orbit",glow:"Glow",crown:"Korona",ice:"Ice",arch:"Łuk",halo:"Aureola",comet:"Kometa",spark:"Iskry",prism:"Pryzmat",flame:"Płomień"}[theme])+'</small></label>'
   ).join("");
   const avatarUrl = communityAssetUrl(current.avatar_path);
