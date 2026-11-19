@@ -262,8 +262,9 @@ function translateVisibleUI(root=document.body){
     const raw=appUiOriginalText.get(node),trimmed=raw.trim();
     if(!trimmed)continue;
     const translated=APP_UI_TEXT[trimmed];
-    if(translated)node.nodeValue=raw.replace(trimmed,translated[langIndex]);
-    else node.nodeValue=raw;
+    const nextValue=translated?raw.replace(trimmed,translated[langIndex]):raw;
+    // Avoid writing identical text: the MutationObserver watches characterData.
+    if(node.nodeValue!==nextValue)node.nodeValue=nextValue;
   }
   root.querySelectorAll?.("input[placeholder],textarea[placeholder],input[aria-label],button[aria-label],select[aria-label]").forEach(el=>{
     let originals=appUiOriginalAttrs.get(el);
