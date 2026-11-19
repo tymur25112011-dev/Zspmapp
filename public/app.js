@@ -4,7 +4,7 @@ const $ = id => document.getElementById(id);
 
 const THEME_KEY = "zspm_community_theme";
 // Add the verified public transfer account here only after an adult has approved it.
-const SUPPORT_ACCOUNT_NUMBER = String(window.ZSPM_SUPPORT_ACCOUNT_NUMBER || "").replace(/\\s+/g, "");
+const SUPPORT_ACCOUNT_NUMBER = String(window.ZSPM_SUPPORT_ACCOUNT_NUMBER || "").replace(/\s+/g, "");
 
 const SUPABASE_CONFIG = window.ZSPM_SUPABASE_CONFIG || {};
 const supabaseClient = (
