@@ -3,6 +3,8 @@
 const $ = id => document.getElementById(id);
 
 const THEME_KEY = "zspm_community_theme";
+// Add the verified public transfer account here only after an adult has approved it.
+const SUPPORT_ACCOUNT_NUMBER = String(window.ZSPM_SUPPORT_ACCOUNT_NUMBER || "").replace(/\\s+/g, "");
 
 const SUPABASE_CONFIG = window.ZSPM_SUPABASE_CONFIG || {};
 const supabaseClient = (
@@ -345,8 +347,9 @@ const pages = {
           <p>Możesz wysłać dowolną kwotę ze swojego banku. W aplikacji bankowej wybierz zwykły przelew i wpisz wybraną przez siebie sumę.</p>
           <div class="support-account-box">
             <span class="small-label">Numer rachunku</span>
-            <strong>Numer konta zostanie uzupełniony po konfiguracji.</strong>
-            <button type="button" class="primary-btn" disabled>Kopiuj numer konta</button>
+            <strong class="support-account-number" id="support-account-display">Numer rachunku zostanie uzupełniony.</strong>
+            <button type="button" class="support-copy-btn" id="copy-support-account">⧉ <span>Kopiuj numer konta</span></button>
+            <p class="support-copy-status" id="support-copy-status" aria-live="polite"></p>
           </div>
           <p><strong>Tytuł przelewu:</strong> Wsparcie ZSPM Community</p>
           <p class="muted">Przed zatwierdzeniem sprawdź dane odbiorcy i kwotę w swojej aplikacji bankowej. Wsparcie jest dobrowolne.</p>
@@ -1926,6 +1929,40 @@ async function setupRealtimeSubscriptions() {
 }
 
 // OBSŁUGA PRZYCISKÓW
+
+// Copy the support account number when the approved account is configured.
+document.addEventListener("click", async event => {
+  const button = event.target.closest("#copy-support-account");
+  if (!button) return;
+  const status = document.getElementById("support-copy-status");
+  if (!SUPPORT_ACCOUNT_NUMBER) {
+    if (status) status.textContent = "Numer rachunku nie został jeszcze skonfigurowany.";
+    return;
+  }
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(SUPPORT_ACCOUNT_NUMBER);
+    } else {
+      const field = document.createElement("textarea");
+      field.value = SUPPORT_ACCOUNT_NUMBER;
+      field.setAttribute("readonly", "");
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.appendChild(field);
+      field.select();
+      const copied = document.execCommand("copy");
+      field.remove();
+      if (!copied) throw new Error("Clipboard unavailable");
+    }
+    if (status) status.textContent = "Numer konta skopiowany.";
+    const label = button.querySelector("span");
+    if (label) label.textContent = "Skopiowano!";
+    window.setTimeout(() => { if (label) label.textContent = "Kopiuj numer konta"; }, 1800);
+  } catch (error) {
+    if (status) status.textContent = "Nie udało się skopiować. Spróbuj ponownie.";
+  }
+});
+
 
 document.querySelectorAll("[data-page]").forEach(button => {
   button.addEventListener("click", () => {
