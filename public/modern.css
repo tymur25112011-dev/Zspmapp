@@ -772,3 +772,51 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .account-menu { animation: none; }
 }
+
+
+/* Account menu button: reset browser defaults and keep a stable layout */
+#app .account-menu-wrap #account-menu #account-logout {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 44px !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 10px 12px !important;
+  border: 1px solid rgba(190, 75, 105, .30) !important;
+  border-radius: 11px !important;
+  background: rgba(190, 55, 87, .10) !important;
+  color: #e17b94 !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  line-height: 1.25 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  cursor: pointer;
+}
+#app .account-menu-wrap #account-menu #account-logout:hover {
+  background: rgba(190, 55, 87, .17) !important;
+  border-color: rgba(190, 75, 105, .48) !important;
+  color: #f09aae !important;
+  transform: none !important;
+}
+#app .account-menu-wrap #account-menu #account-logout svg {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  flex: 0 0 18px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: inherit !important;
+  stroke: currentColor !important;
+}
