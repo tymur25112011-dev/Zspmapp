@@ -623,12 +623,12 @@ async function renderAdminPage() {
       }
     });
   });
-}
 
   host.querySelectorAll("[data-admin-tab]").forEach(tab => tab.addEventListener("click", () => {
     host.querySelectorAll("[data-admin-tab]").forEach(item => item.classList.toggle("active", item === tab));
     host.querySelectorAll("[data-admin-panel]").forEach(panel => panel.classList.toggle("active", panel.dataset.adminPanel === tab.dataset.adminTab));
   }));
+}
 
 
 async function openPage(page) {
