@@ -2198,3 +2198,147 @@ body.christmas-enabled #app svg polyline {
 body.christmas-enabled #app button svg [fill="none"] {
   fill: none;
 }
+
+
+/* Christmas Update — return decorations to the lower screen edge;
+   keep the navigation bar separate and switch it to an icy white-blue glass. */
+body.christmas-enabled #christmas-decorations {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  border-radius: 0;
+  contain: layout paint;
+  pointer-events: none;
+}
+body.christmas-enabled #christmas-decorations .christmas-garland {
+  display: none;
+}
+body.christmas-enabled #christmas-decorations .christmas-snowfall {
+  inset: -18% -8% 0;
+}
+body.christmas-enabled #christmas-decorations .christmas-snowbank {
+  left: -4%;
+  right: -4%;
+  bottom: 0;
+  height: 92px;
+}
+body.christmas-enabled #christmas-decorations .christmas-scene {
+  z-index: 32;
+  bottom: max(86px, calc(78px + env(safe-area-inset-bottom)));
+  transform: scale(.72);
+  transform-origin: bottom center;
+  filter: drop-shadow(0 7px 7px rgba(44,76,104,.2));
+}
+body.christmas-enabled #christmas-decorations .christmas-tree {
+  left: max(8px, env(safe-area-inset-left));
+  right: auto;
+}
+body.christmas-enabled #christmas-decorations .christmas-snowman {
+  right: max(8px, env(safe-area-inset-right));
+  left: auto;
+}
+body.christmas-enabled #app .bottom-nav {
+  position: fixed;
+  z-index: 31;
+  isolation: isolate;
+  overflow: visible;
+  min-height: 72px;
+  margin-bottom: 0 !important;
+  padding: 11px 8px calc(10px + env(safe-area-inset-bottom));
+  border: 1px solid rgba(255,255,255,.82);
+  border-radius: 23px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.94), rgba(224,241,255,.88) 58%, rgba(205,229,249,.9));
+  box-shadow:
+    0 12px 34px rgba(79,126,169,.2),
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -8px 18px rgba(153,194,228,.18);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+}
+body.christmas-enabled #app .bottom-nav .nav-item {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  gap: 4px;
+  color: #527da4;
+  text-shadow: 0 1px 0 rgba(255,255,255,.8);
+  transition: color .2s ease, transform .2s ease, filter .2s ease;
+}
+body.christmas-enabled #app .bottom-nav .nav-item.active {
+  color: #1766a5;
+  filter: drop-shadow(0 0 6px rgba(112,183,239,.48));
+}
+body.christmas-enabled #app .bottom-nav .nav-item span,
+body.christmas-enabled #app .bottom-nav .nav-item svg {
+  color: inherit;
+}
+body.christmas-enabled #app .bottom-nav .nav-item svg {
+  width: 22px;
+  height: 22px;
+  overflow: visible;
+  filter: drop-shadow(0 1px 2px rgba(255,255,255,.9));
+}
+body.christmas-enabled #app .bottom-nav .nav-item svg path,
+body.christmas-enabled #app .bottom-nav .nav-item svg circle,
+body.christmas-enabled #app .bottom-nav .nav-item svg line,
+body.christmas-enabled #app .bottom-nav .nav-item svg polyline {
+  stroke: currentColor;
+}
+body.christmas-enabled #app .bottom-nav .nav-item:active {
+  transform: translateY(1px) scale(.94);
+}
+body.christmas-enabled #app .bottom-nav::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 1px;
+  height: 1px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.98), transparent);
+  pointer-events: none;
+}
+/* Consistent winter-blue icon color across the app, while keeping text readable. */
+body.christmas-enabled #app svg,
+body.christmas-enabled #app button svg,
+body.christmas-enabled #app [class*="icon"] svg,
+body.christmas-enabled #app .menu-icon,
+body.christmas-enabled #app .section-icon {
+  color: #75a9d2;
+}
+body.christmas-enabled #app svg path,
+body.christmas-enabled #app svg circle,
+body.christmas-enabled #app svg line,
+body.christmas-enabled #app svg polyline {
+  stroke: currentColor;
+}
+body.christmas-enabled #app button:not(.nav-item) svg {
+  filter: drop-shadow(0 1px 2px rgba(255,255,255,.55));
+}
+body.christmas-enabled #app a:not(.nav-item) {
+  text-decoration-color: rgba(117,169,210,.6);
+}
+@media (max-width: 760px) {
+  body.christmas-enabled #app .bottom-nav {
+    min-height: 68px;
+    padding: 10px 5px calc(9px + env(safe-area-inset-bottom));
+    backdrop-filter: blur(12px) saturate(1.12);
+    -webkit-backdrop-filter: blur(12px) saturate(1.12);
+  }
+  body.christmas-enabled #christmas-decorations .christmas-snowbank {
+    height: 82px;
+  }
+  body.christmas-enabled #christmas-decorations .christmas-scene {
+    bottom: max(78px, calc(70px + env(safe-area-inset-bottom)));
+    transform: scale(.58);
+  }
+  body.christmas-enabled #christmas-decorations .snowfall-back { opacity: .42; }
+  body.christmas-enabled #christmas-decorations .snowfall-mid { opacity: .6; }
+  body.christmas-enabled #christmas-decorations .snowfall-front { opacity: .34; }
+}
+@media (max-width: 380px) {
+  body.christmas-enabled #app .bottom-nav .nav-item { font-size: 9px; }
+  body.christmas-enabled #christmas-decorations .christmas-scene { transform: scale(.5); }
+}
