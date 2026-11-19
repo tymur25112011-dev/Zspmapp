@@ -2379,9 +2379,19 @@ async function openFriendConversation(personId) {
 function bindMessageSearch(inputId, containerId, itemSelector) {
   const input = $(inputId), container = $(containerId);
   if (!input || !container) return;
-  input.addEventListener("input", () => {
+  const clearButton = input.parentElement?.querySelector(".chat-search-clear");
+  const filterMessages = () => {
     const query = input.value.trim().toLocaleLowerCase("pl");
-    container.querySelectorAll(itemSelector).forEach(item => { item.hidden = Boolean(query) && !item.textContent.toLocaleLowerCase("pl").includes(query); });
+    container.querySelectorAll(itemSelector).forEach(item => {
+      item.hidden = Boolean(query) && !item.textContent.toLocaleLowerCase("pl").includes(query);
+    });
+    if (clearButton) clearButton.hidden = !input.value;
+  };
+  input.addEventListener("input", filterMessages);
+  if (clearButton) clearButton.addEventListener("click", () => {
+    input.value = "";
+    filterMessages();
+    input.focus();
   });
 }
 
@@ -2513,7 +2523,7 @@ async function openGlobalChat(roomId = null) {
   const tabs='<div class="chat-room-tabs"><button type="button" class="chat-room-tab'+(!activeGlobalRoomId?' active':'')+'" data-chat-room="">🌐 Ogólny</button>'+rooms.map(r=>'<button type="button" class="chat-room-tab'+(r.id===activeGlobalRoomId?' active':'')+'" data-chat-room="'+r.id+'">'+escapeHTML(r.icon)+' '+escapeHTML(r.name)+'</button>').join("")+'</div>';
   const room=rooms.find(r=>r.id===activeGlobalRoomId);
   $("page-content").innerHTML='<div class="global-chat-head"><button type="button" class="chat-back" id="global-chat-back">‹</button><div><strong>'+(room?escapeHTML(room.icon+" "+room.name):"Czat ogólny")+'</strong><small>'+(room?escapeHTML(room.description):"Rozmowa wszystkich użytkowników")+'</small></div></div>'+tabs+
-    '<div class="global-chat-notice">Rozmawiaj z szacunkiem. Nie publikuj danych osobowych.</div><input id="global-chat-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj w wiadomościach…" aria-label="Szukaj w wiadomościach"><div class="global-chat-messages" id="global-chat-messages">'+(rows||'<p class="global-chat-empty">Nie ma jeszcze wiadomości. Napisz pierwszą!</p>')+'</div>'+
+    '<div class="global-chat-notice">Rozmawiaj z szacunkiem. Nie publikuj danych osobowych.</div><div class="chat-search-box global-search-box"><span class="chat-search-icon" aria-hidden="true">⌕</span><input id="global-chat-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj w wiadomościach…" aria-label="Szukaj w wiadomościach"><button type="button" class="chat-search-clear" aria-label="Wyczyść wyszukiwanie" hidden>×</button></div><div class="global-chat-messages" id="global-chat-messages">'+(rows||'<p class="global-chat-empty">Nie ma jeszcze wiadomości. Napisz pierwszą!</p>')+'</div>'+
     (currentMute?'<div class="global-chat-muted">Wysyłanie wiadomości jest tymczasowo wyłączone.<br>Powód: '+escapeHTML(currentMute.reason)+'<br>Do: '+escapeHTML(formatModerationExpiry(currentMute.expires_at))+'</div>':'<form class="global-chat-composer" id="global-chat-form"><div id="global-reply-hint" class="chat-reply-hint hidden"></div><input id="global-chat-input" maxlength="500" autocomplete="off" placeholder="Napisz na czacie…"><button type="submit" aria-label="Wyślij">➤</button></form>');
   $("global-chat-back").addEventListener("click",renderChatList);
   bindMessageSearch("global-chat-search", "global-chat-messages", ".global-message");
@@ -2710,7 +2720,7 @@ async function openChat(conversationId) {
       ${profileAvatarHTML(activeChatProfile, "conv-avatar small")}
       <div class="chat-head-info">
         <div class="chat-head-nick">${escapeHTML(activeChatProfile.nickname)}${activeChatProfile.isAdmin ? '<span class="user-role-badge admin-role">ADMIN</span>' : activeChatProfile.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : ""}</div>
-        <div class="chat-head-status">Prywatna rozmowa · tylko tekst</div><input id="private-chat-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj w rozmowie…" aria-label="Szukaj w rozmowie">
+        <div class="chat-head-status">Prywatna rozmowa · tylko tekst</div><div class="chat-search-box"><span class="chat-search-icon" aria-hidden="true">⌕</span><input id="private-chat-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj w rozmowie…" aria-label="Szukaj w rozmowie"><button type="button" class="chat-search-clear" aria-label="Wyczyść wyszukiwanie" hidden>×</button></div>
       </div>
       <button type="button" class="chat-block-btn" id="chat-block">${blocked ? "Odblokuj" : "Blokuj"}</button>
     </div>
