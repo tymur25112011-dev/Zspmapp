@@ -1894,7 +1894,7 @@ function renderCommunityProfileEditor(profile, roleBadge) {
         updated_at:new Date().toISOString()
       };
       const {data,error}=await supabaseClient.from("community_profiles").upsert(row,{onConflict:"user_id"})
-        .select("user_id,nickname,status_text,bio,interests,class_name,first_name,last_name,avatar_path,banner_path,avatar_decoration,banner_theme,created_at,updated_at").single();
+        .select("user_id,nickname,status_text,status_mode,bio,interests,class_name,first_name,last_name,avatar_path,banner_path,avatar_decoration,banner_theme,created_at,updated_at").single();
       if (error) throw error;
       communityProfileCache=data;
       const obsoleteAssets = [current.avatar_path && current.avatar_path !== avatarPath ? current.avatar_path : null, current.banner_path && current.banner_path !== bannerPath ? current.banner_path : null].filter(Boolean);
