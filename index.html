@@ -207,6 +207,17 @@ button { cursor: pointer; }
   font-size: 20px;
 }
 
+.avatar.account-switch {
+  border: 0;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+}
+.avatar.account-switch:focus-visible {
+  outline: 2px solid var(--accent, #4f8cff);
+  outline-offset: 3px;
+}
+
 .welcome { margin: 15px 0 25px; }
 
 .welcome h2 {
@@ -1022,7 +1033,7 @@ button { cursor: pointer; }
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
             <span class="bell-badge hidden" id="notif-badge"></span>
           </button>
-          <div class="avatar" aria-label="Profil"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></div>
+          <button type="button" class="avatar account-switch" id="account-switch" aria-label="Zmień konto" title="Zmień konto"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></button>
         </div>
       </div>
 
@@ -2741,13 +2752,23 @@ document.querySelectorAll("[data-page]").forEach(button => {
   });
 });
 
+$("account-switch").addEventListener("click", async () => {
+  if (confirm("Wylogować się z obecnego konta i przejść do logowania?")) {
+    await logout();
+  }
+});
+
 
 // WYLOGOWANIE
 
 async function logout() {
   if (supabaseClient) {
     const { error } = await supabaseClient.auth.signOut();
-    if (error) console.error("Supabase sign-out error:", error);
+    if (error) {
+      console.error("Supabase sign-out error:", error);
+      alert("Nie udało się wylogować. Spróbuj ponownie.");
+      return;
+    }
   }
 
   currentUser = null;
@@ -2755,7 +2776,7 @@ async function logout() {
   $("auth").classList.remove("hidden");
   $("register").reset();
   $("login").reset();
-  showRegister();
+  showLogin();
 }
 
 
