@@ -1731,8 +1731,11 @@ function communityProfileHTML(profile, roleBadge, own) {
   const accountRole = roleBadge === "admin" ? "admin" : roleBadge === "premium" ? "premium" : "zwykły";
   const joined = profile?.created_at ? new Date(profile.created_at).toLocaleDateString("pl-PL",{month:"long",year:"numeric"}) : "Niedawno";
   const profileId = profile?.user_id || profile?.id || "";
-  const isOnline = profile?.status_mode === "invisible" ? false : onlineUsers.has(profileId);
-  const presenceHTML = '<span class="community-presence '+(isOnline?'is-online':'is-offline')+'" data-presence-user="'+escapeHTML(profileId)+'"><i></i>'+(isOnline?'Online':'Offline')+'</span>';
+  const statusMode = ["busy","dnd","invisible"].includes(profile?.status_mode) ? profile.status_mode : "online";
+  const isOnline = statusMode === "invisible" ? false : onlineUsers.has(profileId);
+  const presenceClass = statusMode === "dnd" ? "is-dnd" : statusMode === "busy" ? "is-busy" : isOnline ? "is-online" : "is-offline";
+  const presenceLabel = statusMode === "dnd" ? "Nie przeszkadzać" : statusMode === "busy" ? "Zajęty" : isOnline ? "Online" : "Offline";
+  const presenceHTML = '<span class="community-presence '+presenceClass+'" data-presence-user="'+escapeHTML(profileId)+'" data-status-mode="'+statusMode+'"><i></i>'+presenceLabel+'</span>';
   const friendProfile = {...profile,id:profileId};
   const socialActions = own ? '' : '<div class="community-profile-actions">'+friendButtonHTML(friendProfile)+'</div>';
   return '<article class="community-profile-card">' +
@@ -2421,7 +2424,7 @@ async function renderChatList() {
     </div>
     <div class="conv-list">${items || '<div class="page-content"><p>Nie masz jeszcze rozmów. Dodaj znajomego, aby rozpocząć czat.</p></div>'}</div>
   `;
-  $("open-global-chat").addEventListener("click", openGlobalChat);
+  $("open-global-chat").addEventListener("click", () => openGlobalChat());
   $("page-content").querySelectorAll("[data-conv]").forEach(button => {
     button.addEventListener("click", () => openChat(button.dataset.conv));
   });
