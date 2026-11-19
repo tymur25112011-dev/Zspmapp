@@ -900,6 +900,15 @@ button { cursor: pointer; }
 </head>
 
 <body>
+<div id="christmas-decorations" class="christmas-decorations" aria-hidden="true">
+  <div class="christmas-garland">
+    <span class="garland-label">CHRISTMAS UPDATE</span>
+    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+  </div>
+  <div class="christmas-corner christmas-tree">🎄</div>
+  <div class="christmas-corner christmas-snowman">⛄</div>
+  <div class="christmas-snow" aria-hidden="true">❄　·　❅　·　❄　·　❅　·　❄</div>
+</div>
 
 <!-- REJESTRACJA I LOGOWANIE -->
 
@@ -1056,11 +1065,7 @@ button { cursor: pointer; }
           Poznawaj nowych ludzi, nawiązuj przyjaźnie
           i integruj się ze społecznością szkolną.
         </p>
-      </div>
-
-      <div class="test-marker" style="display:inline-flex;align-items:center;justify-content:center;margin:0 0 16px;padding:9px 18px;border:1px solid #38bdf8;border-radius:999px;background:linear-gradient(135deg,#0c4a6e,#1d4ed8);color:#fff;font-size:13px;font-weight:800;letter-spacing:2px;box-shadow:0 0 22px #38bdf866;">TEST</div>
-
-      <h3 class="section-title">Odkryj aplikację</h3>
+      </div><h3 class="section-title">Odkryj aplikację</h3>
 
       <div class="menu-grid">
 
@@ -1187,17 +1192,34 @@ function getAppUser(user) {
 }
 
 function applyTheme(theme) {
-  const selectedTheme = theme === "light" ? "light" : "dark";
+  const allowedThemes = ["system", "dark", "liquid-glass"];
+  const selectedTheme = allowedThemes.includes(theme) ? theme : "system";
   document.documentElement.dataset.theme = selectedTheme;
+  const themeColor = selectedTheme === "liquid-glass" ? "#dcecff" : selectedTheme === "dark" ? "#0b1422" : "#f3f7fc";
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeMeta) themeMeta.setAttribute("content", themeColor);
   try {
     localStorage.setItem(THEME_KEY, selectedTheme);
   } catch (error) {}
 }
 
+const CHRISTMAS_KEY = "zspm_christmas_decorations";
+function applyChristmasDecorations(enabled) {
+  const active = enabled !== false;
+  document.documentElement.classList.toggle("christmas-enabled", active);
+  const decorations = document.getElementById("christmas-decorations");
+  if (decorations) decorations.classList.toggle("hidden", !active);
+  try {
+    localStorage.setItem(CHRISTMAS_KEY, active ? "on" : "off");
+  } catch (error) {}
+}
+
 try {
-  applyTheme(localStorage.getItem(THEME_KEY) || "dark");
+  applyTheme(localStorage.getItem(THEME_KEY) || "system");
+  applyChristmasDecorations(localStorage.getItem(CHRISTMAS_KEY) !== "off");
 } catch (error) {
-  applyTheme("dark");
+  applyTheme("system");
+  applyChristmasDecorations(true);
 }
 
 const PROFILES_KEY = "zspm_demo_profiles";
@@ -2218,21 +2240,28 @@ function bindMyProfilePage() {
 function renderSettingsPage() {
   const myProfile = getMyProfile();
   const privacy = myProfile?.privacy || { ...DEFAULT_PRIVACY };
-
-  const safeName = escapeHTML(currentUser.name);
-  const safeEmail = escapeHTML(currentUser.email);
+  const selectedTheme = document.documentElement.dataset.theme || "system";
+  const christmasEnabled = !document.getElementById("christmas-decorations")?.classList.contains("hidden");
 
   $("page-content").innerHTML = `
     <div class="page-content">
       <h3>Wygląd aplikacji</h3>
-      <p>Wybierz motyw, który będzie wygodny dla Ciebie.</p>
+      <p>Wybierz motyw interfejsu. Ustawienie zostanie zapamiętane na tym urządzeniu.</p>
+      <div class="field theme-select-field">
+        <label for="theme-select">Motyw</label>
+        <select id="theme-select" class="settings-select">
+          <option value="system" ${selectedTheme === "system" ? "selected" : ""}>System</option>
+          <option value="dark" ${selectedTheme === "dark" ? "selected" : ""}>Dark</option>
+          <option value="liquid-glass" ${selectedTheme === "liquid-glass" ? "selected" : ""}>OS Liquid Glass</option>
+        </select>
+      </div>
       <div class="switch-row">
         <div>
-          <div class="switch-label">Tryb ciemny</div>
-          <div class="switch-hint">Możesz w każdej chwili przełączyć na jasny motyw.</div>
+          <div class="switch-label">Christmas Update</div>
+          <div class="switch-hint">Tymczasowe dekoracje świąteczne: girlanda, śnieg, choinka i bałwan.</div>
         </div>
         <label class="toggle">
-          <input type="checkbox" id="theme-toggle" ${document.documentElement.dataset.theme !== "light" ? "checked" : ""}>
+          <input type="checkbox" id="christmas-toggle" ${christmasEnabled ? "checked" : ""}>
           <span class="slider"></span>
         </label>
       </div>
@@ -2241,7 +2270,6 @@ function renderSettingsPage() {
     <div class="page-content">
       <h3>Prywatność</h3>
       <p>Ustawienia prywatności profilu są zapisywane na Twoim koncie.</p>
-
       <div class="switch-row">
         <div>
           <div class="switch-label">Profil widoczny na liście</div>
@@ -2252,7 +2280,6 @@ function renderSettingsPage() {
           <span class="slider"></span>
         </label>
       </div>
-
       <div class="switch-row">
         <div>
           <div class="switch-label">Pokazuj moją klasę</div>
@@ -2263,7 +2290,6 @@ function renderSettingsPage() {
           <span class="slider"></span>
         </label>
       </div>
-
       <div class="switch-row">
         <div>
           <div class="switch-label">Pokazuj zainteresowania</div>
@@ -2276,15 +2302,11 @@ function renderSettingsPage() {
       </div>
     </div>
 
-    <button class="logout" id="logout-button">
-      Wyloguj się
-    </button>
+    <button class="logout" id="logout-button">Wyloguj się</button>
   `;
 
-  const themeToggle = $("theme-toggle");
-  themeToggle.addEventListener("change", () => {
-    applyTheme(themeToggle.checked ? "dark" : "light");
-  });
+  $("theme-select").addEventListener("change", event => applyTheme(event.target.value));
+  $("christmas-toggle").addEventListener("change", event => applyChristmasDecorations(event.target.checked));
 
   const privacyInputs = {
     visible: $("privacy-visible"),
@@ -2295,7 +2317,6 @@ function renderSettingsPage() {
   Object.keys(privacyInputs).forEach(key => {
     privacyInputs[key].addEventListener("change", () => {
       const existing = getMyProfile();
-
       saveMyProfile({
         nickname: existing?.nickname || currentUser.name,
         klasa: existing?.klasa || "",
@@ -2317,7 +2338,6 @@ function renderSettingsPage() {
 
   $("logout-button").addEventListener("click", logout);
 }
-
 
 // ZNAJOMI, POWIADOMIENIA I CZAT — SUPABASE
 
