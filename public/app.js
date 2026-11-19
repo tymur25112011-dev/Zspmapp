@@ -151,6 +151,8 @@ let reportsCache = [];
 let reportedMessageIdsCache = [];
 let chatMessageLikesCache = new Map();
 let chatMessageReactionsCache = new Map();
+let activePrivatePins = [];
+let activeGlobalPins = [];
 let replyToMessageId = null;
 
 function showMessage(id, text, type = "error") {
@@ -2500,6 +2502,7 @@ async function openGlobalChat(roomId = null) {
   if(error){console.error("Global chat load error:",error);$("page-content").innerHTML='<div class="page-content"><p>Nie udało się załadować czatu. Odśwież stronę.</p></div>';return;}
   if(roomsError)console.warn("Chat rooms load error:",roomsError);
   const messages=(data||[]).reverse(),rooms=roomsData||[];await loadProfilesByIds(messages.map(x=>x.sender_id));
+  activeGlobalPins = await loadCommunityChatPins("global", null, activeGlobalRoomId);
   const ids=messages.map(x=>x.id);
   const [{data:likeRows},{data:reactionRows}]=await Promise.all([
     ids.length?supabaseClient.from("global_chat_message_likes").select("message_id,user_id").in("message_id",ids):Promise.resolve({data:[]}),
@@ -2513,17 +2516,19 @@ async function openGlobalChat(roomId = null) {
     const mine=item.sender_id===currentUser.id,profile=mine?getMyProfile():getProfileById(item.sender_id);
     const role=(mine?isAdmin:profile?.isAdmin)?'<span class="user-role-badge admin-role">ADMIN</span>':profile?.badge==="premium"?'<span class="user-role-badge premium-role">PREMIUM</span>':"";
     const likes=likeMap.get(item.id)||{count:0,liked:false},parent=byId.get(item.reply_to_id),reactions=reactionMap.get(item.id)||new Map();
+    const currentPin=activeGlobalPins.find(pin=>pin.message_id===item.id);
+    const pinAction=isAdmin?'<button type="button" class="msg-action pin-msg-action" data-global-action="toggle-pin" data-id="'+item.id+'" data-pin-id="'+(currentPin?.id||'')+'">'+(currentPin?'📌 Odpnij':'📌 Przypnij')+'</button>':'';
     const chips=[...reactions.entries()].map(([emoji,v])=>'<button type="button" class="chat-reaction'+(v.reacted?' active':'')+'" data-global-action="react" data-id="'+item.id+'" data-emoji="'+emoji+'">'+emoji+' '+v.count+'</button>').join("");
     const picker=['👍','❤️','😂','🔥','👏','😮'].map(emoji=>'<button type="button" class="chat-reaction-pick" data-global-action="react" data-id="'+item.id+'" data-emoji="'+emoji+'">'+emoji+'</button>').join("");
     return '<article class="global-message'+(mine?' own':'')+'" data-global-message="'+item.id+'"><div class="global-message-meta"><strong>'+escapeHTML(mine?(getMyProfile()?.nickname||currentUser.name):(profile?.nickname||"Użytkownik"))+'</strong>'+role+'<time>'+escapeHTML(formatTime(item.created_at))+(item.edited_at?' · edytowano':'')+'</time></div>'+
       (parent?'<div class="bubble-reply-context">↳ '+escapeHTML(parent.content.slice(0,100))+'</div>':'')+'<p>'+escapeHTML(item.content)+'</p><div class="chat-reaction-row">'+chips+'<button type="button" class="chat-reaction-add" data-global-action="toggle-picker" aria-label="Dodaj reakcję">＋</button><span class="chat-reaction-picker">'+picker+'</span></div><div class="bubble-actions">'+
       (mine?'<button type="button" class="msg-action" data-global-action="edit" data-id="'+item.id+'">Edytuj</button><button type="button" class="msg-action danger" data-global-action="delete" data-id="'+item.id+'">Usuń</button>':'<button type="button" class="msg-action" data-global-action="report" data-id="'+item.id+'" data-user="'+item.sender_id+'">Zgłoś</button>')+
-      '<button type="button" class="msg-action" data-global-action="reply" data-id="'+item.id+'">Odpowiedz</button><button type="button" class="msg-action'+(likes.liked?' liked':'')+'" data-global-action="like" data-id="'+item.id+'">♥ '+likes.count+'</button></div></article>';
+      '<button type="button" class="msg-action" data-global-action="reply" data-id="'+item.id+'">Odpowiedz</button>'+pinAction+'<button type="button" class="msg-action'+(likes.liked?' liked':'')+'" data-global-action="like" data-id="'+item.id+'">♥ '+likes.count+'</button></div></article>';
   }).join("");
   const tabs='<div class="chat-room-tabs"><button type="button" class="chat-room-tab'+(!activeGlobalRoomId?' active':'')+'" data-chat-room="">🌐 Ogólny</button>'+rooms.map(r=>'<button type="button" class="chat-room-tab'+(r.id===activeGlobalRoomId?' active':'')+'" data-chat-room="'+r.id+'">'+escapeHTML(r.icon)+' '+escapeHTML(r.name)+'</button>').join("")+'</div>';
   const room=rooms.find(r=>r.id===activeGlobalRoomId);
   $("page-content").innerHTML='<div class="global-chat-head"><button type="button" class="chat-back" id="global-chat-back">‹</button><div><strong>'+(room?escapeHTML(room.icon+" "+room.name):"Czat ogólny")+'</strong><small>'+(room?escapeHTML(room.description):"Rozmowa wszystkich użytkowników")+'</small></div></div>'+tabs+
-    '<div class="global-chat-notice">Rozmawiaj z szacunkiem. Nie publikuj danych osobowych.</div><div class="chat-search-box global-search-box"><span class="chat-search-icon" aria-hidden="true">⌕</span><input id="global-chat-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj w wiadomościach…" aria-label="Szukaj w wiadomościach"><button type="button" class="chat-search-clear" aria-label="Wyczyść wyszukiwanie" hidden>×</button></div><div class="global-chat-messages" id="global-chat-messages">'+(rows||'<p class="global-chat-empty">Nie ma jeszcze wiadomości. Napisz pierwszą!</p>')+'</div>'+
+    '<div class="global-chat-notice">Rozmawiaj z szacunkiem. Nie publikuj danych osobowych.</div>'+pinnedMessagesHTML(activeGlobalPins, "data-global-action")+'<div class="chat-search-box global-search-box"><span class="chat-search-icon" aria-hidden="true">⌕</span><input id="global-chat-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj w wiadomościach…" aria-label="Szukaj w wiadomościach"><button type="button" class="chat-search-clear" aria-label="Wyczyść wyszukiwanie" hidden>×</button></div><div class="global-chat-messages" id="global-chat-messages">'+(rows||'<p class="global-chat-empty">Nie ma jeszcze wiadomości. Napisz pierwszą!</p>')+'</div>'+
     (currentMute?'<div class="global-chat-muted">Wysyłanie wiadomości jest tymczasowo wyłączone.<br>Powód: '+escapeHTML(currentMute.reason)+'<br>Do: '+escapeHTML(formatModerationExpiry(currentMute.expires_at))+'</div>':'<form class="global-chat-composer" id="global-chat-form"><div id="global-reply-hint" class="chat-reply-hint hidden"></div><input id="global-chat-input" maxlength="500" autocomplete="off" placeholder="Napisz na czacie…"><button type="submit" aria-label="Wyślij">➤</button></form>');
   $("global-chat-back").addEventListener("click",renderChatList);
   bindMessageSearch("global-chat-search", "global-chat-messages", ".global-message");
@@ -2531,6 +2536,8 @@ async function openGlobalChat(roomId = null) {
   $("page-content").querySelectorAll("[data-global-action]").forEach(button=>button.addEventListener("click",async()=>{
     const id=button.dataset.id,action=button.dataset.globalAction,message=byId.get(id);
     if(action==="toggle-picker"){button.parentElement.classList.toggle("show-picker");return;}
+    if(action==="toggle-pin"){await toggleCommunityChatPin("global",id,button.dataset.pinId||null);return;}
+    if(action==="remove-pin"){await toggleCommunityChatPin("global",null,button.dataset.pinId);return;}
     if(action==="react"){
       const emoji=button.dataset.emoji,exists=(reactionRows||[]).some(r=>r.message_id===id&&r.user_id===currentUser.id&&r.emoji===emoji);
       const result=exists?await supabaseClient.from("global_chat_message_reactions").delete().eq("message_id",id).eq("user_id",currentUser.id).eq("emoji",emoji):await supabaseClient.from("global_chat_message_reactions").insert({message_id:id,user_id:currentUser.id,emoji});
@@ -2559,7 +2566,7 @@ async function openGlobalChat(roomId = null) {
     replyToMessageId=null;input.value="";await openGlobalChat(activeGlobalRoomId);
   });
   const box=$("global-chat-messages");if(box)box.scrollTop=box.scrollHeight;
-  globalChatChannel=supabaseClient.channel("global-chat-live").on("postgres_changes",{event:"*",schema:"public",table:"global_chat_messages"},async()=>{if($("global-chat-messages"))await openGlobalChat(activeGlobalRoomId);}).on("postgres_changes",{event:"*",schema:"public",table:"global_chat_message_reactions"},async()=>{if($("global-chat-messages"))await openGlobalChat(activeGlobalRoomId);}).subscribe();
+  globalChatChannel=supabaseClient.channel("global-chat-live").on("postgres_changes",{event:"*",schema:"public",table:"global_chat_messages"},async()=>{if($("global-chat-messages"))await openGlobalChat(activeGlobalRoomId);}).on("postgres_changes",{event:"*",schema:"public",table:"global_chat_message_reactions"},async()=>{if($("global-chat-messages"))await openGlobalChat(activeGlobalRoomId);}).on("postgres_changes",{event:"*",schema:"public",table:"community_chat_pins"},async()=>{if($("global-chat-messages"))await openGlobalChat(activeGlobalRoomId);}).subscribe();
 }
 
 async function loadConversationMessages(conversationId) {
@@ -2598,6 +2605,67 @@ async function loadConversationMessages(conversationId) {
   return rows;
 }
 
+async function loadCommunityChatPins(chatType, conversationId = null, roomId = null) {
+  let query = supabaseClient.from("community_chat_pins")
+    .select("id,message_id,pinned_by,created_at")
+    .eq("chat_type", chatType)
+    .order("created_at", { ascending: false })
+    .limit(5);
+  if (chatType === "private") query = query.eq("conversation_id", conversationId);
+  else query = roomId ? query.eq("room_id", roomId) : query.is("room_id", null);
+  const { data: pins, error } = await query;
+  if (error) {
+    console.warn("Pinned messages load error:", error);
+    return [];
+  }
+  if (!pins?.length) return [];
+  const table = chatType === "private" ? "messages" : "global_chat_messages";
+  const { data: messages, error: messageError } = await supabaseClient.from(table)
+    .select("id,sender_id,content,created_at")
+    .in("id", pins.map(pin => pin.message_id));
+  if (messageError) {
+    console.warn("Pinned message content load error:", messageError);
+    return [];
+  }
+  const byId = new Map((messages || []).map(message => [message.id, message]));
+  const rows = pins.map(pin => ({ ...pin, message: byId.get(pin.message_id) })).filter(pin => pin.message);
+  await loadProfilesByIds(rows.map(pin => pin.message.sender_id));
+  return rows;
+}
+
+function pinnedMessagesHTML(pins, actionAttribute) {
+  if (!pins?.length) return "";
+  return '<section class="chat-pinned-list"><div class="chat-pinned-title"><span>📌 Закреплённые сообщения</span><small>' + pins.length + '/5</small></div>' +
+    pins.map(pin => {
+      const profile = pin.message.sender_id === currentUser.id ? getMyProfile() : getProfileById(pin.message.sender_id);
+      const author = profile?.nickname || "Użytkownik";
+      return '<div class="chat-pinned-item"><div class="chat-pinned-copy"><strong>' + escapeHTML(author) + '</strong><span>' + escapeHTML(pin.message.content.slice(0, 150)) + '</span></div><button type="button" class="chat-unpin-btn" ' + actionAttribute + '="remove-pin" data-pin-id="' + escapeHTML(pin.id) + '" aria-label="Odepnij wiadomość">×</button></div>';
+    }).join("") + '</section>';
+}
+
+async function toggleCommunityChatPin(chatType, messageId = null, pinId = null) {
+  let result;
+  if (pinId) {
+    result = await supabaseClient.from("community_chat_pins").delete().eq("id", pinId);
+  } else {
+    const payload = {
+      chat_type: chatType,
+      message_id: messageId,
+      pinned_by: currentUser.id
+    };
+    if (chatType === "private") payload.conversation_id = activeConversationId;
+    else payload.room_id = activeGlobalRoomId;
+    result = await supabaseClient.from("community_chat_pins").insert(payload);
+  }
+  if (result.error) {
+    console.error("Pin message error:", result.error);
+    alert(result.error.code === "23505" ? "Ta wiadomość jest już przypięta." : "Nie udało się zmienić przypiętej wiadomości.");
+    return;
+  }
+  if (chatType === "private") await openChat(activeConversationId);
+  else await openGlobalChat(activeGlobalRoomId);
+}
+
 function messageBubbleHTML(message, allMessages = []) {
   const mine = message.sender_id === currentUser.id;
   const profile = mine ? getMyProfile() : getProfileById(message.sender_id);
@@ -2611,12 +2679,15 @@ function messageBubbleHTML(message, allMessages = []) {
   const reactionChips = [...reactions.entries()].map(([emoji,v]) => '<button type="button" class="chat-reaction'+(v.reacted?' active':'')+'" data-action="react-msg" data-msg-id="'+escapeHTML(message.id)+'" data-emoji="'+emoji+'">'+emoji+' '+v.count+'</button>').join("");
   const reactionPicker = ['👍','❤️','😂','🔥','👏','😮'].map(emoji => '<button type="button" class="chat-reaction-pick" data-action="react-msg" data-msg-id="'+escapeHTML(message.id)+'" data-emoji="'+emoji+'">'+emoji+'</button>').join("");
   const parent = allMessages.find(item => item.id === message.reply_to_id);
+  const currentPin = activePrivatePins.find(pin => pin.message_id === message.id);
+  const pinAction = '<button type="button" class="msg-action pin-msg-action" data-action="toggle-pin-msg" data-msg-id="' + escapeHTML(message.id) + '" data-pin-id="' + escapeHTML(currentPin?.id || "") + '">' + (currentPin ? '📌 Odpnij' : '📌 Przypnij') + '</button>';
   const actions = '<div class="bubble-actions">' +
     (mine
       ? '<button type="button" class="msg-action" data-action="edit-msg" data-msg-id="' + escapeHTML(message.id) + '">Edytuj</button><button type="button" class="msg-action danger" data-action="delete-msg" data-msg-id="' + escapeHTML(message.id) + '">Usuń</button>'
       : (alreadyReported ? '<span class="chat-reported">Zgłoszono</span>' : '<button type="button" class="msg-action" data-action="report-msg" data-msg-id="' + escapeHTML(message.id) + '" data-sender-id="' + escapeHTML(message.sender_id) + '">Zgłoś</button>') +
         '<button type="button" class="msg-action" data-action="block-person" data-person-id="' + escapeHTML(message.sender_id) + '">Blokuj</button>') +
     '<button type="button" class="msg-action" data-action="reply-msg" data-msg-id="' + escapeHTML(message.id) + '">Odpowiedz</button>' +
+    pinAction +
     '<button type="button" class="msg-action' + (likes.liked ? ' liked' : '') + '" data-action="like-msg" data-msg-id="' + escapeHTML(message.id) + '">♥ ' + likes.count + '</button></div>';
   return '<div class="chat-row' + (mine ? ' mine' : '') + '"><div class="bubble">' +
     (mine ? '' : '<div class="bubble-author">' + escapeHTML(sender.nickname) + senderBadge + '</div>') +
@@ -2630,9 +2701,9 @@ function messageBubbleHTML(message, allMessages = []) {
 function renderMessages(messages) {
   const container = $("chat-msgs");
   if (!container) return;
-  container.innerHTML = messages.length
+  container.innerHTML = pinnedMessagesHTML(activePrivatePins, "data-action") + (messages.length
     ? messages.map(message => messageBubbleHTML(message, messages)).join("")
-    : '<div class="page-content"><p>Brak wiadomości. Napisz pierwszą!</p></div>';
+    : '<div class="page-content"><p>Brak wiadomości. Napisz pierwszą!</p></div>');
   messages.forEach(message => {
     const element = container.querySelector('.bubble-text[data-msg-id="' + CSS.escape(message.id) + '"]');
     if (element) element.textContent = message.content;
@@ -2641,6 +2712,10 @@ function renderMessages(messages) {
     const action = button.dataset.action, id = button.dataset.msgId;
     if (action === "toggle-reaction-picker") {
       button.parentElement.classList.toggle("show-picker");
+    } else if (action === "toggle-pin-msg") {
+      await toggleCommunityChatPin("private", id, button.dataset.pinId || null);
+    } else if (action === "remove-pin") {
+      await toggleCommunityChatPin("private", null, button.dataset.pinId);
     } else if (action === "report-msg") {
       const reason = "";
       const ok = await submitContentReport("message", id, button.dataset.senderId, reason);
@@ -2749,6 +2824,7 @@ async function openChat(conversationId) {
   });
 
   const messages = await loadConversationMessages(conversationId);
+  activePrivatePins = await loadCommunityChatPins("private", conversationId);
   renderMessages(messages);
 
   if (canSend) bindComposer(conversationId);
@@ -2776,6 +2852,15 @@ async function openChat(conversationId) {
       event: "*", schema: "public", table: "message_reactions"
     }, async () => {
       if (activeConversationId !== conversationId) return;
+      const fresh = await loadConversationMessages(conversationId);
+      renderMessages(fresh);
+    })
+    .on("postgres_changes", {
+      event: "*", schema: "public", table: "community_chat_pins",
+      filter: "conversation_id=eq." + conversationId
+    }, async () => {
+      if (activeConversationId !== conversationId) return;
+      activePrivatePins = await loadCommunityChatPins("private", conversationId);
       const fresh = await loadConversationMessages(conversationId);
       renderMessages(fresh);
     })
