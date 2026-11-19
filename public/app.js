@@ -2480,6 +2480,7 @@ async function openGlobalChat(roomId = null) {
   $("page-content").querySelectorAll("[data-chat-room]").forEach(b=>b.addEventListener("click",()=>openGlobalChat(b.dataset.chatRoom||null)));
   $("page-content").querySelectorAll("[data-global-action]").forEach(button=>button.addEventListener("click",async()=>{
     const id=button.dataset.id,action=button.dataset.globalAction,message=byId.get(id);
+    if(action==="toggle-picker"){button.parentElement.classList.toggle("show-picker");return;}
     if(action==="react"){
       const emoji=button.dataset.emoji,exists=(reactionRows||[]).some(r=>r.message_id===id&&r.user_id===currentUser.id&&r.emoji===emoji);
       const result=exists?await supabaseClient.from("global_chat_message_reactions").delete().eq("message_id",id).eq("user_id",currentUser.id).eq("emoji",emoji):await supabaseClient.from("global_chat_message_reactions").insert({message_id:id,user_id:currentUser.id,emoji});
@@ -2572,7 +2573,7 @@ function messageBubbleHTML(message, allMessages = []) {
     (parent ? '<div class="bubble-reply-context">↳ ' + escapeHTML(parent.content.slice(0,100)) + '</div>' : '') +
     '<div class="bubble-text" data-msg-id="' + escapeHTML(message.id) + '"></div>' +
     '<div class="bubble-time">' + formatTime(new Date(message.created_at).getTime()) + (message.edited_at ? ' · edytowano' : '') + '</div>' +
-    '<div class="chat-reaction-row">'+reactionChips+'<span class="chat-reaction-picker">'+reactionPicker+'</span></div>' +
+    '<div class="chat-reaction-row">'+reactionChips+'<button type="button" class="chat-reaction-add" data-action="toggle-reaction-picker" aria-label="Dodaj reakcję">＋</button><span class="chat-reaction-picker">'+reactionPicker+'</span></div>' +
     actions + '</div></div>';
 }
 
@@ -2588,7 +2589,9 @@ function renderMessages(messages) {
   });
   container.querySelectorAll("[data-action]").forEach(button => button.addEventListener("click", async () => {
     const action = button.dataset.action, id = button.dataset.msgId;
-    if (action === "report-msg") {
+    if (action === "toggle-reaction-picker") {
+      button.parentElement.classList.toggle("show-picker");
+    } else if (action === "report-msg") {
       const reason = "";
       const ok = await submitContentReport("message", id, button.dataset.senderId, reason);
       if (ok) { reportedMessageIdsCache.push(id); button.textContent = "Zgłoszono"; button.disabled = true; }
