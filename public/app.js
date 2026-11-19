@@ -40,7 +40,7 @@ const bell=document.getElementById("notif-bell");if(bell)bell.setAttribute("aria
 const account=document.querySelector(".account-menu-heading");if(account)account.textContent=shellTr("account");
 const logout=document.querySelector("#account-logout");if(logout){const svg=logout.querySelector("svg");logout.textContent="";if(svg)logout.appendChild(svg);logout.append(" "+shellTr("logout"));}
 }
-function setAppLanguage(value){appLanguage=APP_LANGS[value]?value:"pl";try{localStorage.setItem(APP_LANG_KEY,appLanguage);}catch(e){}document.documentElement.lang=appLanguage;applyShellTranslations();if(typeof currentAppPage!=="undefined"&&currentAppPage==="settings")renderSettingsPage();}
+function setAppLanguage(value){appLanguage=APP_LANGS[value]?value:"pl";try{localStorage.setItem(APP_LANG_KEY,appLanguage);}catch(e){}document.documentElement.lang=appLanguage;applyShellTranslations();if(typeof currentAppPage!=="undefined"&&currentAppPage!=="home"){const title=document.getElementById("page-title"),sub=document.getElementById("page-subtitle");if(title)title.textContent=pageLabel(currentAppPage,0,title.textContent);if(sub)sub.textContent=pageLabel(currentAppPage,1,sub.textContent);}if(typeof currentAppPage!=="undefined"&&currentAppPage==="settings")renderSettingsPage();}
 applyShellTranslations();
 
 // Add the verified public transfer account here only after an adult has approved it.
