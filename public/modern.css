@@ -701,3 +701,74 @@ body {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+
+/* Account dropdown menu */
+.account-menu-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.account-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 11px);
+  right: 0;
+  width: 205px;
+  padding: 8px;
+  border: 1px solid var(--zspm-border);
+  border-radius: 16px;
+  background: var(--zspm-panel);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, .28);
+  transform-origin: top right;
+  animation: account-menu-in .14s ease-out;
+}
+.account-menu-heading {
+  padding: 8px 10px 10px;
+  color: var(--zspm-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.account-menu-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 43px;
+  padding: 10px;
+  border: 1px solid rgba(190, 75, 105, .22);
+  border-radius: 11px;
+  background: rgba(190, 55, 87, .09);
+  color: #d86b87;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 650;
+  transition: background .15s ease, border-color .15s ease;
+}
+.account-menu-logout:hover {
+  background: rgba(190, 55, 87, .16);
+  border-color: rgba(190, 75, 105, .4);
+}
+.account-menu-logout:focus-visible {
+  outline: 2px solid var(--zspm-blue);
+  outline-offset: 2px;
+}
+.account-menu-logout svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@keyframes account-menu-in {
+  from { opacity: 0; transform: translateY(-4px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .account-menu { animation: none; }
+}
