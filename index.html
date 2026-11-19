@@ -1033,7 +1033,16 @@ button { cursor: pointer; }
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
             <span class="bell-badge hidden" id="notif-badge"></span>
           </button>
-          <button type="button" class="avatar account-switch" id="account-switch" aria-label="Zmień konto" title="Zmień konto"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></button>
+          <div class="account-menu-wrap">
+            <button type="button" class="avatar account-switch" id="account-switch" aria-label="Otwórz menu konta" title="Konto" aria-haspopup="true" aria-expanded="false" aria-controls="account-menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></button>
+            <div class="account-menu hidden" id="account-menu" role="menu" aria-label="Menu konta">
+              <div class="account-menu-heading">Konto</div>
+              <button type="button" class="account-menu-logout" id="account-logout" role="menuitem">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>
+                Wyloguj się
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2766,16 +2775,41 @@ document.querySelectorAll("[data-page]").forEach(button => {
   });
 });
 
-$("account-switch").addEventListener("click", async () => {
-  if (confirm("Wylogować się z obecnego konta i przejść do logowania?")) {
-    await logout();
-  }
+const accountSwitchButton = $("account-switch");
+const accountMenu = $("account-menu");
+
+function closeAccountMenu() {
+  accountMenu.classList.add("hidden");
+  accountSwitchButton.setAttribute("aria-expanded", "false");
+}
+
+accountSwitchButton.addEventListener("click", event => {
+  event.stopPropagation();
+  const isOpen = !accountMenu.classList.contains("hidden");
+  accountMenu.classList.toggle("hidden", isOpen);
+  accountSwitchButton.setAttribute("aria-expanded", String(!isOpen));
+});
+
+accountMenu.addEventListener("click", event => event.stopPropagation());
+
+document.addEventListener("click", event => {
+  if (!event.target.closest(".account-menu-wrap")) closeAccountMenu();
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeAccountMenu();
+});
+
+$("account-logout").addEventListener("click", async () => {
+  closeAccountMenu();
+  await logout();
 });
 
 
 // WYLOGOWANIE
 
 async function logout() {
+  closeAccountMenu();
   if (supabaseClient) {
     const { error } = await supabaseClient.auth.signOut();
     if (error) {
