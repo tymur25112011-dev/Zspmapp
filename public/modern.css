@@ -1509,100 +1509,334 @@ body::after {
 }
 
 
-/* Christmas Update — seasonal edge decorations */
+/* Christmas Update — layered winter scene */
 .christmas-decorations {
   position: fixed;
   inset: 0;
-  z-index: 25;
+  z-index: 0;
   pointer-events: none;
   overflow: hidden;
   contain: layout paint;
 }
 .christmas-garland {
   position: absolute;
-  top: max(0px, env(safe-area-inset-top));
-  left: 0;
-  right: 0;
-  height: 42px;
+  top: max(-9px, env(safe-area-inset-top));
+  left: -2%;
+  right: -2%;
+  height: 34px;
   display: flex;
   align-items: flex-start;
   justify-content: space-around;
-  padding: 0 4%;
-  border-top: 2px solid rgba(30, 92, 65, .8);
-  background: linear-gradient(180deg, rgba(10, 32, 28, .88), rgba(10, 32, 28, .12));
-  clip-path: polygon(0 0,100% 0,100% 100%,90% 74%,80% 100%,70% 74%,60% 100%,50% 74%,40% 100%,30% 74%,20% 100%,10% 74%,0 100%);
+  padding: 0 3%;
+  border-top: 2px solid rgba(31, 91, 65, .88);
+  border-radius: 0 0 50% 50%;
+  background: linear-gradient(180deg, rgba(18,72,53,.2), transparent 80%);
+  transform: rotate(-.4deg);
 }
 .christmas-garland::before {
   content: "";
   position: absolute;
-  top: 0;
+  top: 2px;
   left: 0;
   right: 0;
-  height: 18px;
-  border-top: 2px solid #2b6b4b;
+  height: 27px;
+  border-top: 3px solid #286a4d;
   border-radius: 0 0 50% 50%;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.2));
 }
 .christmas-garland i {
   position: relative;
   z-index: 1;
-  display: block;
-  width: 8px;
-  height: 12px;
-  margin-top: 8px;
+  width: 7px;
+  height: 11px;
+  margin-top: 9px;
   border-radius: 50% 50% 45% 45%;
-  background: #f4d35e;
-  box-shadow: 0 0 9px currentColor;
-  animation: christmas-bulb-glow 2.4s ease-in-out infinite alternate;
+  background: #ffe18a;
+  box-shadow: 0 0 7px 2px rgba(255,225,138,.42), inset -1px -2px 2px rgba(0,0,0,.18);
+  animation: christmas-bulb-glow 2.8s ease-in-out infinite alternate;
 }
-.christmas-garland i:nth-of-type(3n) { background: #f16b75; animation-delay: .5s; }
-.christmas-garland i:nth-of-type(3n + 1) { background: #7bd6a5; animation-delay: 1s; }
-.garland-label {
-  position: absolute;
-  top: 19px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: rgba(255,255,255,.9);
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  white-space: nowrap;
-  text-shadow: 0 1px 5px #09251a;
+.christmas-garland i:nth-child(3n) {
+  background: #ff6979;
+  box-shadow: 0 0 8px 2px rgba(255,105,121,.38), inset -1px -2px 2px rgba(0,0,0,.18);
+  animation-delay: .7s;
 }
-.christmas-corner {
-  position: absolute;
-  bottom: max(10px, env(safe-area-inset-bottom));
-  font-size: clamp(30px, 8vw, 54px);
-  line-height: 1;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,.22));
-  opacity: .96;
+.christmas-garland i:nth-child(3n + 1) {
+  background: #8ee3b4;
+  box-shadow: 0 0 8px 2px rgba(142,227,180,.38), inset -1px -2px 2px rgba(0,0,0,.18);
+  animation-delay: 1.3s;
 }
-.christmas-tree { left: max(8px, env(safe-area-inset-left)); }
-.christmas-snowman { right: max(8px, env(safe-area-inset-right)); }
-.christmas-snow {
+.christmas-snowfall {
   position: absolute;
-  inset: 42px 0 0;
-  color: transparent;
-  font-size: 0;
-  opacity: .24;
+  inset: -18% -8% 0;
+  background-repeat: repeat;
+  will-change: background-position, transform;
+}
+.snowfall-back {
+  opacity: .54;
   background-image:
-    radial-gradient(circle, rgba(255,255,255,.95) 0 1px, transparent 1.8px),
-    radial-gradient(circle, rgba(255,255,255,.8) 0 1.5px, transparent 2.3px),
-    radial-gradient(circle, rgba(255,255,255,.85) 0 1px, transparent 1.8px);
-  background-size: 150px 180px, 230px 260px, 310px 220px;
-  animation: christmas-snowfall 18s linear infinite;
+    radial-gradient(circle, rgba(255,255,255,.88) 0 1px, transparent 1.8px),
+    radial-gradient(circle, rgba(224,242,255,.8) 0 1.2px, transparent 2px),
+    radial-gradient(circle, rgba(255,255,255,.72) 0 1px, transparent 1.8px);
+  background-size: 83px 107px, 127px 151px, 173px 139px;
+  animation: snowfall-back 24s linear infinite;
 }
-.christmas-decorations::after {
+.snowfall-mid {
+  opacity: .76;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,.96) 0 2px, transparent 2.8px),
+    radial-gradient(circle, rgba(230,245,255,.9) 0 1.7px, transparent 2.5px),
+    radial-gradient(circle, rgba(255,255,255,.9) 0 2.2px, transparent 3px);
+  background-size: 151px 193px, 211px 237px, 263px 181px;
+  animation: snowfall-mid 17s linear infinite;
+}
+.snowfall-front {
+  opacity: .48;
+  filter: blur(.35px);
+  background-image:
+    radial-gradient(circle, #fff 0 3px, transparent 4px),
+    radial-gradient(circle, rgba(239,248,255,.95) 0 2.6px, transparent 3.7px);
+  background-size: 241px 277px, 319px 229px;
+  animation: snowfall-front 13s linear infinite;
+}
+.christmas-snowbank {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: -22px;
+  height: 105px;
+  background:
+    radial-gradient(ellipse 18% 58% at 8% 74%, #fff 0 58%, rgba(221,239,252,.96) 76%, transparent 78%),
+    radial-gradient(ellipse 22% 72% at 29% 82%, #fff 0 57%, rgba(215,235,250,.96) 76%, transparent 78%),
+    radial-gradient(ellipse 23% 66% at 54% 78%, #fff 0 58%, rgba(218,237,251,.98) 76%, transparent 78%),
+    radial-gradient(ellipse 22% 70% at 78% 83%, #fff 0 57%, rgba(211,232,249,.98) 76%, transparent 78%),
+    radial-gradient(ellipse 18% 60% at 97% 75%, #fff 0 58%, rgba(220,239,252,.98) 76%, transparent 78%),
+    linear-gradient(180deg, rgba(226,242,253,0) 0%, rgba(224,241,253,.94) 46%, #fafdff 100%);
+  filter: drop-shadow(0 -5px 12px rgba(164,203,231,.18));
+}
+.christmas-snowbank::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 11px;
+  height: 25px;
+  background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.08));
+  border-radius: 50% 50% 0 0 / 80% 80% 0 0;
+  opacity: .9;
+}
+.christmas-snowbank::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 15px;
-  background: linear-gradient(180deg, transparent, rgba(255,255,255,.58));
-  opacity: .55;
+  height: 22px;
+  background: linear-gradient(180deg, rgba(199,224,244,.12), rgba(175,208,235,.4));
 }
+.christmas-scene {
+  position: absolute;
+  bottom: max(7px, env(safe-area-inset-bottom));
+  width: 88px;
+  height: 112px;
+  filter: drop-shadow(0 7px 7px rgba(44,76,104,.2));
+}
+.christmas-snowman { right: max(12px, env(safe-area-inset-right)); }
+.christmas-tree { left: max(12px, env(safe-area-inset-left)); width: 84px; height: 120px; }
+.snowman-shadow {
+  position: absolute;
+  left: 5px;
+  right: 1px;
+  bottom: 0;
+  height: 13px;
+  border-radius: 50%;
+  background: rgba(104,145,177,.24);
+  filter: blur(3px);
+}
+.snowman-body {
+  position: absolute;
+  width: 61px;
+  height: 61px;
+  left: 14px;
+  bottom: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 31% 22%, #fff 0 10%, #f8fcff 34%, #d6e8f5 78%, #a9c5dc 100%);
+  box-shadow: inset -7px -8px 12px rgba(104,146,180,.22), inset 4px 5px 9px #fff;
+}
+.snowman-head {
+  position: absolute;
+  width: 43px;
+  height: 43px;
+  left: 23px;
+  bottom: 54px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 22%, #fff 0 12%, #f9fdff 40%, #d8eaf6 82%, #b4cee1 100%);
+  box-shadow: inset -5px -5px 9px rgba(104,146,180,.2), inset 3px 4px 7px #fff;
+}
+.snowman-hat {
+  position: absolute;
+  z-index: 2;
+  left: 24px;
+  bottom: 91px;
+  width: 41px;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(#fff,#cfe1ef);
+  box-shadow: 0 2px 3px rgba(40,70,95,.18);
+}
+.snowman-hat::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  bottom: 6px;
+  width: 24px;
+  height: 22px;
+  border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(90deg,#163d68,#2d6595 60%,#0d2c50);
+}
+.snowman-hat::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  bottom: 23px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e54c59;
+}
+.snowman-scarf {
+  position: absolute;
+  z-index: 3;
+  left: 22px;
+  bottom: 52px;
+  width: 46px;
+  height: 8px;
+  border-radius: 6px;
+  background: linear-gradient(90deg,#b82e42,#f16b76,#9c2036);
+  transform: rotate(-5deg);
+  box-shadow: 0 2px 3px rgba(93,25,37,.2);
+}
+.snowman-scarf::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  top: 3px;
+  width: 8px;
+  height: 19px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg,#a92339,#e95767);
+  transform: rotate(-8deg);
+}
+.snowman-eyes {
+  position: absolute;
+  z-index: 4;
+  left: 34px;
+  bottom: 76px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #26384b;
+  box-shadow: 14px 0 #26384b;
+}
+.snowman-nose {
+  position: absolute;
+  z-index: 4;
+  left: 39px;
+  bottom: 67px;
+  width: 12px;
+  height: 5px;
+  border-radius: 80% 15% 15% 80%;
+  background: linear-gradient(#ffbd65,#e87532);
+  transform: rotate(-7deg);
+}
+.snowman-buttons {
+  position: absolute;
+  z-index: 3;
+  left: 42px;
+  bottom: 37px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #29445d;
+  box-shadow: 0 12px #29445d, 0 24px #29445d;
+}
+.snowman-arm {
+  position: absolute;
+  z-index: 1;
+  bottom: 41px;
+  width: 27px;
+  height: 3px;
+  border-radius: 4px;
+  background: linear-gradient(#8b5b38,#55351f);
+}
+.snowman-arm-left { left: 0; transform: rotate(24deg); }
+.snowman-arm-right { right: -2px; transform: rotate(-28deg); }
+.snowman-arm::after {
+  content: "";
+  position: absolute;
+  right: -2px;
+  top: -5px;
+  width: 9px;
+  height: 9px;
+  border-top: 2px solid #704629;
+  border-right: 2px solid #704629;
+  transform: rotate(-18deg);
+}
+.tree-trunk {
+  position: absolute;
+  z-index: 1;
+  left: 35px;
+  bottom: 1px;
+  width: 15px;
+  height: 25px;
+  border-radius: 2px 2px 4px 4px;
+  background: linear-gradient(90deg,#59351e,#a66b3c 48%,#4d2e1b);
+}
+.tree-layer {
+  position: absolute;
+  z-index: 2;
+  left: 3px;
+  width: 78px;
+  clip-path: polygon(50% 0, 58% 18%, 76% 19%, 66% 31%, 91% 35%, 73% 47%, 100% 55%, 70% 62%, 82% 75%, 57% 73%, 50% 100%, 43% 73%, 18% 75%, 30% 62%, 0 55%, 27% 47%, 9% 35%, 34% 31%, 24% 19%, 42% 18%);
+  background: linear-gradient(100deg,#0d543d 0%,#18845a 42%,#0c4a36 78%,#083b2c 100%);
+  filter: drop-shadow(0 4px 2px rgba(0,0,0,.18));
+}
+.tree-layer-back { height: 66px; bottom: 47px; opacity: .9; }
+.tree-layer-mid { height: 67px; bottom: 25px; left: 0; width: 84px; background: linear-gradient(100deg,#0b4936,#16734e 48%,#073c2c); }
+.tree-layer-front { height: 61px; bottom: 8px; left: 8px; width: 68px; background: linear-gradient(100deg,#0c513b,#16845a 48%,#073b2b); }
+.tree-star {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 37px;
+  width: 14px;
+  height: 14px;
+  background: linear-gradient(135deg,#fff4b0,#f6b938 65%,#d88a16);
+  clip-path: polygon(50% 0,62% 35%,100% 38%,71% 61%,80% 100%,50% 77%,20% 100%,29% 61%,0 38%,38% 35%);
+  filter: drop-shadow(0 0 5px rgba(255,218,102,.85));
+}
+.tree-baubles {
+  position: absolute;
+  z-index: 4;
+  inset: 35px 13px 17px;
+  background:
+    radial-gradient(circle at 24% 30%, #f5d16b 0 3px, #b77a24 4px, transparent 5px),
+    radial-gradient(circle at 72% 42%, #e85d6a 0 3px, #9f293c 4px, transparent 5px),
+    radial-gradient(circle at 43% 68%, #77c9f4 0 3px, #277bb1 4px, transparent 5px),
+    radial-gradient(circle at 82% 78%, #f5d16b 0 3px, #b77a24 4px, transparent 5px),
+    radial-gradient(circle at 15% 78%, #e85d6a 0 3px, #9f293c 4px, transparent 5px);
+}
+.tree-snow {
+  position: absolute;
+  z-index: 3;
+  height: 7px;
+  border-radius: 50%;
+  background: linear-gradient(180deg,#fff,#dcecf7);
+  box-shadow: 0 2px 3px rgba(5,50,38,.2);
+}
+.tree-snow-one { left: 15px; top: 49px; width: 54px; transform: rotate(-5deg); }
+.tree-snow-two { left: 9px; top: 77px; width: 66px; transform: rotate(3deg); }
 body.christmas-enabled #app .page { padding-top: 24px; padding-bottom: 150px; }
-body.christmas-enabled #app .bottom-nav { margin-bottom: 48px; }
+body.christmas-enabled #app .bottom-nav { margin-bottom: 0; }
 .settings-select {
   display: block;
   width: 100%;
