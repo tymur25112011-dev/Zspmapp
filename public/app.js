@@ -2134,7 +2134,7 @@ async function openGlobalChat() {
   $("page-content").querySelectorAll("[data-global-action]").forEach(button => button.addEventListener("click", async () => {
     const id = button.dataset.id, action = button.dataset.globalAction, message = byId.get(id);
     if (action === "report") {
-      const reason = prompt("Powód zgłoszenia (opcjonalnie):") || "";
+      const reason = "";
       const ok = await submitContentReport("message",id,button.dataset.user,reason);
       if (ok) {button.textContent="Zgłoszono";button.disabled=true;}
     } else if (action === "reply") {
@@ -2246,7 +2246,7 @@ function renderMessages(messages) {
   container.querySelectorAll("[data-action]").forEach(button => button.addEventListener("click", async () => {
     const action = button.dataset.action, id = button.dataset.msgId;
     if (action === "report-msg") {
-      const reason = prompt("Powód zgłoszenia (opcjonalnie):") || "";
+      const reason = "";
       const ok = await submitContentReport("message", id, button.dataset.senderId, reason);
       if (ok) { reportedMessageIdsCache.push(id); button.textContent = "Zgłoszono"; button.disabled = true; }
     } else if (action === "block-person") {
