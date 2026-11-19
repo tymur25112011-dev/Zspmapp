@@ -3009,3 +3009,62 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
   color: #75b4ff;
 }
 
+
+
+/* Support page: theme-aware account copy control. */
+#app .support-account-box {
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid var(--border-color, rgba(120,160,220,.28));
+  border-radius: 18px;
+  background: var(--card-bg, rgba(255,255,255,.045));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#app .support-account-box .small-label {
+  font-size: 12px;
+  opacity: .72;
+}
+#app .support-account-number {
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  letter-spacing: .04em;
+}
+#app .support-copy-btn {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(104,165,255,.42);
+  border-radius: 14px;
+  padding: 12px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #fff;
+  font-weight: 700;
+  background: linear-gradient(135deg,#2878dc,#1854a5);
+  box-shadow: 0 8px 22px rgba(20,95,190,.22), inset 0 1px 0 rgba(255,255,255,.18);
+  transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+}
+#app .support-copy-btn:active {
+  transform: scale(.985);
+  filter: brightness(1.12);
+}
+#app .support-copy-status {
+  min-height: 17px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted, #9bb5d4);
+}
+:root[data-theme="dark"] #app .support-copy-btn {
+  background: linear-gradient(135deg,#343434,#171717);
+  border-color: rgba(255,255,255,.2);
+  box-shadow: 0 8px 22px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.1);
+}
+:root[data-theme="liquid-glass"] #app .support-copy-btn {
+  color: #15365d;
+  background: linear-gradient(135deg,rgba(255,255,255,.92),rgba(190,220,255,.72));
+  border-color: rgba(85,145,210,.35);
+  box-shadow: 0 8px 22px rgba(80,130,190,.15), inset 0 1px 0 #fff;
+}
