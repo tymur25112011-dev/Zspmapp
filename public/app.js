@@ -324,6 +324,19 @@ async function enterApp() {
     return;
   }
 
+  if (!window.zspmActivityHeartbeat) {
+    const sendHeartbeat = () => {
+      if (currentUser && !isBanned && document.visibilityState === "visible") {
+        supabaseClient.rpc("heartbeat_user_activity").then(({error}) => {
+          if (error) console.warn("Activity heartbeat failed:", error);
+        });
+      }
+    };
+    sendHeartbeat();
+    window.zspmActivityHeartbeat = window.setInterval(sendHeartbeat, 60000);
+    document.addEventListener("visibilitychange", sendHeartbeat);
+  }
+
   await loadMyProfileFromSupabase();
   await loadBlockedUsers();
   await loadFriendsData();
@@ -379,6 +392,24 @@ const pages = {
     content: ""
   },
 
+  ideas: {
+    title: "Wasze Pomysły",
+    subtitle: "Podziel się pomysłem i zagłosuj na propozycje innych",
+    content: ""
+  },
+
+  ranking: {
+    title: "Ranking",
+    subtitle: "Najaktywniejsi, wspierający i lubiani",
+    content: ""
+  },
+
+  information: {
+    title: "Informacje",
+    subtitle: "Wszystko, co warto wiedzieć o ZSPM Community",
+    content: ""
+  },
+
   support: {
     title: "Wesprzyj twórcę",
     subtitle: "Pomóż rozwijać projekt",
@@ -428,11 +459,12 @@ function formatModerationExpiry(value) {
 async function renderAdminPage() {
   const host = $("page-content");
   host.innerHTML = '<div class="page-content"><p>Ładowanie panelu administracji...</p></div>';
-  const [profilesResult, reportsResult, moderationResult, badgesResult] = await Promise.all([
+  const [profilesResult, reportsResult, moderationResult, badgesResult, donationResult] = await Promise.all([
     supabaseClient.from("profiles").select("id,nickname,class_name,is_visible").order("nickname"),
     supabaseClient.from("content_reports").select("id,reporter_id,reported_user_id,target_type,target_id,reason,created_at").order("created_at", {ascending:false}).limit(100),
     supabaseClient.from("user_moderation").select("id,user_id,action,reason,expires_at,created_at").is("revoked_at", null).order("created_at", {ascending:false}),
-    supabaseClient.from("user_badges").select("user_id,badge")
+    supabaseClient.from("user_badges").select("user_id,badge"),
+    supabaseClient.from("donation_ranking").select("user_id,amount,updated_at").order("amount",{ascending:false})
   ]);
   const errors = [profilesResult.error,reportsResult.error,moderationResult.error,badgesResult.error].filter(Boolean);
   if (errors.length) console.warn("Admin data load warnings:", errors);
@@ -469,6 +501,13 @@ async function renderAdminPage() {
       '</div></article>';
   }).join("");
 
+  const donationRowsHtml = (donationResult.data || []).map(row => {
+    const profile = profiles.find(item => item.id === row.user_id);
+    return '<div class="donation-admin-row"><div><strong>' +
+      escapeHTML(profile?.nickname || "Usunięty użytkownik") +
+      '</strong><small>' + Number(row.amount).toFixed(2).replace(".", ",") + ' zł</small></div>' +
+      '<button type="button" class="admin-small-btn" data-donation-remove="' + row.user_id + '">Usuń z rankingu</button></div>';
+  }).join("");
   const reportsHtml = (reportsResult.data || []).map(report =>
     '<div class="admin-report"><strong>' + escapeHTML(nameById.get(report.reported_user_id) || "Nieznany użytkownik") +
     '</strong><small>' + escapeHTML(report.target_type === "message" ? "Zgłoszona wiadomość" : "Zgłoszony profil") +
@@ -483,9 +522,51 @@ async function renderAdminPage() {
     '<div class="page-content admin-intro"><h3>🛡️ Panel administracji</h3><p>Panel jest przypisany do konta administratora i chroniony przez Supabase.</p></div>' +
     '<h3 class="admin-section-title">Użytkownicy i moderacja</h3>' +
     '<div class="admin-user-list">' + (usersHtml || '<div class="page-content"><p>Brak widocznych profili.</p></div>') + '</div>' +
+    '<h3 class="admin-section-title">Ranking wpłat (ręczne zarządzanie)</h3>' +
+    '<section class="donation-admin-card"><p>Wybierz użytkownika i wpisz łączną kwotę potwierdzonych wpłat. Miejsca w rankingu ustawią się automatycznie.</p>' +
+    '<div class="donation-admin-form"><label>Użytkownik<select id="donation-user-select">' +
+    profiles.map(profile => '<option value="' + profile.id + '">' + escapeHTML(profile.nickname) + '</option>').join("") +
+    '</select></label><label>Kwota (zł)<input id="donation-amount-input" type="number" min="0" max="1000000" step="0.01" placeholder="100.00"></label>' +
+    '<button type="button" class="admin-action-btn" id="donation-save">Zapisz kwotę</button></div>' +
+    '<div class="donation-admin-list">' + (donationRowsHtml || '<p class="muted">Nie dodano jeszcze żadnych osób do rankingu.</p>') + '</div></section>' +
     '<h3 class="admin-section-title">Ostatnie zgłoszenia</h3>' +
     '<div class="admin-report-list">' + (reportsHtml || '<div class="page-content"><p>Nie ma nowych zgłoszeń.</p></div>') + '</div>' +
     '<p class="admin-feedback" id="admin-feedback" aria-live="polite"></p>';
+
+  const donationSave = host.querySelector("#donation-save");
+  if (donationSave) donationSave.addEventListener("click", async () => {
+    const userId = host.querySelector("#donation-user-select")?.value;
+    const amountRaw = host.querySelector("#donation-amount-input")?.value;
+    const amount = Number(amountRaw);
+    const feedback = host.querySelector("#admin-feedback");
+    if (!userId || amountRaw === "" || !Number.isFinite(amount) || amount < 0 || amount > 1000000) {
+      if (feedback) feedback.textContent = "Wpisz poprawną kwotę od 0 do 1 000 000 zł.";
+      return;
+    }
+    donationSave.disabled = true;
+    const { error } = await supabaseClient.from("donation_ranking").upsert({
+      user_id:userId, amount:amount, updated_at:new Date().toISOString(), updated_by:currentUser.id
+    }, {onConflict:"user_id"});
+    if (error) {
+      if (feedback) feedback.textContent = error.message || "Nie udało się zapisać kwoty.";
+      donationSave.disabled = false;
+      return;
+    }
+    await renderAdminPage();
+  });
+  host.querySelectorAll("[data-donation-remove]").forEach(button => {
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      const { error } = await supabaseClient.from("donation_ranking").delete().eq("user_id", button.dataset.donationRemove);
+      if (error) {
+        const feedback = host.querySelector("#admin-feedback");
+        if (feedback) feedback.textContent = error.message || "Nie udało się usunąć wpisu.";
+        button.disabled = false;
+        return;
+      }
+      await renderAdminPage();
+    });
+  });
 
   host.querySelectorAll("[data-admin-action]").forEach(button => {
     button.addEventListener("click", async () => {
@@ -575,6 +656,12 @@ async function openPage(page) {
       await renderNotificationsPage();
     } else if (page === "settings") {
       renderSettingsPage();
+    } else if (page === "ideas") {
+      await renderIdeasPage();
+    } else if (page === "ranking") {
+      await renderRankingPage();
+    } else if (page === "information") {
+      renderInformationPage();
     } else {
       $("page-content").innerHTML = selected.content;
     }
@@ -598,6 +685,153 @@ function escapeHTML(value) {
   })[char]);
 }
 
+
+
+// COMMUNITY IDEAS, RANKING AND INFORMATION
+
+async function renderIdeasPage() {
+  const host = $("page-content");
+  host.innerHTML = '<div class="page-content"><p>Ładowanie pomysłów...</p></div>';
+  const [ideasResult, votesResult, profilesResult] = await Promise.all([
+    supabaseClient.from("community_ideas").select("id,author_id,title,description,created_at").order("created_at",{ascending:false}).limit(100),
+    supabaseClient.from("community_idea_votes").select("idea_id,user_id,vote"),
+    supabaseClient.from("public_profiles").select("id,nickname")
+  ]);
+  const error = ideasResult.error || votesResult.error || profilesResult.error;
+  if (error) {
+    host.innerHTML = '<div class="page-content"><p>Nie udało się załadować pomysłów. Spróbuj ponownie później.</p></div>';
+    console.error("Ideas load error:", error);
+    return;
+  }
+  const names = new Map((profilesResult.data || []).map(p => [p.id,p.nickname]));
+  const votes = votesResult.data || [];
+  const voteByUser = new Map(votes.filter(v => v.user_id === currentUser.id).map(v => [v.idea_id,v.vote]));
+  const totals = new Map();
+  votes.forEach(v => {
+    const item = totals.get(v.idea_id) || {up:0,down:0};
+    if (v.vote === 1) item.up++; else item.down++;
+    totals.set(v.idea_id,item);
+  });
+  const cards = (ideasResult.data || []).map(idea => {
+    const total = totals.get(idea.id) || {up:0,down:0};
+    const myVote = voteByUser.get(idea.id);
+    const own = idea.author_id === currentUser.id;
+    return '<article class="idea-card"><div class="idea-card-head"><div><h3>' +
+      escapeHTML(idea.title) + '</h3><small>' + escapeHTML(names.get(idea.author_id) || "Uczeń") +
+      ' · ' + escapeHTML(new Date(idea.created_at).toLocaleDateString("pl-PL")) +
+      '</small></div>' + (own || isAdmin ? '<button type="button" class="idea-delete" data-idea-delete="' + idea.id + '" aria-label="Usuń pomysł">×</button>' : '') +
+      '</div><p>' + escapeHTML(idea.description).replace(/\n/g,"<br>") + '</p>' +
+      '<div class="idea-votes"><button type="button" class="idea-vote up ' + (myVote === 1 ? 'selected' : '') + '" data-idea-vote="1" data-idea-id="' + idea.id + '" aria-label="Popieram">✓ <span>' + total.up + '</span></button>' +
+      '<button type="button" class="idea-vote down ' + (myVote === -1 ? 'selected' : '') + '" data-idea-vote="-1" data-idea-id="' + idea.id + '" aria-label="Nie popieram">✕ <span>' + total.down + '</span></button></div></article>';
+  }).join("");
+  host.innerHTML = '<div class="ideas-intro"><div><strong>💡 Masz pomysł na rozwój aplikacji?</strong><p>Opublikuj propozycję. Społeczność może ją poprzeć ✓ lub odrzucić ✕.</p></div></div>' +
+    '<form class="idea-form" id="idea-form"><h3>Dodaj nowy pomysł</h3><label>Tytuł<input id="idea-title" maxlength="90" minlength="4" required placeholder="Np. Nowa funkcja czatu"></label>' +
+    '<label>Opis<textarea id="idea-description" maxlength="1200" minlength="10" required rows="4" placeholder="Opisz, jak miałaby działać ta funkcja..."></textarea></label>' +
+    '<button type="submit" class="main-btn">Opublikuj pomysł</button><p class="idea-feedback" id="idea-feedback" aria-live="polite"></p></form>' +
+    '<div class="ideas-list">' + (cards || '<div class="page-content"><p>Jeszcze nie ma pomysłów. Dodaj pierwszy!</p></div>') + '</div>';
+  host.querySelector("#idea-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = event.currentTarget.querySelector('button[type="submit"]');
+    const feedback = host.querySelector("#idea-feedback");
+    button.disabled = true;
+    const { error } = await supabaseClient.from("community_ideas").insert({
+      author_id:currentUser.id,
+      title:host.querySelector("#idea-title").value.trim(),
+      description:host.querySelector("#idea-description").value.trim()
+    });
+    if (error) {
+      feedback.textContent = error.message || "Nie udało się opublikować pomysłu.";
+      button.disabled = false;
+      return;
+    }
+    await renderIdeasPage();
+  });
+  host.querySelectorAll("[data-idea-vote]").forEach(button => button.addEventListener("click", async () => {
+    button.disabled = true;
+    const ideaId = button.dataset.ideaId;
+    const value = Number(button.dataset.ideaVote);
+    const existing = voteByUser.get(ideaId);
+    let result;
+    if (existing === value) {
+      result = await supabaseClient.from("community_idea_votes").delete().eq("idea_id",ideaId).eq("user_id",currentUser.id);
+    } else {
+      result = await supabaseClient.from("community_idea_votes").upsert({
+        idea_id:ideaId,user_id:currentUser.id,vote:value,updated_at:new Date().toISOString()
+      },{onConflict:"idea_id,user_id"});
+    }
+    if (result.error) {
+      const feedback = host.querySelector("#idea-feedback");
+      if (feedback) feedback.textContent = result.error.message || "Nie udało się zapisać głosu.";
+      button.disabled = false;
+      return;
+    }
+    await renderIdeasPage();
+  }));
+  host.querySelectorAll("[data-idea-delete]").forEach(button => button.addEventListener("click", async () => {
+    if (!confirm("Czy na pewno chcesz usunąć ten pomysł?")) return;
+    button.disabled = true;
+    const { error } = await supabaseClient.from("community_ideas").delete().eq("id",button.dataset.ideaDelete);
+    if (error) {
+      const feedback = host.querySelector("#idea-feedback");
+      if (feedback) feedback.textContent = error.message || "Nie udało się usunąć pomysłu.";
+      button.disabled = false;
+      return;
+    }
+    await renderIdeasPage();
+  }));
+}
+
+function formatActiveTime(seconds) {
+  const hours = Math.floor(Number(seconds || 0) / 3600);
+  const minutes = Math.floor((Number(seconds || 0) % 3600) / 60);
+  return hours ? hours + " godz. " + minutes + " min" : minutes + " min";
+}
+
+async function renderRankingPage() {
+  const host = $("page-content");
+  host.innerHTML = '<div class="page-content"><p>Ładowanie rankingów...</p></div>';
+  const [profilesResult, donationsResult, activityResult, likesResult] = await Promise.all([
+    supabaseClient.from("public_profiles").select("id,nickname"),
+    supabaseClient.from("donation_ranking").select("user_id,amount").order("amount",{ascending:false}).limit(100),
+    supabaseClient.from("user_activity").select("user_id,active_seconds").order("active_seconds",{ascending:false}).limit(100),
+    supabaseClient.from("profile_likes").select("profile_id")
+  ]);
+  const error = profilesResult.error || donationsResult.error || activityResult.error || likesResult.error;
+  if (error) {
+    host.innerHTML = '<div class="page-content"><p>Nie udało się załadować rankingów.</p></div>';
+    console.error("Ranking load error:", error);
+    return;
+  }
+  const names = new Map((profilesResult.data || []).map(p => [p.id,p.nickname]));
+  const likes = new Map();
+  (likesResult.data || []).forEach(row => likes.set(row.profile_id,(likes.get(row.profile_id)||0)+1));
+  const donationRows = (donationsResult.data || []).filter(r => names.has(r.user_id));
+  const activityRows = (activityResult.data || []).filter(r => names.has(r.user_id));
+  const likeRows = [...likes.entries()].map(([user_id,count]) => ({user_id,count})).filter(r => names.has(r.user_id)).sort((a,b)=>b.count-a.count);
+  const rowsHtml = (rows, valueFn) => rows.length ? rows.slice(0,50).map((row,index) =>
+    '<div class="ranking-row"><span class="ranking-place ' + (index<3?'top-'+(index+1):'') + '">' + (index+1) +
+    '</span><strong>' + escapeHTML(names.get(row.user_id) || "Uczeń") + '</strong><span class="ranking-value">' +
+    valueFn(row) + '</span></div>').join("") : '<div class="page-content"><p>Ranking jest jeszcze pusty.</p></div>';
+  host.innerHTML = '<div class="ranking-tabs" role="tablist"><button type="button" class="active" data-ranking-tab="online">🕒 Online</button><button type="button" data-ranking-tab="donations">💙 Donaty</button><button type="button" data-ranking-tab="likes">❤️ Polubienia</button></div>' +
+    '<section class="ranking-panel" data-ranking-panel="online"><h3>TOP aktywności</h3><p class="muted">Łączny szacowany czas aktywności w aplikacji.</p>' + rowsHtml(activityRows,(r)=>formatActiveTime(r.active_seconds)) + '</section>' +
+    '<section class="ranking-panel hidden" data-ranking-panel="donations"><h3>TOP wspierających</h3><p class="muted">Kwoty są aktualizowane ręcznie przez administratora.</p>' + rowsHtml(donationRows,(r)=>Number(r.amount).toFixed(2).replace(".",",")+" zł") + '</section>' +
+    '<section class="ranking-panel hidden" data-ranking-panel="likes"><h3>TOP polubień profili</h3><p class="muted">Liczba polubień otrzymanych przez profil.</p>' + rowsHtml(likeRows,(r)=>r.count+" ❤️") + '</section>';
+  host.querySelectorAll("[data-ranking-tab]").forEach(button => button.addEventListener("click", () => {
+    const tab = button.dataset.rankingTab;
+    host.querySelectorAll("[data-ranking-tab]").forEach(item=>item.classList.toggle("active",item===button));
+    host.querySelectorAll("[data-ranking-panel]").forEach(panel=>panel.classList.toggle("hidden",panel.dataset.rankingPanel!==tab));
+  }));
+}
+
+function renderInformationPage() {
+  $("page-content").innerHTML = '<div class="information-list">' +
+    '<section class="information-card"><div class="information-icon">🌐</div><h3>Czym jest ZSPM Community?</h3><p>To niezależna społeczność internetowa, która umożliwia użytkownikom tworzenie profili, poznawanie innych osób, rozmowy, dzielenie się pomysłami i wspieranie rozwoju projektu.</p></section>' +
+    '<section class="information-card"><div class="information-icon">⭐</div><h3>Jak zdobyć status PREMIUM?</h3><p>Status PREMIUM jest specjalnym wyróżnieniem w aplikacji. Może zostać przyznany przez administratora. Jeśli chcesz dowiedzieć się więcej o dostępności i zasadach jego przyznawania, skontaktuj się z administratorem.</p></section>' +
+    '<section class="information-card"><div class="information-icon">🤝</div><h3>Zasady społeczności</h3><p>Szanuj innych użytkowników, nie publikuj cudzych danych prywatnych, nie nękaj innych i nie wysyłaj spamu. Zgłaszaj treści naruszające zasady.</p></section>' +
+    '<section class="information-card"><div class="information-icon">⚠️</div><h3>Ważne zastrzeżenie</h3><p>ZSPM Community jest projektem niezależnym, nieoficjalnym i nie jest w żaden sposób powiązany ze szkołą Poligraficzno-Medialną nr 20 w Krakowie ani przez nią sponsorowany, zatwierdzony czy prowadzony. Nazwa szkoły służy wyłącznie do określenia społeczności, do której kierowany jest projekt.</p></section>' +
+    '<section class="information-card"><div class="information-icon">🔒</div><h3>Prywatność i bezpieczeństwo</h3><p>Nie udostępniaj haseł, kodów logowania ani prywatnych danych. Korzystaj z funkcji blokowania i zgłaszania, jeśli ktoś zachowuje się niewłaściwie.</p></section>' +
+    '<p class="information-footnote">ZSPM Community · Niezależny projekt społecznościowy</p></div>';
+}
 
 // PROFILE UCZNIÓW
 
