@@ -1265,6 +1265,9 @@ let activeConversationId = null;
 let activeChatProfile = null;
 let activeChatChannel = null;
 let notificationsChannel = null;
+let friendsChannel = null;
+let socialChannel = null;
+let reportsCache = [];
 
 function showMessage(id, text, type = "error") {
   const element = $(id);
@@ -1415,6 +1418,7 @@ async function enterApp() {
   await loadBlockedUsers();
   await loadFriendsData();
   await loadNotifications();
+  await loadReports();
   await setupRealtimeSubscriptions();
   await openPage("home");
 }
@@ -1436,8 +1440,8 @@ const pages = {
   },
 
   chat: {
-    title: "Czat szkolny",
-    subtitle: "Rozmawiaj ze społecznością",
+    title: "Wiadomości",
+    subtitle: "Prywatne rozmowy ze znajomymi",
     content: ""
   },
 
@@ -1495,6 +1499,7 @@ async function openPage(page) {
       await loadPublicProfilesFromSupabase();
       await loadFriendsData();
       await loadBlockedUsers();
+      await loadReports();
       await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
       $("page-content").innerHTML = renderProfilesPage();
       bindProfilesPage();
@@ -1688,22 +1693,21 @@ async function loadPublicProfilesFromSupabase() {
 }
 
 function getReports() {
-  try {
-    const data = localStorage.getItem(REPORTS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    return [];
-  }
+  return reportsCache;
 }
 
-function addReport(profileId) {
-  const reports = getReports();
-  if (!reports.includes(profileId)) {
-    reports.push(profileId);
-    localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+async function loadReports() {
+  if (!currentUser?.id) return [];
+  const { data, error } = await supabaseClient.from("content_reports")
+    .select("target_type,target_id")
+    .eq("reporter_id", currentUser.id);
+  if (error) {
+    console.error("Reports load error:", error);
+    return reportsCache;
   }
+  reportsCache = (data || []).filter(item => item.target_type === "profile").map(item => item.target_id);
+  return reportsCache;
 }
-
 
 function getProfileSocialData() {
   return profileSocialCache;
@@ -2005,6 +2009,7 @@ function bindProfilesPage() {
         alert("Nie udało się wysłać zgłoszenia.");
         return;
       }
+      reportsCache.push(profileId);
       button.disabled = true;
       button.textContent = "Zgłoszono profil";
     });
@@ -2520,11 +2525,10 @@ async function renderFriendsPage() {
   `)).join("");
 
   const friendsHTML = friendsDataCache.friends.map(profile => personCardHTML(profile, `
-    <button class="accept-btn" data-action="open-friend-chat" data-person-id="${escapeHTML(profile.id)}">Napisz wiadomość</button>
-    <button class="report-btn" data-action="remove-friend" data-person-id="${escapeHTML(profile.id)}">Usuń ze znajomych</button>
     ${isBlocked(profile.id)
       ? '<button class="pill-btn" data-action="unblock" data-person-id="' + escapeHTML(profile.id) + '">Odblokuj użytkownika</button>'
-      : '<button class="report-btn" data-action="block-person" data-person-id="' + escapeHTML(profile.id) + '">Blokuj</button>'}
+      : '<button class="accept-btn" data-action="open-friend-chat" data-person-id="' + escapeHTML(profile.id) + '">Napisz wiadomość</button><button class="report-btn" data-action="block-person" data-person-id="' + escapeHTML(profile.id) + '">Blokuj</button>'}
+    <button class="report-btn" data-action="remove-friend" data-person-id="${escapeHTML(profile.id)}">Usuń ze znajomych</button>
     <button class="report-btn" data-action="report-person" data-person-id="${escapeHTML(profile.id)}">Zgłoś</button>
   `)).join("");
 
@@ -2947,11 +2951,47 @@ async function setupRealtimeSubscriptions() {
     await supabaseClient.removeChannel(notificationsChannel);
     notificationsChannel = null;
   }
+  if (friendsChannel) {
+    await supabaseClient.removeChannel(friendsChannel);
+    friendsChannel = null;
+  }
+  if (socialChannel) {
+    await supabaseClient.removeChannel(socialChannel);
+    socialChannel = null;
+  }
   notificationsChannel = supabaseClient.channel("notifications-" + currentUser.id)
     .on("postgres_changes", {
       event: "*", schema: "public", table: "notifications",
       filter: "user_id=eq." + currentUser.id
     }, () => loadNotifications())
+    .subscribe();
+
+  friendsChannel = supabaseClient.channel("friends-" + currentUser.id)
+    .on("postgres_changes", { event: "*", schema: "public", table: "friend_requests" }, async () => {
+      await loadFriendsData();
+      if (document.querySelector("#page-title")?.textContent === "Znajomi") await renderFriendsPage();
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, async () => {
+      await loadFriendsData();
+      if (document.querySelector("#page-title")?.textContent === "Znajomi") await renderFriendsPage();
+    })
+    .subscribe();
+
+  socialChannel = supabaseClient.channel("profile-social-" + currentUser.id)
+    .on("postgres_changes", { event: "*", schema: "public", table: "profile_likes" }, async () => {
+      if (document.querySelector("#page-title")?.textContent === "Profile uczniów") {
+        await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
+        $("page-content").innerHTML = renderProfilesPage();
+        bindProfilesPage();
+      }
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "profile_comments" }, async () => {
+      if (document.querySelector("#page-title")?.textContent === "Profile uczniów") {
+        await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
+        $("page-content").innerHTML = renderProfilesPage();
+        bindProfilesPage();
+      }
+    })
     .subscribe();
 }
 
@@ -3008,6 +3048,14 @@ async function logout() {
     await supabaseClient.removeChannel(notificationsChannel);
     notificationsChannel = null;
   }
+  if (friendsChannel) {
+    await supabaseClient.removeChannel(friendsChannel);
+    friendsChannel = null;
+  }
+  if (socialChannel) {
+    await supabaseClient.removeChannel(socialChannel);
+    socialChannel = null;
+  }
   if (supabaseClient) {
     const { error } = await supabaseClient.auth.signOut();
     if (error) {
@@ -3024,6 +3072,7 @@ async function logout() {
   friendsDataCache = { incoming: [], outgoing: [], friends: [] };
   blockedUsersCache = [];
   notificationsCache = [];
+  reportsCache = [];
   conversationsCache = [];
   activeConversationId = null;
   activeChatProfile = null;
