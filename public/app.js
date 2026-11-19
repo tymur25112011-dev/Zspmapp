@@ -631,8 +631,16 @@ async function renderAdminPage() {
 }
 
 
-async function openPage(page) {
+let appPageHistory = [];
+let currentAppPage = "home";
+
+async function openPage(page, options = {}) {
   if (isBanned) return;
+  if (page !== "home" && !pages[page]) return;
+  if (!options.fromBack && page !== currentAppPage) appPageHistory.push(currentAppPage);
+  currentAppPage = page;
+  const backButton = $("app-back-button");
+  if (backButton) backButton.hidden = page === "home" || appPageHistory.length === 0;
   const home = $("home-page");
   const other = $("other-page");
 
@@ -2587,6 +2595,13 @@ document.addEventListener("click", async event => {
   }
 });
 
+
+const appBackButton = $("app-back-button");
+appBackButton.addEventListener("click", async () => {
+  if (!appPageHistory.length) return;
+  const previousPage = appPageHistory.pop();
+  await openPage(previousPage, { fromBack: true });
+});
 
 document.querySelectorAll("[data-page]").forEach(button => {
   button.addEventListener("click", () => {
