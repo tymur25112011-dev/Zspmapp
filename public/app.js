@@ -125,6 +125,7 @@ const DEMO_PROFILES = [
 
 let currentUser = null;
 let isAdmin = false;
+let isBanned = false;
 let currentUserBadge = null;
 let myProfileCache = null;
 let publicProfilesCache = [];
@@ -305,7 +306,8 @@ async function enterApp() {
     .order("created_at", { ascending: false });
   const activeBan = (ownModeration || []).find(item => item.action === "ban" &&
     (!item.expires_at || new Date(item.expires_at).getTime() > Date.now()));
-  if (activeBan && !isAdmin) {
+  isBanned = Boolean(activeBan && !isAdmin);
+  if (isBanned) {
     $("home-page").classList.add("hidden");
     $("other-page").classList.remove("hidden");
     $("page-title").textContent = "Konto zablokowane";
@@ -422,7 +424,7 @@ async function renderAdminPage() {
   const host = $("page-content");
   host.innerHTML = '<div class="page-content"><p>Ładowanie panelu administracji...</p></div>';
   const [profilesResult, reportsResult, moderationResult, badgesResult] = await Promise.all([
-    supabaseClient.from("public_profiles").select("id,nickname,class_name,is_visible").order("nickname"),
+    supabaseClient.from("profiles").select("id,nickname,class_name,is_visible").order("nickname"),
     supabaseClient.from("content_reports").select("id,reporter_id,reported_user_id,target_type,target_id,reason,created_at").order("created_at", {ascending:false}).limit(100),
     supabaseClient.from("user_moderation").select("id,user_id,action,reason,expires_at,created_at").is("revoked_at", null).order("created_at", {ascending:false}),
     supabaseClient.from("user_badges").select("user_id,badge")
@@ -525,6 +527,7 @@ async function renderAdminPage() {
 
 
 async function openPage(page) {
+  if (isBanned) return;
   const home = $("home-page");
   const other = $("other-page");
 
@@ -2237,6 +2240,7 @@ async function logout() {
 
   currentUser = null;
   isAdmin = false;
+  isBanned = false;
   currentUserBadge = null;
   myProfileCache = null;
   publicProfilesCache = [];
