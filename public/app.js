@@ -2970,6 +2970,7 @@ async function renderCommunityForumPage() {
     const own=post.author_id===currentUser.id, postComments=comments.filter(c=>c.post_id===post.id);
     return '<article class="feature-card"><div class="feature-card-top"><span class="feature-tag">'+(FORUM_CATEGORIES[post.category]||"Ogólne")+'</span><small>'+escapeHTML(names.get(post.author_id)||"Uczeń")+' · '+escapeHTML(new Date(post.created_at).toLocaleDateString("pl-PL"))+'</small></div><h3>'+escapeHTML(post.title)+'</h3><p class="feature-body">'+escapeHTML(post.body)+'</p>'+
     (own||isAdmin?'<button type="button" class="text-action" data-forum-delete="'+post.id+'">Usuń temat</button>':"")+
+    (!own&&!isAdmin?'<button type="button" class="text-action" data-forum-report="'+post.id+'" data-author="'+post.author_id+'">Zgłoś temat</button>':"")+
     '<div class="forum-comments"><strong>Komentarze ('+postComments.length+')</strong>'+(postComments.map(c=>'<div class="forum-comment"><b>'+escapeHTML(names.get(c.author_id)||"Uczeń")+'</b><p>'+escapeHTML(c.body)+'</p>'+(c.author_id===currentUser.id||isAdmin?'<button type="button" class="text-action" data-forum-comment-delete="'+c.id+'">Usuń</button>':"")+'</div>').join("")||'<small>Jeszcze nikt nie skomentował.</small>')+
     (post.is_locked?'<p class="muted">Dyskusja zamknięta.</p>':'<form class="forum-comment-form" data-forum-comment-form="'+post.id+'"><input maxlength="2000" required placeholder="Dodaj komentarz"><button type="submit" aria-label="Wyślij komentarz">➤</button></form>')+'</div></article>';
   }).join("")||'<div class="page-content"><p>Forum jest jeszcze puste. Dodaj pierwszy temat!</p></div>')+'</div>';
@@ -2982,6 +2983,13 @@ async function renderCommunityForumPage() {
     e.preventDefault();const input=form.querySelector("input");const body=input.value.trim();if(!body)return;
     const {error}=await supabaseClient.from("community_forum_comments").insert({post_id:form.dataset.forumCommentForm,author_id:currentUser.id,body});
     if(error){alert("Nie udało się dodać komentarza.");return;}await renderCommunityForumPage();
+  }));
+  host.querySelectorAll("[data-forum-report]").forEach(b=>b.addEventListener("click",async()=>{
+    const reason=prompt("Opisz krótko, dlaczego zgłaszasz ten temat:");
+    if(!reason||!reason.trim())return;
+    const {error}=await supabaseClient.from("content_reports").insert({reporter_id:currentUser.id,reported_user_id:b.dataset.author,target_type:"forum_post",target_id:b.dataset.forumReport,reason:reason.trim().slice(0,500)});
+    if(error){alert("Nie udało się wysłać zgłoszenia.");return;}
+    alert("Zgłoszenie zostało wysłane do administracji.");
   }));
   host.querySelectorAll("[data-forum-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Usunąć ten temat i komentarze?"))return;const {error}=await supabaseClient.from("community_forum_posts").delete().eq("id",b.dataset.forumDelete);if(error)alert("Nie udało się usunąć tematu.");else await renderCommunityForumPage();}));
   host.querySelectorAll("[data-forum-comment-delete]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await supabaseClient.from("community_forum_comments").delete().eq("id",b.dataset.forumCommentDelete);if(error)alert("Nie udało się usunąć komentarza.");else await renderCommunityForumPage();}));
