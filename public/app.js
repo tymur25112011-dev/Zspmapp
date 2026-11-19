@@ -295,9 +295,15 @@ $("login").addEventListener("submit", async event => {
 async function enterApp() {
   if (!currentUser) return;
 
-  const { data: adminResult, error: adminError } = await supabaseClient.rpc("is_app_admin");
-  isAdmin = !adminError && adminResult === true;
-  if (adminError) console.warn("Admin role check failed:", adminError);
+  // Use the same admin-status lookup as profile badges and admin labels.
+  // This keeps global-chat pin controls consistent with the app's admin directory.
+  const adminIds = await loadAdminFlagsByIds([currentUser.id]);
+  isAdmin = adminIds.has(currentUser.id);
+  if (!isAdmin) {
+    const { data: adminResult, error: adminError } = await supabaseClient.rpc("is_app_admin");
+    if (adminError) console.warn("Admin role check failed:", adminError);
+    isAdmin = !adminError && adminResult === true;
+  }
 
   const { data: badgeRow, error: badgeError } = await supabaseClient
     .from("user_badges").select("badge").eq("user_id", currentUser.id).maybeSingle();
