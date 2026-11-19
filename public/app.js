@@ -1415,6 +1415,11 @@ async function loadProfilesByIds(ids) {
     return [];
   }
   const mapped = (await Promise.all((data || []).map(row => mapDatabaseProfile(row)))).filter(Boolean);
+  const { data: badgeRows, error: badgeError } = await supabaseClient
+    .from("user_badges").select("user_id,badge").in("user_id", uniqueIds);
+  if (badgeError) console.warn("Related profile badges load error:", badgeError);
+  const badgeMap = new Map((badgeRows || []).map(row => [row.user_id, row.badge]));
+  mapped.forEach(profile => { profile.badge = badgeMap.get(profile.id) || null; });
   const byId = new Map(publicProfilesCache.map(profile => [profile.id, profile]));
   mapped.forEach(profile => byId.set(profile.id, profile));
   publicProfilesCache = [...byId.values()].filter(profile => profile.id !== currentUser?.id);
