@@ -2528,7 +2528,7 @@ async function openGlobalChat(roomId = null) {
   const tabs='<div class="chat-room-tabs"><button type="button" class="chat-room-tab'+(!activeGlobalRoomId?' active':'')+'" data-chat-room="">🌐 Ogólny</button>'+rooms.map(r=>'<button type="button" class="chat-room-tab'+(r.id===activeGlobalRoomId?' active':'')+'" data-chat-room="'+r.id+'">'+escapeHTML(r.icon)+' '+escapeHTML(r.name)+'</button>').join("")+'</div>';
   const room=rooms.find(r=>r.id===activeGlobalRoomId);
   $("page-content").innerHTML='<div class="global-chat-head"><button type="button" class="chat-back" id="global-chat-back">‹</button><div><strong>'+(room?escapeHTML(room.icon+" "+room.name):"Czat ogólny")+'</strong><small>'+(room?escapeHTML(room.description):"Rozmowa wszystkich użytkowników")+'</small></div></div>'+tabs+
-    '<div class="global-chat-notice">Rozmawiaj z szacunkiem. Nie publikuj danych osobowych.</div>'+pinnedMessagesHTML(activeGlobalPins, "data-global-action")+'<div class="chat-search-box global-search-box"><span class="chat-search-icon" aria-hidden="true">⌕</span><input id="global-chat-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj w wiadomościach…" aria-label="Szukaj w wiadomościach"><button type="button" class="chat-search-clear" aria-label="Wyczyść wyszukiwanie" hidden>×</button></div><div class="global-chat-messages" id="global-chat-messages">'+(rows||'<p class="global-chat-empty">Nie ma jeszcze wiadomości. Napisz pierwszą!</p>')+'</div>'+
+    '<div class="global-chat-notice">Rozmawiaj z szacunkiem. Nie publikuj danych osobowych.</div>'+pinnedMessagesHTML(activeGlobalPins, "data-global-action", { variant: "global", canManage: isAdmin, title: "Przypięte wiadomości" })+'<div class="chat-search-box global-search-box"><span class="chat-search-icon" aria-hidden="true">⌕</span><input id="global-chat-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj w wiadomościach…" aria-label="Szukaj w wiadomościach"><button type="button" class="chat-search-clear" aria-label="Wyczyść wyszukiwanie" hidden>×</button></div><div class="global-chat-messages" id="global-chat-messages">'+(rows||'<p class="global-chat-empty">Nie ma jeszcze wiadomości. Napisz pierwszą!</p>')+'</div>'+
     (currentMute?'<div class="global-chat-muted">Wysyłanie wiadomości jest tymczasowo wyłączone.<br>Powód: '+escapeHTML(currentMute.reason)+'<br>Do: '+escapeHTML(formatModerationExpiry(currentMute.expires_at))+'</div>':'<form class="global-chat-composer" id="global-chat-form"><div id="global-reply-hint" class="chat-reply-hint hidden"></div><input id="global-chat-input" maxlength="500" autocomplete="off" placeholder="Napisz na czacie…"><button type="submit" aria-label="Wyślij">➤</button></form>');
   $("global-chat-back").addEventListener("click",renderChatList);
   bindMessageSearch("global-chat-search", "global-chat-messages", ".global-message");
@@ -2633,14 +2633,23 @@ async function loadCommunityChatPins(chatType, conversationId = null, roomId = n
   return rows;
 }
 
-function pinnedMessagesHTML(pins, actionAttribute) {
+function pinnedMessagesHTML(pins, actionAttribute, options = {}) {
   if (!pins?.length) return "";
-  return '<section class="chat-pinned-list"><div class="chat-pinned-title"><span>📌 Закреплённые сообщения</span><small>' + pins.length + '/5</small></div>' +
-    pins.map(pin => {
-      const profile = pin.message.sender_id === currentUser.id ? getMyProfile() : getProfileById(pin.message.sender_id);
-      const author = profile?.nickname || "Użytkownik";
-      return '<div class="chat-pinned-item"><div class="chat-pinned-copy"><strong>' + escapeHTML(author) + '</strong><span>' + escapeHTML(pin.message.content.slice(0, 150)) + '</span></div><button type="button" class="chat-unpin-btn" ' + actionAttribute + '="remove-pin" data-pin-id="' + escapeHTML(pin.id) + '" aria-label="Odepnij wiadomość">×</button></div>';
-    }).join("") + '</section>';
+  const globalStyle = options.variant === "global";
+  const canManage = options.canManage !== false;
+  const title = options.title || "Przypięte wiadomości";
+  const items = pins.map(pin => {
+    const profile = pin.message.sender_id === currentUser.id ? getMyProfile() : getProfileById(pin.message.sender_id);
+    const author = profile?.nickname || "Użytkownik";
+    const unpin = canManage
+      ? '<button type="button" class="chat-unpin-btn" ' + actionAttribute + '="remove-pin" data-pin-id="' + escapeHTML(pin.id) + '" aria-label="Odepnij wiadomość" title="Odepnij wiadomość">×</button>'
+      : '';
+    return '<article class="chat-pinned-item"><div class="chat-pinned-copy"><strong>' + escapeHTML(author) + '</strong><span>' + escapeHTML(pin.message.content.slice(0, 150)) + '</span></div>' + unpin + '</article>';
+  }).join("");
+  if (globalStyle) {
+    return '<section class="chat-pinned-list global-chat-pinned" aria-label="Przypięte wiadomości"><div class="chat-pinned-title"><span class="global-pinned-heading"><span class="global-pinned-icon">📌</span><span><strong>' + escapeHTML(title) + '</strong><small>Ważne informacje na tym czacie</small></span></span><small class="global-pinned-count">' + pins.length + '</small></div><div class="global-pinned-items">' + items + '</div></section>';
+  }
+  return '<section class="chat-pinned-list"><div class="chat-pinned-title"><span>📌 ' + escapeHTML(title) + '</span><small>' + pins.length + '/5</small></div>' + items + '</section>';
 }
 
 async function toggleCommunityChatPin(chatType, messageId = null, pinId = null) {
