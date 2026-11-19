@@ -1949,9 +1949,10 @@ document.addEventListener("click", event => {
 document.addEventListener("keydown", event => {
   if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-open-community-profile]")) {
     event.preventDefault();
+    event.stopPropagation();
     openCommunityProfile(event.target.dataset.openCommunityProfile);
   }
-});
+}, true);
 
 // ZNAJOMI, POWIADOMIENIA I CZAT — SUPABASE
 
