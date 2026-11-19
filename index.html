@@ -1568,11 +1568,16 @@ function getMyProfile() {
   return profiles[currentUser.email] || null;
 }
 
-function mapDatabaseProfile(row) {
+async function mapDatabaseProfile(row) {
   if (!row) return null;
-  const photoUrl = row.photo_path
-    ? supabaseClient.storage.from("profile-photos").getPublicUrl(row.photo_path).data.publicUrl
-    : "";
+  let photoUrl = "";
+  if (row.photo_path) {
+    const { data, error } = await supabaseClient.storage
+      .from("profile-photos")
+      .createSignedUrl(row.photo_path, 604800);
+    if (error) console.warn("Profile photo URL error:", error);
+    else photoUrl = data?.signedUrl || "";
+  }
   return {
     id: row.id,
     nickname: row.nickname || currentUser?.name || "Uczeń",
@@ -1602,7 +1607,7 @@ async function loadMyProfileFromSupabase() {
     return null;
   }
 
-  myProfileCache = mapDatabaseProfile(data);
+  myProfileCache = await mapDatabaseProfile(data);
   if (myProfileCache) {
     const profiles = getUserProfiles();
     profiles[currentUser.email] = myProfileCache;
@@ -1668,7 +1673,7 @@ async function saveMyProfile(profile) {
     if (removeError) console.warn("Old profile photo cleanup failed:", removeError);
   }
 
-  myProfileCache = mapDatabaseProfile(data);
+  myProfileCache = await mapDatabaseProfile(data);
   const profiles = getUserProfiles();
   profiles[currentUser.email] = myProfileCache;
   saveUserProfiles(profiles);
@@ -1688,9 +1693,9 @@ async function loadPublicProfilesFromSupabase() {
     return [];
   }
 
-  publicProfilesCache = (data || [])
+  publicProfilesCache = (await Promise.all((data || [])
     .filter(row => row.id !== currentUser?.id)
-    .map(row => mapDatabaseProfile(row));
+    .map(row => mapDatabaseProfile(row)))).filter(Boolean);
   return publicProfilesCache;
 }
 
@@ -2335,7 +2340,7 @@ async function loadProfilesByIds(ids) {
     console.error("Related profiles load error:", error);
     return [];
   }
-  const mapped = (data || []).map(row => mapDatabaseProfile(row));
+  const mapped = (await Promise.all((data || []).map(row => mapDatabaseProfile(row)))).filter(Boolean);
   const byId = new Map(publicProfilesCache.map(profile => [profile.id, profile]));
   mapped.forEach(profile => byId.set(profile.id, profile));
   publicProfilesCache = [...byId.values()].filter(profile => profile.id !== currentUser?.id);
