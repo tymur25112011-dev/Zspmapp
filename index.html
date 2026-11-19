@@ -1934,6 +1934,13 @@ function bindProfilesPage() {
     });
   });
 
+  container.querySelectorAll("[data-action='block-person']").forEach(button => {
+    button.addEventListener("click", async () => {
+      await blockUser(button.dataset.personId);
+      await rerenderProfiles();
+    });
+  });
+
   container.querySelectorAll("[data-action='toggle-like']").forEach(button => {
     button.addEventListener("click", async () => {
       const profileId = button.dataset.profileId;
@@ -2480,21 +2487,22 @@ async function submitContentReport(targetType, targetId, reportedUserId) {
 }
 
 function friendButtonHTML(profile) {
+  const blockButton = '<button class="report-btn" data-action="block-person" data-person-id="' + escapeHTML(profile.id) + '">Blokuj</button>';
   if (isBlocked(profile.id)) {
     return '<button class="pill-btn" data-action="unblock" data-person-id="' + escapeHTML(profile.id) + '">Odblokuj użytkownika</button>';
   }
   if (friendsDataCache.friends.some(item => item.id === profile.id)) {
-    return '<button class="pill-btn" disabled>Już jesteście znajomymi</button>';
+    return '<button class="pill-btn" disabled>Już jesteście znajomymi</button>' + blockButton;
   }
   const incoming = friendsDataCache.incoming.find(item => item.profile.id === profile.id);
   if (incoming) {
-    return '<button class="accept-btn" data-action="accept-invite" data-request-id="' + escapeHTML(incoming.requestId) + '">Zaakceptuj prośbę</button>';
+    return '<button class="accept-btn" data-action="accept-invite" data-request-id="' + escapeHTML(incoming.requestId) + '">Zaakceptuj prośbę</button>' + blockButton;
   }
   const outgoing = friendsDataCache.outgoing.find(item => item.profile.id === profile.id);
   if (outgoing) {
-    return '<button class="report-btn" data-action="cancel-invite" data-request-id="' + escapeHTML(outgoing.requestId) + '">Anuluj prośbę</button>';
+    return '<button class="report-btn" data-action="cancel-invite" data-request-id="' + escapeHTML(outgoing.requestId) + '">Anuluj prośbę</button>' + blockButton;
   }
-  return '<button class="accept-btn" data-action="add-friend" data-person-id="' + escapeHTML(profile.id) + '">Poproś o kontakt</button>';
+  return '<button class="accept-btn" data-action="add-friend" data-person-id="' + escapeHTML(profile.id) + '">Poproś o kontakt</button>' + blockButton;
 }
 
 function personCardHTML(profile, buttonsHTML) {
