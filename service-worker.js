@@ -1,10 +1,10 @@
-const CACHE_NAME = "zspm-community-shell-v52";
+const CACHE_NAME = "zspm-community-shell-v53";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./download.html",
-  "./public/modern.css?v=38",
-  "./public/app.js?v=16",
+  "./public/modern.css?v=39",
+  "./public/app.js?v=17",
   "./public/support-config.js?v=2",
   "./public/supabase-config.js",
   "./manifest.webmanifest",
