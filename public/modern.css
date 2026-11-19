@@ -2770,3 +2770,97 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
   background: #555;
   color: #fff;
 }
+
+
+/* SYSTEM theme: restore the classic solid blue appearance (not Liquid Glass). */
+:root[data-theme="system"] {
+  color-scheme: light;
+  --zspm-bg: #f2f6fc;
+  --zspm-panel: #ffffff;
+  --zspm-panel-2: #f5f8fd;
+  --zspm-input: #ffffff;
+  --zspm-border: #dce6f3;
+  --zspm-text: #172b45;
+  --zspm-muted: #71839b;
+  --zspm-blue: #347fdf;
+  --zspm-blue-2: #2468c3;
+  --zspm-blue-soft: #eaf2fd;
+  --zspm-shadow: 0 5px 18px rgba(35,78,130,.07);
+}
+:root[data-theme="system"] body {
+  background: #f2f6fc !important;
+  color: #172b45;
+}
+:root[data-theme="system"] #app .card,
+:root[data-theme="system"] #app .page-content,
+:root[data-theme="system"] #app .profile-card,
+:root[data-theme="system"] #app .chat-head,
+:root[data-theme="system"] #app .conv-item,
+:root[data-theme="system"] #app .menu-item,
+:root[data-theme="system"] #app .account-menu,
+:root[data-theme="system"] #auth .card {
+  background: #fff !important;
+  border: 1px solid #dce6f3;
+  box-shadow: 0 5px 18px rgba(35,78,130,.07);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:root[data-theme="system"] #app .bottom-nav {
+  background: #fff !important;
+  border: 1px solid #dce6f3;
+  box-shadow: 0 6px 20px rgba(35,78,130,.10);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:root[data-theme="system"] #app .nav-item { color: #6f829b; }
+:root[data-theme="system"] #app .nav-item.active { color: #2468c3; }
+:root[data-theme="system"] #app .hero {
+  background: linear-gradient(135deg,#347fdf,#2468c3);
+  border: 1px solid #2c70c9;
+  box-shadow: 0 8px 22px rgba(36,104,195,.16);
+}
+:root[data-theme="system"] #app .menu-icon {
+  color: #347fdf;
+  background: #eaf2fd;
+  border: 1px solid #d8e7fa;
+  box-shadow: none;
+}
+:root[data-theme="system"] #app .main-btn,
+:root[data-theme="system"] #app .accept-btn,
+:root[data-theme="system"] #app .chat-send {
+  background: #347fdf;
+  color: #fff;
+  border: 1px solid #2c70c9;
+  box-shadow: none;
+}
+:root[data-theme="system"] #app .field input,
+:root[data-theme="system"] #app .field textarea,
+:root[data-theme="system"] #app .chat-input,
+:root[data-theme="system"] #app .profile-comment-form input,
+:root[data-theme="system"] #auth .field input {
+  background: #fff;
+  border: 1px solid #d7e2f0;
+  color: #172b45;
+  box-shadow: none;
+}
+:root[data-theme="system"] #app .bubble {
+  background: #f3f6fb;
+  border: 1px solid #e0e8f2;
+  color: #263b55;
+  box-shadow: none;
+}
+:root[data-theme="system"] #app .chat-row.mine .bubble {
+  background: #347fdf;
+  border-color: #347fdf;
+  color: #fff;
+}
+:root[data-theme="system"] #app .interest-tag,
+:root[data-theme="system"] #app .pill-btn {
+  background: #eaf2fd;
+  border-color: #d8e7fa;
+  color: #2869b6;
+}
+:root[data-theme="system"] #app .composer-wrap {
+  background: linear-gradient(to top,#f2f6fc 72%,transparent);
+}
+:root[data-theme="system"] #app .toggle input:checked + .slider { background: #347fdf; }
