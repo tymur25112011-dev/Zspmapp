@@ -3,6 +3,12 @@
 const $ = id => document.getElementById(id);
 
 const THEME_KEY = "zspm_community_theme";
+const APP_LANG_KEY="zspm_community_language";
+const APP_LANGS={"pl":{"lang":"Język aplikacji","intro":"Wybierz język całej aplikacji.","appearance":"Wygląd aplikacji","appearanceDesc":"Wybierz motyw interfejsu. Ustawienie zostanie zapamiętane na tym urządzeniu.","theme":"Motyw","push":"Powiadomienia na telefonie","pushDesc":"Otrzymuj powiadomienia o nowych wiadomościach i aktywności, nawet gdy aplikacja jest zamknięta. Wymagana jest zgoda systemu Android.","pushCheck":"Sprawdzanie ustawień...","pushOn":"Włącz powiadomienia","pushOff":"Wyłącz powiadomienia","privacy":"Prywatność","privacyDesc":"Ustawienia prywatności profilu są zapisywane na Twoim koncie.","visible":"Ankieta widoczna na liście","visibleDesc":"Gdy wyłączysz, Twój profil nie będzie wyświetlany w sekcji „Ankiety uczniów”.","showClass":"Pokazuj klasę w ankiecie","classDesc":"Ukrywa numer klasy na Twoim profilu publicznym.","showInterests":"Pokazuj zainteresowania w ankiecie","interestsDesc":"Ukrywa Twoje zainteresowania na profilu publicznym.","logout":"Wyloguj się"},"en":{"lang":"App language","intro":"Choose the language used across the app.","appearance":"App appearance","appearanceDesc":"Choose the interface theme. This setting is saved on this device.","theme":"Theme","push":"Phone notifications","pushDesc":"Receive notifications about new messages and activity even when the app is closed. Android permission is required.","pushCheck":"Checking settings...","pushOn":"Enable notifications","pushOff":"Disable notifications","privacy":"Privacy","privacyDesc":"Your profile privacy settings are saved to your account.","visible":"Show questionnaire in the list","visibleDesc":"When disabled, your profile will not appear in Student questionnaires.","showClass":"Show class in questionnaire","classDesc":"Hides your class on your public profile.","showInterests":"Show interests in questionnaire","interestsDesc":"Hides your interests on your public profile.","logout":"Log out"},"ru":{"lang":"Язык приложения","intro":"Выберите язык всего приложения.","appearance":"Внешний вид приложения","appearanceDesc":"Выберите тему интерфейса. Настройка сохранится на этом устройстве.","theme":"Тема","push":"Уведомления на телефоне","pushDesc":"Получайте уведомления о новых сообщениях и активности, даже когда приложение закрыто. Требуется разрешение Android.","pushCheck":"Проверка настроек...","pushOn":"Включить уведомления","pushOff":"Отключить уведомления","privacy":"Приватность","privacyDesc":"Настройки приватности профиля сохраняются в вашем аккаунте.","visible":"Показывать анкету в списке","visibleDesc":"Если отключить, ваш профиль не будет отображаться в разделе анкет учеников.","showClass":"Показывать класс в анкете","classDesc":"Скрывает номер класса в публичном профиле.","showInterests":"Показывать интересы в анкете","interestsDesc":"Скрывает ваши интересы в публичном профиле.","logout":"Выйти"},"uk":{"lang":"Мова застосунку","intro":"Виберіть мову всього застосунку.","appearance":"Вигляд застосунку","appearanceDesc":"Виберіть тему інтерфейсу. Налаштування збережеться на цьому пристрої.","theme":"Тема","push":"Сповіщення на телефоні","pushDesc":"Отримуйте сповіщення про нові повідомлення та активність, навіть коли застосунок закрито. Потрібен дозвіл Android.","pushCheck":"Перевірка налаштувань...","pushOn":"Увімкнути сповіщення","pushOff":"Вимкнути сповіщення","privacy":"Приватність","privacyDesc":"Налаштування приватності профілю зберігаються у вашому обліковому записі.","visible":"Показувати анкету у списку","visibleDesc":"Якщо вимкнути, ваш профіль не відображатиметься в анкетах учнів.","showClass":"Показувати клас в анкеті","classDesc":"Приховує номер класу у вашому публічному профілі.","showInterests":"Показувати інтереси в анкеті","interestsDesc":"Приховує ваші інтереси у публічному профілі.","logout":"Вийти"}};
+let appLanguage=(()=>{try{const v=localStorage.getItem(APP_LANG_KEY);return APP_LANGS[v]?v:"pl";}catch(e){return "pl";}})();
+const tr=(key)=>APP_LANGS[appLanguage]?.[key]||APP_LANGS.pl[key]||key;
+function setAppLanguage(value){appLanguage=APP_LANGS[value]?value:"pl";try{localStorage.setItem(APP_LANG_KEY,appLanguage);}catch(e){}document.documentElement.lang=appLanguage;if(typeof currentAppPage!=="undefined"&&currentAppPage==="settings")renderSettingsPage();}
+
 // Add the verified public transfer account here only after an adult has approved it.
 const SUPPORT_ACCOUNT_NUMBER = String(window.ZSPM_SUPPORT_ACCOUNT_NUMBER || "").replace(/\s+/g, "");
 
@@ -1679,146 +1685,41 @@ async function refreshPhonePushSettings() {
 // USTAWIENIA
 
 function renderSettingsPage() {
-  const myProfile = getMyProfile();
-  const privacy = myProfile?.privacy || { ...DEFAULT_PRIVACY };
-  const selectedTheme = document.documentElement.dataset.theme || "system";
-  const christmasEnabled = !document.getElementById("christmas-decorations")?.classList.contains("hidden");
-
-  $("page-content").innerHTML = `
-    <div class="page-content">
-      <h3>Wygląd aplikacji</h3>
-      <p>Wybierz motyw interfejsu. Ustawienie zostanie zapamiętane na tym urządzeniu.</p>
-      <div class="field theme-select-field">
-        <label for="theme-select">Motyw</label>
-        <select id="theme-select" class="settings-select">
-          <option value="system" ${selectedTheme === "system" ? "selected" : ""}>System · Standard</option>
-          <option value="dark" ${selectedTheme === "dark" ? "selected" : ""}>DarkOS</option>
-          <option value="liquid-glass" ${selectedTheme === "liquid-glass" ? "selected" : ""}>Liquid Glass</option>
-        </select>
-      </div>
-      <div class="switch-row">
-        <div>
-          <div class="switch-label">Christmas Update</div>
-          <div class="switch-hint">Tymczasowe dekoracje świąteczne: girlanda, śnieg, choinka i bałwan.</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="christmas-toggle" ${christmasEnabled ? "checked" : ""}>
-          <span class="slider"></span>
-        </label>
-      </div>
-    </div>
-
-    <div class="page-content">
-      <h3>Powiadomienia na telefonie</h3>
-      <p>Otrzymuj powiadomienia o nowych wiadomościach i aktywności, nawet gdy aplikacja jest zamknięta. Wymagana jest zgoda systemu Android.</p>
-      <p id="push-settings-status" class="switch-hint">Sprawdzanie ustawień...</p>
-      <button type="button" class="main-btn" id="push-enable-button">Włącz powiadomienia</button>
-      <button type="button" class="logout" id="push-disable-button" hidden>Wyłącz powiadomienia</button>
-    </div>
-
-    <div class="page-content">
-      <h3>Prywatność</h3>
-      <p>Ustawienia prywatności profilu są zapisywane na Twoim koncie.</p>
-      <div class="switch-row">
-        <div>
-          <div class="switch-label">Ankieta widoczna na liście</div>
-          <div class="switch-hint">Gdy wyłączysz, Twój profil nie będzie wyświetlany w sekcji „Ankiety uczniów".</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="privacy-visible" ${privacy.visible !== false ? "checked" : ""}>
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="switch-row">
-        <div>
-          <div class="switch-label">Pokazuj klasę w ankiecie</div>
-          <div class="switch-hint">Ukrywa numer klasy na Twoim profilu publicznym.</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="privacy-class" ${privacy.showClass !== false ? "checked" : ""}>
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="switch-row">
-        <div>
-          <div class="switch-label">Pokazuj zainteresowania w ankiecie</div>
-          <div class="switch-hint">Ukrywa Twoje zainteresowania na profilu publicznym.</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="privacy-interests" ${privacy.showInterests !== false ? "checked" : ""}>
-          <span class="slider"></span>
-        </label>
-      </div>
-    </div>
-
-    <button class="logout" id="logout-button">Wyloguj się</button>
-  `;
-
-  const pushEnableButton = $("push-enable-button");
-  const pushDisableButton = $("push-disable-button");
-  if (pushEnableButton) pushEnableButton.addEventListener("click", async () => {
-    pushEnableButton.disabled = true;
-    const status = $("push-settings-status");
-    if (status) status.textContent = "Włączanie powiadomień...";
-    try {
-      await enablePhonePush();
-      if (status) status.textContent = "Powiadomienia push zostały włączone.";
-    } catch (error) {
-      if (status) status.textContent = error.message || "Nie udało się włączyć powiadomień.";
-    } finally {
-      pushEnableButton.disabled = false;
-      await refreshPhonePushSettings();
-    }
-  });
-  if (pushDisableButton) pushDisableButton.addEventListener("click", async () => {
-    pushDisableButton.disabled = true;
-    const status = $("push-settings-status");
-    try {
-      await disablePhonePush();
-      if (status) status.textContent = "Powiadomienia push zostały wyłączone.";
-    } catch (error) {
-      if (status) status.textContent = error.message || "Nie udało się wyłączyć powiadomień.";
-    } finally {
-      pushDisableButton.disabled = false;
-      await refreshPhonePushSettings();
-    }
-  });
+  const myProfile=getMyProfile();
+  const privacy=myProfile?.privacy||{...DEFAULT_PRIVACY};
+  const selectedTheme=document.documentElement.dataset.theme||"system";
+  const christmasEnabled=!document.getElementById("christmas-decorations")?.classList.contains("hidden");
+  $("page-content").innerHTML=`
+    <div class="page-content"><h3>${tr("lang")}</h3><p>${tr("intro")}</p>
+      <div class="field theme-select-field"><label for="app-language-select">${tr("lang")}</label>
+        <select id="app-language-select" class="settings-select">
+          <option value="pl" ${appLanguage==="pl"?"selected":""}>🇵🇱 Polski</option>
+          <option value="en" ${appLanguage==="en"?"selected":""}>🇬🇧 English</option>
+          <option value="ru" ${appLanguage==="ru"?"selected":""}>🇷🇺 Русский</option>
+          <option value="uk" ${appLanguage==="uk"?"selected":""}>🇺🇦 Українська</option>
+        </select></div></div>
+    <div class="page-content"><h3>${tr("appearance")}</h3><p>${tr("appearanceDesc")}</p>
+      <div class="field theme-select-field"><label for="theme-select">${tr("theme")}</label><select id="theme-select" class="settings-select">
+        <option value="system" ${selectedTheme==="system"?"selected":""}>System · Standard</option><option value="dark" ${selectedTheme==="dark"?"selected":""}>DarkOS</option><option value="liquid-glass" ${selectedTheme==="liquid-glass"?"selected":""}>Liquid Glass</option></select></div>
+      <div class="switch-row"><div><div class="switch-label">Christmas Update</div><div class="switch-hint">${appLanguage==="ru"?"Временное рождественское оформление: гирлянда, снег, ёлка и снеговик.":appLanguage==="uk"?"Тимчасове різдвяне оформлення: гірлянда, сніг, ялинка та сніговик.":appLanguage==="en"?"Temporary Christmas decorations: garland, snow, tree and snowman.":"Tymczasowe dekoracje świąteczne: girlanda, śnieg, choinka i bałwan."}</div></div><label class="toggle"><input type="checkbox" id="christmas-toggle" ${christmasEnabled?"checked":""}><span class="slider"></span></label></div></div>
+    <div class="page-content"><h3>${tr("push")}</h3><p>${tr("pushDesc")}</p><p id="push-settings-status" class="switch-hint">${tr("pushCheck")}</p>
+      <button type="button" class="main-btn" id="push-enable-button">${tr("pushOn")}</button><button type="button" class="logout" id="push-disable-button" hidden>${tr("pushOff")}</button></div>
+    <div class="page-content"><h3>${tr("privacy")}</h3><p>${tr("privacyDesc")}</p>
+      <div class="switch-row"><div><div class="switch-label">${tr("visible")}</div><div class="switch-hint">${tr("visibleDesc")}</div></div><label class="toggle"><input type="checkbox" id="privacy-visible" ${privacy.visible!==false?"checked":""}><span class="slider"></span></label></div>
+      <div class="switch-row"><div><div class="switch-label">${tr("showClass")}</div><div class="switch-hint">${tr("classDesc")}</div></div><label class="toggle"><input type="checkbox" id="privacy-class" ${privacy.showClass!==false?"checked":""}><span class="slider"></span></label></div>
+      <div class="switch-row"><div><div class="switch-label">${tr("showInterests")}</div><div class="switch-hint">${tr("interestsDesc")}</div></div><label class="toggle"><input type="checkbox" id="privacy-interests" ${privacy.showInterests!==false?"checked":""}><span class="slider"></span></label></div></div>
+    <button class="logout" id="logout-button">${tr("logout")}</button>`;
+  $("app-language-select").addEventListener("change",e=>setAppLanguage(e.target.value));
+  const on=$("push-enable-button"),off=$("push-disable-button");
+  if(on)on.addEventListener("click",async()=>{on.disabled=true;try{await enablePhonePush();}catch(error){const st=$("push-settings-status");if(st)st.textContent=error.message||"Error";}finally{on.disabled=false;await refreshPhonePushSettings();}});
+  if(off)off.addEventListener("click",async()=>{off.disabled=true;try{await disablePhonePush();}catch(error){const st=$("push-settings-status");if(st)st.textContent=error.message||"Error";}finally{off.disabled=false;await refreshPhonePushSettings();}});
   refreshPhonePushSettings();
-
-  $("theme-select").addEventListener("change", event => applyTheme(event.target.value));
-  $("christmas-toggle").addEventListener("change", event => applyChristmasDecorations(event.target.checked));
-
-  const privacyInputs = {
-    visible: $("privacy-visible"),
-    showClass: $("privacy-class"),
-    showInterests: $("privacy-interests")
-  };
-
-  Object.keys(privacyInputs).forEach(key => {
-    privacyInputs[key].addEventListener("change", () => {
-      const existing = getMyProfile();
-      saveMyProfile({
-        nickname: existing?.nickname || currentUser.name,
-        klasa: existing?.klasa || "",
-        bio: existing?.bio || "",
-        interests: existing?.interests || [],
-        photo: existing?.photo || "",
-        photoPath: existing?.photoPath || null,
-        privacy: {
-          visible: privacyInputs.visible.checked,
-          showClass: privacyInputs.showClass.checked,
-          showInterests: privacyInputs.showInterests.checked
-        }
-      }).catch(error => {
-        console.error("Privacy settings save error:", error);
-        alert("Nie udało się zapisać ustawień prywatności. Spróbuj ponownie.");
-      });
-    });
-  });
-
-  $("logout-button").addEventListener("click", logout);
+  $("theme-select").addEventListener("change",e=>applyTheme(e.target.value));
+  $("christmas-toggle").addEventListener("change",e=>applyChristmasDecorations(e.target.checked));
+  const privacyInputs={visible:$("privacy-visible"),showClass:$("privacy-class"),showInterests:$("privacy-interests")};
+  Object.keys(privacyInputs).forEach(key=>privacyInputs[key].addEventListener("change",()=>{const old=getMyProfile();saveMyProfile({nickname:old?.nickname||currentUser.name,klasa:old?.klasa||"",bio:old?.bio||"",interests:old?.interests||[],photo:old?.photo||"",photoPath:old?.photoPath||null,privacy:{visible:privacyInputs.visible.checked,showClass:privacyInputs.showClass.checked,showInterests:privacyInputs.showInterests.checked}}).catch(error=>{console.error("Privacy settings save error:",error);alert("Nie udało się zapisać ustawień prywatności. Spróbuj ponownie.");});}));
+  $("logout-button").addEventListener("click",logout);
 }
-
 
 
 // PUBLIC COMMUNITY PROFILES — independent from student discovery questionnaires.
