@@ -2178,3 +2178,23 @@ body.christmas-enabled #app .bottom-nav * {
     animation: none !important;
   }
 }
+
+
+/* Final Christmas-mode icon consistency and safe-area alignment */
+body.christmas-enabled #app .bottom-nav {
+  margin-bottom: 0 !important;
+}
+body.christmas-enabled #app svg,
+body.christmas-enabled #app button svg,
+body.christmas-enabled #app [class*="icon"] svg {
+  color: #bfe6ff;
+}
+body.christmas-enabled #app button svg path,
+body.christmas-enabled #app button svg circle,
+body.christmas-enabled #app button svg line,
+body.christmas-enabled #app button svg polyline {
+  stroke: currentColor;
+}
+body.christmas-enabled #app button svg [fill="none"] {
+  fill: none;
+}
