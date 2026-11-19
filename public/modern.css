@@ -3533,7 +3533,7 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
 .chat-reaction-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:9px}
 .chat-reaction,.chat-reaction-pick{border:1px solid var(--zspm-border);border-radius:99px;background:rgba(70,110,170,.12);color:var(--zspm-text);padding:4px 8px;font-size:12px}
 .chat-reaction.active{border-color:#63aaff;background:rgba(52,133,240,.25)}
-.chat-reaction-picker{display:inline-flex;gap:4px;flex-wrap:wrap}
+.chat-reaction-picker{display:none;gap:4px;flex-wrap:wrap}.chat-reaction-row.show-picker .chat-reaction-picker{display:inline-flex}.chat-reaction-add{border:1px solid var(--zspm-border);border-radius:99px;background:transparent;color:var(--zspm-muted);padding:3px 8px;font-size:15px;line-height:1;cursor:pointer}.chat-reaction-add:active{transform:scale(.94)}
 .chat-reaction-pick{padding:4px 6px;background:transparent}
 .chat-reaction-pick:active,.chat-reaction:active{transform:scale(.94)}
 .decor-comet:after{content:"☄";position:absolute;right:-12px;top:-10px;color:#a9dcff;font-size:26px;text-shadow:0 0 12px #319bff;transform:rotate(-22deg);z-index:4}
