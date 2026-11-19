@@ -1719,6 +1719,7 @@ function communityProfileHTML(profile, roleBadge, own) {
   const name = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ");
   const interests = Array.isArray(profile?.interests) ? profile.interests : [];
   const achievements = communityAchievements(profile, roleBadge);
+  const accountRole = roleBadge === "admin" ? "admin" : roleBadge === "premium" ? "premium" : "zwykły";
   const joined = profile?.created_at ? new Date(profile.created_at).toLocaleDateString("pl-PL",{month:"long",year:"numeric"}) : "Niedawno";
   return '<article class="community-profile-card">' +
     communityBannerMarkup(profile) +
@@ -1726,7 +1727,7 @@ function communityProfileHTML(profile, roleBadge, own) {
       '<div class="community-profile-identity">' + communityAvatarMarkup(profile) +
         '<div class="community-profile-heading"><h2>' + escapeHTML(profile?.nickname || "Uczeń") + '</h2>' +
           (name ? '<p class="community-profile-realname">' + escapeHTML(name) + '</p>' : '') +
-          (profile?.status_text ? '<p class="community-profile-status">' + escapeHTML(profile.status_text) + '</p>' : '<p class="community-profile-status muted">Brak statusu</p>') +
+          '<p class="community-profile-status community-role-badge role-' + accountRole + '">' + accountRole.toUpperCase() + '</p>' +
         '</div>' +
         (own ? '<button type="button" class="community-edit-btn" id="community-edit-profile">✎ Edytuj profil</button>' : '') +
       '</div>' +
