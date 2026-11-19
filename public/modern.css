@@ -3538,3 +3538,6 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
 .decor-spark:after{content:"✦";position:absolute;right:-8px;top:4px;color:#ffe78b;font-size:25px;text-shadow:0 0 12px #ffbf3d;z-index:4}
 .decor-prism .community-avatar-ring{border:3px solid transparent;background:linear-gradient(#0b1830,#0b1830) padding-box,conic-gradient(#ff6b9d,#ffd76a,#68e6d5,#6d9bff,#c47bff,#ff6b9d) border-box;box-shadow:0 0 18px #8a83ff88}
 .decor-flame:after{content:"♨";position:absolute;left:50%;top:-19px;transform:translateX(-50%);font-size:25px;color:#ff9b61;text-shadow:0 0 12px #ff4c25;z-index:4}
+
+.community-form-field select{width:100%;margin-top:7px;padding:12px 13px;border:1px solid rgba(120,164,220,.24);border-radius:11px;background:#0c1930;color:#e8f2ff;outline:none}
+.community-form-field select:focus{border-color:#63aaff}
