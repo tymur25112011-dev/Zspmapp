@@ -1949,3 +1949,58 @@ body.christmas-enabled #app .bottom-nav { margin-bottom: 0; }
 @media (prefers-reduced-motion: reduce) {
   .snowfall-back, .snowfall-mid, .snowfall-front { animation: none !important; }
 }
+
+/* Christmas scene visibility + performance pass */
+.christmas-decorations {
+  z-index: 30;
+  contain: strict;
+}
+.christmas-snowfall {
+  will-change: transform;
+  pointer-events: none;
+}
+.christmas-snowbank {
+  bottom: 0;
+  height: 76px;
+}
+.christmas-scene {
+  z-index: 32;
+  bottom: max(5px, env(safe-area-inset-bottom));
+}
+#app .bottom-nav {
+  z-index: 31;
+}
+#app .composer-wrap {
+  z-index: 31;
+}
+@media (max-width: 760px) {
+  body {
+    animation: none !important;
+    background-attachment: scroll;
+  }
+  body::before {
+    animation: none !important;
+    opacity: .16;
+  }
+  body::after {
+    animation: none !important;
+    filter: blur(12px);
+    opacity: .28;
+  }
+  #app .bottom-nav {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  :root[data-theme="liquid-glass"] #app .page-content,
+  :root[data-theme="liquid-glass"] #app .profile-card,
+  :root[data-theme="liquid-glass"] #app .menu-item,
+  :root[data-theme="liquid-glass"] #app .conv-item,
+  :root[data-theme="liquid-glass"] #app .bottom-nav,
+  :root[data-theme="liquid-glass"] #auth .card {
+    backdrop-filter: blur(12px) saturate(1.12);
+    -webkit-backdrop-filter: blur(12px) saturate(1.12);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .christmas-snowfall { animation: none !important; }
+}
