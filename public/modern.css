@@ -380,6 +380,24 @@ body {
   gap: 8px;
   margin: 10px 0;
 }
+.profile-comment-extra { display: none; }
+.profile-comments.expanded .profile-comment-extra { display: flex; }
+.profile-comments-toggle {
+  border: 0;
+  background: transparent;
+  color: var(--zspm-blue);
+  padding: 2px 0 6px;
+  margin: -2px 0 4px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.profile-comments-toggle:focus-visible {
+  outline: 2px solid var(--zspm-blue);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
 .profile-comment {
   display: flex;
   flex-wrap: wrap;
