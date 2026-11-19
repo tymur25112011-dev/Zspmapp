@@ -2864,3 +2864,114 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
   background: linear-gradient(to top,#f2f6fc 72%,transparent);
 }
 :root[data-theme="system"] #app .toggle input:checked + .slider { background: #347fdf; }
+
+
+/* SYSTEM restored to the original pre-theme ZSPM blue look (deep navy + vivid blue). */
+:root[data-theme="system"] {
+  color-scheme: dark;
+  --zspm-bg: #080f1d;
+  --zspm-panel: #101d31;
+  --zspm-panel-2: #14243b;
+  --zspm-input: #0b1728;
+  --zspm-border: rgba(105,169,255,.20);
+  --zspm-text: #f2f7ff;
+  --zspm-muted: #9eb2cc;
+  --zspm-blue: #4d9dff;
+  --zspm-blue-2: #246bd6;
+  --zspm-blue-soft: rgba(77,157,255,.14);
+  --zspm-shadow: 0 18px 48px rgba(0,0,0,.24);
+}
+:root[data-theme="system"] html,
+:root[data-theme="system"] body {
+  background-color: #080f1d !important;
+  color: #f2f7ff;
+}
+:root[data-theme="system"] body {
+  background:
+    radial-gradient(ellipse at 8% 0%,rgba(77,157,255,.14),transparent 34rem),
+    radial-gradient(ellipse at 94% 12%,rgba(52,116,204,.09),transparent 32rem),
+    linear-gradient(160deg,#080f1d 0%,#0d1a2d 52%,#080f1d 100%) !important;
+}
+:root[data-theme="system"] #app .card,
+:root[data-theme="system"] #app .page-content,
+:root[data-theme="system"] #app .profile-card,
+:root[data-theme="system"] #app .chat-head,
+:root[data-theme="system"] #app .conv-item,
+:root[data-theme="system"] #app .menu-item,
+:root[data-theme="system"] #app .account-menu,
+:root[data-theme="system"] #auth .card {
+  background: #101d31 !important;
+  border: 1px solid rgba(105,169,255,.20);
+  color: #f2f7ff;
+  box-shadow: 0 18px 48px rgba(0,0,0,.24);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:root[data-theme="system"] #app .bottom-nav {
+  background: rgba(16,29,49,.96) !important;
+  border: 1px solid rgba(105,169,255,.20);
+  box-shadow: 0 12px 40px rgba(0,0,0,.32);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+:root[data-theme="system"] #app .nav-item { color: #9eb2cc; }
+:root[data-theme="system"] #app .nav-item.active { color: #4d9dff; }
+:root[data-theme="system"] #app .hero {
+  background: linear-gradient(120deg,#1e5da9,#163b70 58%,#142d52) !important;
+  border: 1px solid rgba(116,180,255,.34);
+  box-shadow: 0 20px 55px rgba(20,65,130,.24);
+}
+:root[data-theme="system"] #app .menu-icon {
+  color: #8fc2ff;
+  background: rgba(77,157,255,.14);
+  border: 1px solid rgba(105,169,255,.20);
+}
+:root[data-theme="system"] #app .main-btn,
+:root[data-theme="system"] #app .accept-btn,
+:root[data-theme="system"] #app .chat-send {
+  background: linear-gradient(120deg,#4d9dff,#246bd6) !important;
+  color: #fff;
+  border: 1px solid rgba(116,180,255,.24);
+  box-shadow: 0 9px 24px rgba(36,111,209,.20);
+}
+:root[data-theme="system"] #app .field input,
+:root[data-theme="system"] #app .field textarea,
+:root[data-theme="system"] #app .chat-input,
+:root[data-theme="system"] #app .profile-comment-form input,
+:root[data-theme="system"] #auth .field input {
+  background: #0b1728 !important;
+  border: 1px solid rgba(105,169,255,.20);
+  color: #f2f7ff;
+}
+:root[data-theme="system"] #app .bubble {
+  background: #14243b;
+  border: 1px solid rgba(105,169,255,.20);
+  color: #f2f7ff;
+  box-shadow: 0 8px 24px rgba(0,0,0,.16);
+}
+:root[data-theme="system"] #app .chat-row.mine .bubble {
+  background: linear-gradient(135deg,#245da5,#194477);
+  border-color: #397cc8;
+  color: #fff;
+}
+:root[data-theme="system"] #app .interest-tag,
+:root[data-theme="system"] #app .pill-btn {
+  background: rgba(77,157,255,.14);
+  border-color: rgba(105,169,255,.20);
+  color: #d9eaff;
+}
+:root[data-theme="system"] #app .composer-wrap {
+  background: linear-gradient(to top,#080f1d 72%,transparent);
+}
+:root[data-theme="system"] #app .toggle .slider { background: #536b88; }
+:root[data-theme="system"] #app .toggle input:checked + .slider { background: #246bd6; }
+:root[data-theme="system"] #app .profile-card.own { border-color: rgba(77,157,255,.65); }
+:root[data-theme="system"] #app .switch-row { border-color: rgba(105,169,255,.20); }
+:root[data-theme="system"] #app .switch-row .switch-label { color: #f2f7ff; }
+:root[data-theme="system"] #app .logout,
+:root[data-theme="system"] #app .report-btn,
+:root[data-theme="system"] #app .chat-block-btn {
+  background: rgba(190,55,87,.10);
+  border-color: rgba(190,75,105,.28);
+  color: #e58ba2;
+}
