@@ -1089,23 +1089,23 @@ function profileSocialHTML(profile) {
   const comments = Array.isArray(item.comments) ? item.comments : [];
   const own = profile.id === currentUser?.id;
   const commentsHTML = comments.map((comment, index) =>
-    '<div class="profile-comment' + (index >= 2 ? ' profile-comment-extra" hidden' : '') + '">' +
+    '<div class="profile-comment' + (index >= 2 ? ' profile-comment-extra"' : '') + '">' +
     '<strong>' + escapeHTML(comment.author || "Uczeń") +
     '</strong><span>' + escapeHTML(comment.text || "") + '</span></div>'
   ).join("");
   const commentsToggle = comments.length > 2
-    ? '<button type="button" class="profile-comments-toggle" data-action="toggle-comments" aria-expanded="false">Więcej</button>'
+    ? '<button type="button" class="profile-comments-toggle" data-action="toggle-comments" aria-expanded="true">Mniej</button>'
     : "";
 
   return '<div class="profile-social">' +
     '<div class="profile-social-actions">' +
-    (own ? '' : '<button type="button" class="social-like' + (liked ? ' liked' : '') +
+    (own ? '<span class="profile-own-likes" aria-label="Liczba polubień">♥ <span>' + likes + '</span> polubień</span>' : '<button type="button" class="social-like' + (liked ? ' liked' : '') +
     '" data-action="toggle-like" data-profile-id="' + escapeHTML(profile.id) +
     '" aria-pressed="' + (liked ? 'true' : 'false') + '">' +
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.7c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11A4.7 4.7 0 0 1 12 6.1a4.7 4.7 0 0 1 8.8 2.6Z"/></svg>' +
     (liked ? 'Lubisz' : 'Lubię to') + ' <span>' + likes + '</span></button>') +
     '<span class="profile-comment-count">' + comments.length + ' komentarzy</span></div>' +
-    '<div class="profile-comments">' +
+    '<div class="profile-comments expanded">' +
     (commentsHTML || '<p class="no-comments">Jeszcze nie ma komentarzy.</p>') +
     '</div>' + commentsToggle +
     '<form class="profile-comment-form" data-profile-id="' +
