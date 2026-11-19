@@ -14,6 +14,24 @@ ru:{home:"Главная",surveys:"Анкеты",profile:"Профиль",chat:"
 uk:{home:"Головна",surveys:"Анкети",profile:"Профіль",chat:"Чат",friends:"Друзі",settings:"Налаштування",hello:"Привіт,",welcome:"Ласкаво просимо до шкільної спільноти.",hero:"Ласкаво просимо до ZSPM!",heroText:"Знайомся з новими людьми, знаходь друзів та спілкуйся зі шкільною спільнотою.",discover:"Відкрий застосунок",profiles:"Анкети учнів",profilesDesc:"Познайомся зі спільнотою",myProfile:"Мій профіль",myProfileDesc:"Твій профіль у спільноті",messages:"Повідомлення",messagesDesc:"Приватні розмови з друзями",friendsTitle:"Друзі",friendsDesc:"Запити та друзі",settingsTitle:"Налаштування",settingsDesc:"Керуй обліковим записом",ideas:"Ваші ідеї",ideasDesc:"Пропозиції та голосування спільноти",forum:"Форум",forumDesc:"Обговорення та шкільні теми",timetable:"Розклад уроків",timetableDesc:"Розклад занять класів",planner:"Мій план",plannerDesc:"Завдання та терміни",cosmetics:"Крамниця оформлення",cosmeticsDesc:"Відкривай нові прикраси",ranking:"Рейтинг",rankingDesc:"Активність, підтримка та вподобання",information:"Інформація",informationDesc:"Про проєкт, Premium та правила",support:"Підтримати автора",supportDesc:"Допоможи розвитку проєкту",account:"Обліковий запис",logout:"Вийти"}
 };
 function shellTr(k){return APP_SHELL[appLanguage]?.[k]||APP_SHELL.pl[k]||k;}
+const APP_PAGE_LABELS={
+profiles:[["Ankiety uczniów","Student surveys","Анкеты учеников","Анкети учнів"],["Poznaj społeczność swojej szkoły","Meet your school community","Познакомься со школьным сообществом","Познайомся зі шкільною спільнотою"]],
+"my-profile":[["Mój profil","My profile","Мой профиль","Мій профіль"],["Twój profil w społeczności ZSPM","Your ZSPM community profile","Твой профиль в сообществе ZSPM","Твій профіль у спільноті ZSPM"]],
+chat:[["Wiadomości","Messages","Сообщения","Повідомлення"],["Prywatne rozmowy ze znajomymi","Private conversations with friends","Личные беседы с друзьями","Приватні розмови з друзями"]],
+friends:[["Znajomi","Friends","Друзья","Друзі"],["Zaproszenia i Twoi znajomi","Requests and your friends","Заявки и твои друзья","Запити та твої друзі"]],
+notifications:[["Powiadomienia","Notifications","Уведомления","Сповіщення"],["Twoja aktywność w społeczności","Your community activity","Твоя активность в сообществе","Твоя активність у спільноті"]],
+settings:[["Ustawienia","Settings","Настройки","Налаштування"],["Zarządzaj swoim kontem","Manage your account","Управляй своим аккаунтом","Керуй обліковим записом"]],
+ideas:[["Wasze Pomysły","Your Ideas","Ваши идеи","Ваші ідеї"],["Podziel się pomysłem i zagłosuj na propozycje innych","Share an idea and vote on others","Поделись идеей и голосуй за предложения других","Поділися ідеєю та голосуй за пропозиції інших"]],
+forum:[["Forum społeczności","Community forum","Форум сообщества","Форум спільноти"],["Rozmawiaj na tematy szkolne i nie tylko","Discuss school topics and more","Обсуждай школьные и другие темы","Обговорюй шкільні та інші теми"]],
+timetable:[["Plan lekcji","Timetable","Расписание","Розклад уроків"],["Rozkład zajęć klas technikum","Technical school class schedules","Расписание занятий классов","Розклад занять класів"]],
+planner:[["Mój plan","My planner","Мой план","Мій план"],["Zadania, sprawdziany i terminy","Tasks, tests and deadlines","Задачи, контрольные и сроки","Завдання, контрольні та терміни"]],
+cosmetics:[["Sklep wyglądu","Appearance shop","Магазин оформления","Крамниця оформлення"],["Odblokowuj ozdoby wraz z poziomem","Unlock decorations as you level up","Открывай украшения с повышением уровня","Відкривай прикраси з підвищенням рівня"]],
+ranking:[["Ranking","Ranking","Рейтинг","Рейтинг"],["Najaktywniejsi, wspierający i lubiani","Most active, supporters and popular members","Самые активные, поддерживающие и популярные","Найактивніші, ті хто підтримує та популярні"]],
+information:[["Informacje","Information","Информация","Інформація"],["Wszystko, co warto wiedzieć o ZSPM Community","Everything to know about ZSPM Community","Всё, что нужно знать о ZSPM Community","Усе, що варто знати про ZSPM Community"]],
+support:[["Wesprzyj twórcę","Support the creator","Поддержать автора","Підтримати автора"],["Pomóż rozwijać projekt","Help the project grow","Помоги развивать проект","Допоможи розвивати проєкт"]]
+};
+function pageLabel(page,part,fallback){const pair=APP_PAGE_LABELS[page];return pair?pair[part][["pl","en","ru","uk"].indexOf(appLanguage)]:fallback;}
+
 function applyShellTranslations(){
 document.querySelectorAll("[data-i18n]").forEach(el=>{el.textContent=shellTr(el.dataset.i18n);});
 const h=document.querySelector("#home-page .welcome h2"),n=document.getElementById("user-name");
@@ -23,6 +41,7 @@ const account=document.querySelector(".account-menu-heading");if(account)account
 const logout=document.querySelector("#account-logout");if(logout){const svg=logout.querySelector("svg");logout.textContent="";if(svg)logout.appendChild(svg);logout.append(" "+shellTr("logout"));}
 }
 function setAppLanguage(value){appLanguage=APP_LANGS[value]?value:"pl";try{localStorage.setItem(APP_LANG_KEY,appLanguage);}catch(e){}document.documentElement.lang=appLanguage;applyShellTranslations();if(typeof currentAppPage!=="undefined"&&currentAppPage==="settings")renderSettingsPage();}
+applyShellTranslations();
 
 // Add the verified public transfer account here only after an adult has approved it.
 const SUPPORT_ACCOUNT_NUMBER = String(window.ZSPM_SUPPORT_ACCOUNT_NUMBER || "").replace(/\s+/g, "");
@@ -704,8 +723,8 @@ async function openPage(page, options = {}) {
     home.classList.add("hidden");
     other.classList.remove("hidden");
 
-    $("page-title").textContent = selected.title;
-    $("page-subtitle").textContent = selected.subtitle;
+    $("page-title").textContent = pageLabel(page,0,selected.title);
+    $("page-subtitle").textContent = pageLabel(page,1,selected.subtitle);
 
     if (page === "admin") {
       if (!isAdmin) {
