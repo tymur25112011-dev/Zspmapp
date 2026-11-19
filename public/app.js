@@ -550,7 +550,7 @@ async function renderAdminPage() {
       '<button type="button" class="admin-tab" data-admin-tab="reports">Zgłoszenia (' + (reportsResult.data || []).length + ')</button>' +
       '<button type="button" class="admin-tab" data-admin-tab="donations">Donaty</button>' +
     '</div>' +
-    '<section class="admin-panel active" data-admin-panel="users"><h3 class="admin-section-title">Użytkownicy i moderacja</h3>' +
+    '<section class="admin-panel active" data-admin-panel="users"><h3 class="admin-section-title">Użytkownicy i moderacja</h3><input class="chat-search-input admin-search-input" id="admin-user-search" type="search" placeholder="Szukaj użytkownika lub klasy…" aria-label="Szukaj użytkownika lub klasy">' +
     '<div class="admin-user-list">' + (usersHtml || '<div class="page-content"><p>Brak widocznych profili.</p></div>') + '</div></section>' +
     '<section class="admin-panel" data-admin-panel="donations"><h3 class="admin-section-title">Ranking wpłat</h3>' +
     '<section class="donation-admin-card"><p>Wybierz użytkownika i wpisz łączną kwotę potwierdzonych wpłat. Miejsca w rankingu ustawią się automatycznie.</p>' +
@@ -559,10 +559,14 @@ async function renderAdminPage() {
     '</select></label><label>Kwota (zł)<input id="donation-amount-input" type="number" min="0" max="1000000" step="0.01" placeholder="100.00"></label>' +
     '<button type="button" class="admin-action-btn" id="donation-save">Zapisz kwotę</button></div>' +
     '<div class="donation-admin-list">' + (donationRowsHtml || '<p class="muted">Nie dodano jeszcze żadnych osób do rankingu.</p>') + '</div></section></section>' +
-    '<section class="admin-panel" data-admin-panel="reports"><h3 class="admin-section-title">Zgłoszenia użytkowników i wiadomości</h3>' +
+    '<section class="admin-panel" data-admin-panel="reports"><h3 class="admin-section-title">Zgłoszenia użytkowników i wiadomości</h3><input class="chat-search-input admin-search-input" id="admin-report-search" type="search" placeholder="Szukaj w zgłoszeniach…" aria-label="Szukaj w zgłoszeniach">' +
     '<div class="admin-report-list">' + (reportsHtml || '<div class="page-content"><p>Nie ma nowych zgłoszeń.</p></div>') + '</div></section>' +
     '<p class="admin-feedback" id="admin-feedback" aria-live="polite"></p>';
 
+  const userSearch = host.querySelector("#admin-user-search");
+  if (userSearch) userSearch.addEventListener("input", () => host.querySelectorAll(".admin-user-card").forEach(card => { card.hidden = !card.textContent.toLocaleLowerCase("pl").includes(userSearch.value.trim().toLocaleLowerCase("pl")); }));
+  const reportSearch = host.querySelector("#admin-report-search");
+  if (reportSearch) reportSearch.addEventListener("input", () => host.querySelectorAll(".admin-report").forEach(card => { card.hidden = !card.textContent.toLocaleLowerCase("pl").includes(reportSearch.value.trim().toLocaleLowerCase("pl")); }));
   const donationSave = host.querySelector("#donation-save");
   if (donationSave) donationSave.addEventListener("click", async () => {
     const userId = host.querySelector("#donation-user-select")?.value;
@@ -2269,7 +2273,9 @@ async function renderFriendsPage() {
     <button class="report-btn" data-action="cancel-invite" data-request-id="${escapeHTML(item.requestId)}">Anuluj zaproszenie</button>
   `)).join("");
 
-  const friendsHTML = friendsDataCache.friends.map(profile => personCardHTML(profile, `
+  const sortedFriends = [...friendsDataCache.friends].sort((a,b) => Number(onlineUsers.has(b.id)) - Number(onlineUsers.has(a.id)) || String(a.nickname).localeCompare(String(b.nickname), "pl"));
+  const friendsHTML = sortedFriends.map(profile => personCardHTML(profile, `
+    <span class="community-presence ${onlineUsers.has(profile.id) ? "is-online" : "is-offline"}" data-presence-user="${escapeHTML(profile.id)}" data-status-mode="online"><i></i>${onlineUsers.has(profile.id) ? "Online" : "Offline"}</span>
     ${isBlocked(profile.id)
       ? '<button class="pill-btn" data-action="unblock" data-person-id="' + escapeHTML(profile.id) + '">Odblokuj użytkownika</button>'
       : '<button class="accept-btn" data-action="open-friend-chat" data-person-id="' + escapeHTML(profile.id) + '">Napisz wiadomość</button><button class="report-btn" data-action="block-person" data-person-id="' + escapeHTML(profile.id) + '">Blokuj</button>'}
@@ -2368,6 +2374,15 @@ async function openFriendConversation(personId) {
   }
   await openPage("chat");
   await openChat(data);
+}
+
+function bindMessageSearch(inputId, containerId, itemSelector) {
+  const input = $(inputId), container = $(containerId);
+  if (!input || !container) return;
+  input.addEventListener("input", () => {
+    const query = input.value.trim().toLocaleLowerCase("pl");
+    container.querySelectorAll(itemSelector).forEach(item => { item.hidden = Boolean(query) && !item.textContent.toLocaleLowerCase("pl").includes(query); });
+  });
 }
 
 function formatTime(timestamp) {
@@ -2498,9 +2513,10 @@ async function openGlobalChat(roomId = null) {
   const tabs='<div class="chat-room-tabs"><button type="button" class="chat-room-tab'+(!activeGlobalRoomId?' active':'')+'" data-chat-room="">🌐 Ogólny</button>'+rooms.map(r=>'<button type="button" class="chat-room-tab'+(r.id===activeGlobalRoomId?' active':'')+'" data-chat-room="'+r.id+'">'+escapeHTML(r.icon)+' '+escapeHTML(r.name)+'</button>').join("")+'</div>';
   const room=rooms.find(r=>r.id===activeGlobalRoomId);
   $("page-content").innerHTML='<div class="global-chat-head"><button type="button" class="chat-back" id="global-chat-back">‹</button><div><strong>'+(room?escapeHTML(room.icon+" "+room.name):"Czat ogólny")+'</strong><small>'+(room?escapeHTML(room.description):"Rozmowa wszystkich użytkowników")+'</small></div></div>'+tabs+
-    '<div class="global-chat-notice">Rozmawiaj z szacunkiem. Nie publikuj danych osobowych.</div><div class="global-chat-messages" id="global-chat-messages">'+(rows||'<p class="global-chat-empty">Nie ma jeszcze wiadomości. Napisz pierwszą!</p>')+'</div>'+
+    '<div class="global-chat-notice">Rozmawiaj z szacunkiem. Nie publikuj danych osobowych.</div><input id="global-chat-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj w wiadomościach…" aria-label="Szukaj w wiadomościach"><div class="global-chat-messages" id="global-chat-messages">'+(rows||'<p class="global-chat-empty">Nie ma jeszcze wiadomości. Napisz pierwszą!</p>')+'</div>'+
     (currentMute?'<div class="global-chat-muted">Wysyłanie wiadomości jest tymczasowo wyłączone.<br>Powód: '+escapeHTML(currentMute.reason)+'<br>Do: '+escapeHTML(formatModerationExpiry(currentMute.expires_at))+'</div>':'<form class="global-chat-composer" id="global-chat-form"><div id="global-reply-hint" class="chat-reply-hint hidden"></div><input id="global-chat-input" maxlength="500" autocomplete="off" placeholder="Napisz na czacie…"><button type="submit" aria-label="Wyślij">➤</button></form>');
   $("global-chat-back").addEventListener("click",renderChatList);
+  bindMessageSearch("global-chat-search", "global-chat-messages", ".global-message");
   $("page-content").querySelectorAll("[data-chat-room]").forEach(b=>b.addEventListener("click",()=>openGlobalChat(b.dataset.chatRoom||null)));
   $("page-content").querySelectorAll("[data-global-action]").forEach(button=>button.addEventListener("click",async()=>{
     const id=button.dataset.id,action=button.dataset.globalAction,message=byId.get(id);
@@ -2694,7 +2710,7 @@ async function openChat(conversationId) {
       ${profileAvatarHTML(activeChatProfile, "conv-avatar small")}
       <div class="chat-head-info">
         <div class="chat-head-nick">${escapeHTML(activeChatProfile.nickname)}${activeChatProfile.isAdmin ? '<span class="user-role-badge admin-role">ADMIN</span>' : activeChatProfile.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : ""}</div>
-        <div class="chat-head-status">Prywatna rozmowa · tylko tekst</div>
+        <div class="chat-head-status">Prywatna rozmowa · tylko tekst</div><input id="private-chat-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj w rozmowie…" aria-label="Szukaj w rozmowie">
       </div>
       <button type="button" class="chat-block-btn" id="chat-block">${blocked ? "Odblokuj" : "Blokuj"}</button>
     </div>
@@ -2715,6 +2731,7 @@ async function openChat(conversationId) {
   `;
 
   $("chat-back").addEventListener("click", () => renderChatList());
+  bindMessageSearch("private-chat-search", "chat-msgs", ".chat-row");
   $("chat-block").addEventListener("click", async () => {
     if (isBlocked(otherId)) await unblockUser(otherId);
     else await blockUser(otherId);
