@@ -14,6 +14,223 @@ ru:{home:"Главная",surveys:"Анкеты",profile:"Профиль",chat:"
 uk:{home:"Головна",surveys:"Анкети",profile:"Профіль",chat:"Чат",friends:"Друзі",settings:"Налаштування",hello:"Привіт,",welcome:"Ласкаво просимо до шкільної спільноти.",hero:"Ласкаво просимо до ZSPM!",heroText:"Знайомся з новими людьми, знаходь друзів та спілкуйся зі шкільною спільнотою.",discover:"Відкрий застосунок",profiles:"Анкети учнів",profilesDesc:"Познайомся зі спільнотою",myProfile:"Мій профіль",myProfileDesc:"Твій профіль у спільноті",messages:"Повідомлення",messagesDesc:"Приватні розмови з друзями",friendsTitle:"Друзі",friendsDesc:"Запити та друзі",settingsTitle:"Налаштування",settingsDesc:"Керуй обліковим записом",ideas:"Ваші ідеї",ideasDesc:"Пропозиції та голосування спільноти",forum:"Форум",forumDesc:"Обговорення та шкільні теми",timetable:"Розклад уроків",timetableDesc:"Розклад занять класів",planner:"Мій план",plannerDesc:"Завдання та терміни",cosmetics:"Крамниця оформлення",cosmeticsDesc:"Відкривай нові прикраси",ranking:"Рейтинг",rankingDesc:"Активність, підтримка та вподобання",information:"Інформація",informationDesc:"Про проєкт, Premium та правила",support:"Підтримати автора",supportDesc:"Допоможи розвитку проєкту",account:"Обліковий запис",logout:"Вийти"}
 };
 function shellTr(k){return APP_SHELL[appLanguage]?.[k]||APP_SHELL.pl[k]||k;}
+
+const APP_UI_TEXT={
+"Logowanie jest chwilowo niedostępne. Odśwież stronę i spróbuj ponownie.":["Login is temporarily unavailable. Refresh and try again.","Вход временно недоступен. Обновите страницу и попробуйте снова.","Вхід тимчасово недоступний. Оновіть сторінку та спробуйте ще раз."],
+"Pseudonim musi mieć co najmniej 2 znaki.":["Nickname must be at least 2 characters.","Никнейм должен содержать не менее 2 символов.","Псевдонім має містити щонайменше 2 символи."],
+"Hasło musi mieć co najmniej 8 znaków.":["Password must be at least 8 characters.","Пароль должен содержать не менее 8 символов.","Пароль має містити щонайменше 8 символів."],
+"Zaloguj się ponownie, aby zapisać profil.":["Log in again to save your profile.","Войдите снова, чтобы сохранить профиль.","Увійдіть знову, щоб зберегти профіль."],
+"Ten pseudonim jest już zajęty. Wybierz inną nazwę.":["This nickname is already taken. Choose another one.","Этот никнейм уже занят. Выберите другой.","Цей псевдонім уже зайнятий. Виберіть інший."],
+"Oddzielna ankieta do poznawania innych uczniów":["A separate questionnaire for meeting other students","Отдельная анкета для знакомства с учениками","Окрема анкета для знайомства з іншими учнями"],
+"Moderacja i statusy użytkowników":["Moderation and user statuses","Модерация и статусы пользователей","Модерація та статуси користувачів"],
+"Panel administracji":["Admin panel","Панель администратора","Панель адміністратора"],
+"Ładowanie panelu administracji...":["Loading admin panel...","Загрузка панели администратора...","Завантаження панелі адміністратора..."],
+"Powód":["Reason","Причина","Причина"],
+"Obraźliwe zachowanie":["Abusive behaviour","Оскорбительное поведение","Образлива поведінка"],
+"Nękanie lub dokuczanie":["Harassment or bullying","Преследование или травля","Переслідування або цькування"],
+"Nieodpowiednie treści":["Inappropriate content","Неподходящий контент","Неприйнятний вміст"],
+"Zastosuj karę":["Apply penalty","Применить наказание","Застосувати покарання"],
+"Usunięty użytkownik":["Deleted user","Удалённый пользователь","Видалений користувач"],
+"Usuń z rankingu":["Remove from ranking","Убрать из рейтинга","Вилучити з рейтингу"],
+"Nieznany użytkownik":["Unknown user","Неизвестный пользователь","Невідомий користувач"],
+"Zgłoszona wiadomość":["Reported message","Жалоба на сообщение","Скарга на повідомлення"],
+"Zgłoszony profil":["Reported profile","Жалоба на профиль","Скарга на профіль"],
+"Zarządzaj społecznością, wiadomościami i zgłoszeniami.":["Manage the community, messages and reports.","Управляйте сообществом, сообщениями и жалобами.","Керуйте спільнотою, повідомленнями та скаргами."],
+"Użytkownicy":["Users","Пользователи","Користувачі"],
+"Zgłoszenia":["Reports","Жалобы","Скарги"],
+"Użytkownicy i moderacja":["Users and moderation","Пользователи и модерация","Користувачі та модерація"],
+"Ranking wpłat":["Donation ranking","Рейтинг пожертвований","Рейтинг внесків"],
+"Użytkownik":["User","Пользователь","Користувач"],
+"Kwota (zł)":["Amount (PLN)","Сумма (злотые)","Сума (злоті)"],
+"Zapisz kwotę":["Save amount","Сохранить сумму","Зберегти суму"],
+"Zgłoszenia użytkowników i wiadomości":["User and message reports","Жалобы на пользователей и сообщения","Скарги на користувачів і повідомлення"],
+"Wpisz poprawną kwotę od 0 do 1 000 000 zł.":["Enter a valid amount from 0 to PLN 1,000,000.","Введите сумму от 0 до 1 000 000 злотых.","Введіть суму від 0 до 1 000 000 злотих."],
+"Nie udało się zapisać kwoty.":["Could not save the amount.","Не удалось сохранить сумму.","Не вдалося зберегти суму."],
+"Nie udało się usunąć wpisu.":["Could not delete the entry.","Не удалось удалить запись.","Не вдалося видалити запис."],
+"Nie możesz nałożyć kary na własne konto.":["You cannot apply a penalty to your own account.","Нельзя применить наказание к своему аккаунту.","Не можна застосувати покарання до власного облікового запису."],
+"Nie udało się wykonać działania.":["The action failed.","Не удалось выполнить действие.","Не вдалося виконати дію."],
+"Brak dostępu":["Access denied","Нет доступа","Немає доступу"],
+"Ta sekcja jest dostępna wyłącznie dla administratora.":["This section is available to administrators only.","Этот раздел доступен только администраторам.","Цей розділ доступний лише адміністраторам."],
+"Ładowanie profili...":["Loading profiles...","Загрузка профилей...","Завантаження профілів..."],
+"Ładowanie pomysłów...":["Loading ideas...","Загрузка идей...","Завантаження ідей..."],
+"Nie udało się załadować pomysłów. Spróbuj ponownie później.":["Could not load ideas. Try again later.","Не удалось загрузить идеи. Попробуйте позже.","Не вдалося завантажити ідеї. Спробуйте пізніше."],
+"Uczeń":["Student","Ученик","Учень"],
+"Dodaj nowy pomysł":["Add a new idea","Добавить новую идею","Додати нову ідею"],
+"Tytuł":["Title","Название","Назва"],
+"Opublikuj pomysł":["Publish idea","Опубликовать идею","Опублікувати ідею"],
+"Nie udało się opublikować pomysłu.":["Could not publish the idea.","Не удалось опубликовать идею.","Не вдалося опублікувати ідею."],
+"Nie udało się zapisać głosu.":["Could not save your vote.","Не удалось сохранить голос.","Не вдалося зберегти голос."],
+"Czy na pewno chcesz usunąć ten pomysł?":["Are you sure you want to delete this idea?","Вы уверены, что хотите удалить эту идею?","Ви впевнені, що хочете видалити цю ідею?"],
+"Nie udało się usunąć pomysłu.":["Could not delete the idea.","Не удалось удалить идею.","Не вдалося видалити ідею."],
+"Ładowanie rankingów...":["Loading rankings...","Загрузка рейтингов...","Завантаження рейтингів..."],
+"Nie udało się załadować rankingów.":["Could not load rankings.","Не удалось загрузить рейтинги.","Не вдалося завантажити рейтинги."],
+"TOP aktywności":["Top activity","Топ активности","Топ активності"],
+"Łączny szacowany czas aktywności w aplikacji.":["Estimated total time spent in the app.","Общее примерное время активности в приложении.","Орієнтовний загальний час активності в застосунку."],
+"TOP wspierających":["Top supporters","Топ поддерживающих","Топ тих, хто підтримує"],
+"Kwoty są aktualizowane ręcznie przez administratora.":["Amounts are updated manually by an administrator.","Суммы обновляются администратором вручную.","Суми оновлюються адміністратором вручну."],
+"TOP polubień profili":["Top profile likes","Топ лайков профилей","Топ вподобань профілів"],
+"Liczba polubień otrzymanych przez profil.":["Number of likes received by a profile.","Количество лайков, полученных профилем.","Кількість вподобань, отриманих профілем."],
+"ZSPM Community · Niezależny projekt społecznościowy":["ZSPM Community · Independent community project","ZSPM Community · Независимый проект сообщества","ZSPM Community · Незалежний проєкт спільноти"],
+"Twój profil":["Your profile","Твой профиль","Твій профіль"],
+"Edytuj ankietę":["Edit questionnaire","Редактировать анкету","Редагувати анкету"],
+"Zgłoś profil":["Report profile","Пожаловаться на профиль","Поскаржитися на профіль"],
+"Zgłoszono profil":["Profile reported","Профиль отправлен на проверку","Профіль надіслано на перевірку"],
+"Twój pseudonim":["Your nickname","Твой никнейм","Твій псевдонім"],
+"Napisz w kilku zdaniach, czym się interesujesz...":["Write a few sentences about your interests...","Напишите несколько предложений о своих интересах...","Напишіть кілька речень про свої захоплення..."],
+"Wybierz zdjęcie w formacie JPG, PNG lub WebP.":["Choose a JPG, PNG or WebP image.","Выберите изображение JPG, PNG или WebP.","Виберіть зображення JPG, PNG або WebP."],
+"Plik jest za duży. Maksymalny rozmiar to 5 MB.":["The file is too large. Maximum size is 5 MB.","Файл слишком большой. Максимальный размер — 5 МБ.","Файл завеликий. Максимальний розмір — 5 МБ."],
+"Nie udało się odczytać zdjęcia.":["Could not read the image.","Не удалось прочитать изображение.","Не вдалося прочитати зображення."],
+"Nie udało się otworzyć zdjęcia.":["Could not open the image.","Не удалось открыть изображение.","Не вдалося відкрити зображення."],
+"Nie udało się przygotować zdjęcia.":["Could not prepare the image.","Не удалось подготовить изображение.","Не вдалося підготувати зображення."],
+"Nie udało się przetworzyć zdjęcia.":["Could not process the image.","Не удалось обработать изображение.","Не вдалося обробити зображення."],
+"Bez zdjęcia":["No photo","Без фото","Без фото"],
+"Nie udało się dodać zdjęcia.":["Could not add the photo.","Не удалось добавить фото.","Не вдалося додати фото."],
+"Podaj swoją klasę, np. 2B.":["Enter your class, e.g. 2B.","Укажите свой класс, например 2B.","Вкажіть свій клас, наприклад 2B."],
+"Profil został zapisany w bazie danych.":["Profile saved successfully.","Профиль сохранён в базе данных.","Профіль збережено в базі даних."],
+"Nie udało się zapisać profilu.":["Could not save the profile.","Не удалось сохранить профиль.","Не вдалося зберегти профіль."],
+"Zapisz ankietę":["Save questionnaire","Сохранить анкету","Зберегти анкету"],
+"Zaloguj się, aby włączyć powiadomienia.":["Log in to enable notifications.","Войдите, чтобы включить уведомления.","Увійдіть, щоб увімкнути сповіщення."],
+"Ta przeglądarka nie obsługuje powiadomień push.":["This browser does not support push notifications.","Этот браузер не поддерживает push-уведомления.","Цей браузер не підтримує push-сповіщення."],
+"Powiadomienia są zablokowane. Włącz je w ustawieniach aplikacji Android.":["Notifications are blocked. Enable them in Android app settings.","Уведомления заблокированы. Включите их в настройках Android.","Сповіщення заблоковано. Увімкніть їх у налаштуваннях Android."],
+"Nie udało się utworzyć subskrypcji push.":["Could not create push subscription.","Не удалось создать push-подписку.","Не вдалося створити push-підписку."],
+"Powiadomienia push są włączone na tym urządzeniu.":["Push notifications are enabled on this device.","Push-уведомления включены на этом устройстве.","Push-сповіщення ввімкнено на цьому пристрої."],
+"Powiadomienia push są wyłączone na tym urządzeniu.":["Push notifications are disabled on this device.","Push-уведомления отключены на этом устройстве.","Push-сповіщення вимкнено на цьому пристрої."],
+"Nie udało się sprawdzić ustawień powiadomień.":["Could not check notification settings.","Не удалось проверить настройки уведомлений.","Не вдалося перевірити налаштування сповіщень."],
+"Domyślny wygląd":["Default appearance","Вид по умолчанию","Типовий вигляд"],
+"Pierwsza wiadomość":["First message","Первое сообщение","Перше повідомлення"],
+"Aktywny rozmówca":["Active chatter","Активный собеседник","Активний співрозмовник"],
+"Nie przeszkadzać":["Do not disturb","Не беспокоить","Не турбувати"],
+"Zajęty":["Busy","Занят","Зайнятий"],
+"Ten użytkownik nie dodał jeszcze opisu.":["This user has not added a description yet.","Этот пользователь ещё не добавил описание.","Цей користувач ще не додав опис."],
+"Osiągnięcia":["Achievements","Достижения","Досягнення"],
+"Ładowanie profilu...":["Loading profile...","Загрузка профиля...","Завантаження профілю..."],
+"To jest Twój publiczny profil społeczności. Ankieta poznawania uczniów jest osobną funkcją.":["This is your public community profile. The student questionnaire is a separate feature.","Это твой публичный профиль сообщества. Анкета учеников — отдельная функция.","Це твій публічний профіль спільноти. Анкета учнів — окрема функція."],
+"Otwórz moją ankietę":["Open my questionnaire","Открыть мою анкету","Відкрити мою анкету"],
+"Nie udało się załadować profilu. Spróbuj ponownie.":["Could not load the profile. Try again.","Не удалось загрузить профиль. Попробуйте снова.","Не вдалося завантажити профіль. Спробуйте ще раз."],
+"Wgraj własny baner":["Upload your own banner","Загрузить свой баннер","Завантажити власний банер"],
+"Użyj gotowego banera":["Use a preset banner","Использовать готовый баннер","Використати готовий банер"],
+"Dostępność":["Availability","Доступность","Доступність"],
+"Imię":["First name","Имя","Ім'я"],
+"Podgląd avatara":["Avatar preview","Предпросмотр аватара","Попередній перегляд аватара"],
+"Nick musi mieć co najmniej 2 znaki.":["Nickname must be at least 2 characters.","Ник должен содержать не менее 2 символов.","Нік має містити щонайменше 2 символи."],
+"Nie udało się skompresować obrazu.":["Could not compress the image.","Не удалось сжать изображение.","Не вдалося стиснути зображення."],
+"Nie udało się otworzyć profilu.":["Could not open the profile.","Не удалось открыть профиль.","Не вдалося відкрити профіль."],
+"Zablokować tego użytkownika?":["Block this user?","Заблокировать этого пользователя?","Заблокувати цього користувача?"],
+"Nieprawidłowa osoba.":["Invalid user.","Неверный пользователь.","Некоректний користувач."],
+"Odblokuj tę osobę, aby wysłać zaproszenie.":["Unblock this person to send a request.","Разблокируйте этого человека, чтобы отправить заявку.","Розблокуйте цю людину, щоб надіслати запит."],
+"Ta osoba jest już Twoim znajomym.":["This person is already your friend.","Этот человек уже у вас в друзьях.","Ця людина вже у вас у друзях."],
+"Zaproszenie zostało już wysłane.":["The request has already been sent.","Заявка уже отправлена.","Запит уже надіслано."],
+"Ta osoba już Cię zaprosiła. Zaakceptuj zaproszenie.":["This person has already invited you. Accept the request.","Этот человек уже отправил вам заявку. Примите её.","Ця людина вже надіслала вам запит. Прийміть його."],
+"Zaproszenie do tej osoby już oczekuje.":["A request to this person is already pending.","Заявка этому человеку уже ожидает ответа.","Запит цій людині вже очікує на відповідь."],
+"Nie udało się wysłać zaproszenia.":["Could not send the request.","Не удалось отправить заявку.","Не вдалося надіслати запит."],
+"Nie udało się zaakceptować zaproszenia.":["Could not accept the request.","Не удалось принять заявку.","Не вдалося прийняти запит."],
+"Nie udało się zablokować użytkownika.":["Could not block the user.","Не удалось заблокировать пользователя.","Не вдалося заблокувати користувача."],
+"Odblokuj użytkownika":["Unblock user","Разблокировать пользователя","Розблокувати користувача"],
+"Już jesteście znajomymi":["You are already friends","Вы уже друзья","Ви вже друзі"],
+"Zaakceptuj prośbę":["Accept request","Принять заявку","Прийняти запит"],
+"Anuluj prośbę":["Cancel request","Отменить заявку","Скасувати запит"],
+"Napisz wiadomość":["Send a message","Написать сообщение","Написати повідомлення"],
+"Brak nowych zaproszeń.":["No new requests.","Новых заявок нет.","Нових запитів немає."],
+"Nie masz jeszcze znajomych. Poznaj uczniów w sekcji „Ankiety uczniów”.":["You don't have any friends yet. Meet students in Student surveys.","У вас пока нет друзей. Познакомьтесь с учениками в разделе «Анкеты учеников».","У вас ще немає друзів. Познайомтеся з учнями в розділі «Анкети учнів»."],
+"Zgłoszono":["Reported","Отправлено","Надіслано"],
+"Brak wiadomości":["No messages","Нет сообщений","Немає повідомлень"],
+"Nie masz jeszcze rozmów. Dodaj znajomego, aby rozpocząć czat.":["No conversations yet. Add a friend to start chatting.","У вас пока нет бесед. Добавьте друга, чтобы начать чат.","У вас ще немає розмов. Додайте друга, щоб почати чат."],
+"Nie udało się załadować czatu. Odśwież stronę.":["Could not load chat. Refresh the page.","Не удалось загрузить чат. Обновите страницу.","Не вдалося завантажити чат. Оновіть сторінку."],
+"Dodaj reakcję":["Add reaction","Добавить реакцию","Додати реакцію"],
+"Usuń":["Delete","Удалить","Видалити"],
+"Zgłoś":["Report","Пожаловаться","Поскаржитися"],
+"🌐 Ogólny":["🌐 General","🌐 Общий","🌐 Загальний"],
+"Przypięte wiadomości":["Pinned messages","Закреплённые сообщения","Закріплені повідомлення"],
+"Nie udało się dodać reakcji.":["Could not add reaction.","Не удалось добавить реакцию.","Не вдалося додати реакцію."],
+"Odpowiedź na wiadomość…":["Reply to message…","Ответ на сообщение…","Відповідь на повідомлення…"],
+"Edytuj wiadomość:":["Edit message:","Изменить сообщение:","Редагувати повідомлення:"],
+"Nie udało się edytować wiadomości.":["Could not edit the message.","Не удалось изменить сообщение.","Не вдалося відредагувати повідомлення."],
+"Usunąć tę wiadomość?":["Delete this message?","Удалить это сообщение?","Видалити це повідомлення?"],
+"Nie udało się usunąć wiadomości.":["Could not delete the message.","Не удалось удалить сообщение.","Не вдалося видалити повідомлення."],
+"Nie udało się zmienić polubienia.":["Could not update the like.","Не удалось изменить отметку «Нравится».","Не вдалося змінити вподобання."],
+"Nie udało się wysłać wiadomości. Możliwe, że obowiązuje wyciszenie.":["Could not send the message. You may be muted.","Не удалось отправить сообщение. Возможно, действует ограничение.","Не вдалося надіслати повідомлення. Можливо, діє обмеження."],
+"Ważne informacje na tym czacie":["Important information in this chat","Важная информация в этом чате","Важлива інформація в цьому чаті"],
+"Ta wiadomość jest już przypięta.":["This message is already pinned.","Это сообщение уже закреплено.","Це повідомлення вже закріплено."],
+"Nie udało się zmienić przypiętej wiadomości.":["Could not update the pinned message.","Не удалось изменить закреплённое сообщение.","Не вдалося змінити закріплене повідомлення."],
+"Brak wiadomości. Napisz pierwszą!":["No messages yet. Send the first one!","Сообщений пока нет. Напиши первым!","Повідомлень ще немає. Напиши першим!"],
+"Odpowiadasz na wybraną wiadomość":["You are replying to the selected message","Вы отвечаете на выбранное сообщение","Ви відповідаєте на вибране повідомлення"],
+"Wiadomość nie może być pusta.":["Message cannot be empty.","Сообщение не может быть пустым.","Повідомлення не може бути порожнім."],
+"Powrót do rozmów":["Back to conversations","Вернуться к беседам","Повернутися до розмов"],
+"Wyczyść wyszukiwanie":["Clear search","Очистить поиск","Очистити пошук"],
+"Napisz wiadomość...":["Write a message...","Напишите сообщение...","Напишіть повідомлення..."],
+"Wyślij":["Send","Отправить","Надіслати"],
+"Nie udało się wysłać wiadomości. Sprawdź, czy rozmowa nie jest zablokowana.":["Could not send the message. Check whether the conversation is blocked.","Не удалось отправить сообщение. Проверьте, не заблокирована ли беседа.","Не вдалося надіслати повідомлення. Перевірте, чи не заблоковано розмову."],
+"Nie masz jeszcze powiadomień.":["You don't have any notifications yet.","У вас пока нет уведомлений.","У вас ще немає сповіщень."],
+"Nie udało się zaktualizować powiadomień.":["Could not update notifications.","Не удалось обновить уведомления.","Не вдалося оновити сповіщення."],
+"Ogólne":["General","Общее","Загальне"],
+"Szkoła":["School","Школа","Школа"],
+"Pomysły":["Ideas","Идеи","Ідеї"],
+"Ładowanie forum...":["Loading forum...","Загрузка форума...","Завантаження форуму..."],
+"Nie udało się załadować forum.":["Could not load the forum.","Не удалось загрузить форум.","Не вдалося завантажити форум."],
+"Treść":["Content","Содержание","Вміст"],
+"Usuń temat":["Delete topic","Удалить тему","Видалити тему"],
+"Zgłoś temat":["Report topic","Пожаловаться на тему","Поскаржитися на тему"],
+"Dyskusja zamknięta.":["Discussion closed.","Обсуждение закрыто.","Обговорення закрито."],
+"Nie udało się opublikować tematu.":["Could not publish the topic.","Не удалось опубликовать тему.","Не вдалося опублікувати тему."],
+"Opisz krótko, dlaczego zgłaszasz ten temat:":["Briefly explain why you are reporting this topic:","Кратко объясните, почему вы жалуетесь на эту тему:","Коротко поясніть, чому ви скаржитеся на цю тему:"],
+"Zgłoszenie zostało wysłane do administracji.":["Your report has been sent to the administrators.","Жалоба отправлена администраторам.","Скаргу надіслано адміністраторам."],
+"Usunąć ten temat i komentarze?":["Delete this topic and its comments?","Удалить эту тему и комментарии?","Видалити цю тему та коментарі?"],
+"Nie udało się usunąć tematu.":["Could not delete the topic.","Не удалось удалить тему.","Не вдалося видалити тему."],
+"Nie udało się usunąć komentarza.":["Could not delete the comment.","Не удалось удалить комментарий.","Не вдалося видалити коментар."],
+"Język polski":["Polish","Польский","Польська"],
+"Biznes i zarządzanie":["Business and management","Бизнес и управление","Бізнес і управління"],
+"Edukacja dla bezpieczeństwa":["Safety education","Образование в сфере безопасности","Освіта з безпеки"],
+"Język niemiecki":["German","Немецкий язык","Німецька мова"],
+"Język angielski":["English","Английский язык","Англійська мова"],
+"Poniedziałek":["Monday","Понедельник","Понеділок"],
+"Środa":["Wednesday","Среда","Середа"],
+"Piątek":["Friday","Пятница","П'ятниця"],
+"Wybierz dzień tygodnia":["Choose a weekday","Выберите день недели","Виберіть день тижня"],
+"Nie masz zaplanowanych lekcji. Miłego odpoczynku!":["No lessons scheduled. Enjoy your break!","Уроков не запланировано. Хорошего отдыха!","Уроків не заплановано. Гарного відпочинку!"],
+"Nie udało się załadować planera.":["Could not load the planner.","Не удалось загрузить планер.","Не вдалося завантажити планер."],
+"Szczegóły":["Details","Подробности","Деталі"],
+"Nie udało się dodać zadania.":["Could not add the task.","Не удалось добавить задачу.","Не вдалося додати завдання."],
+"Nie udało się zmienić zadania.":["Could not update the task.","Не удалось изменить задачу.","Не вдалося змінити завдання."],
+"Nie udało się usunąć zadania.":["Could not delete the task.","Не удалось удалить задачу.","Не вдалося видалити завдання."],
+"Ładowanie sklepu...":["Loading shop...","Загрузка магазина...","Завантаження крамниці..."],
+"Nie udało się załadować sklepu.":["Could not load the shop.","Не удалось загрузить магазин.","Не вдалося завантажити крамницю."],
+"Odblokuje się na poziomie " :["Unlocks at level ","Откроется на уровне ","Відкриється на рівні "],
+"Nie udało się zastosować wyglądu.":["Could not apply the appearance.","Не удалось применить оформление.","Не вдалося застосувати оформлення."],
+"Numer rachunku nie został jeszcze skonfigurowany.":["The account number has not been configured yet.","Номер счёта ещё не настроен.","Номер рахунку ще не налаштовано."],
+"Nie udało się skopiować. Spróbuj ponownie.":["Could not copy. Try again.","Не удалось скопировать. Попробуйте снова.","Не вдалося скопіювати. Спробуйте ще раз."],
+"Nie udało się wylogować. Spróbuj ponownie.":["Could not log out. Try again.","Не удалось выйти. Попробуйте снова.","Не вдалося вийти. Спробуйте ще раз."],
+"Nie udało się przywrócić sesji. Odśwież stronę i spróbuj ponownie.":["Could not restore the session. Refresh and try again.","Не удалось восстановить сеанс. Обновите страницу и попробуйте снова.","Не вдалося відновити сеанс. Оновіть сторінку та спробуйте ще раз."]
+};
+const APP_UI_LANG_INDEX={pl:-1,en:0,ru:1,uk:2};
+function translateVisibleUI(root=document.body){
+  if(!root)return;
+  const langIndex=APP_UI_LANG_INDEX[appLanguage]??-1;
+  if(langIndex<0)return;
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  for(const node of nodes){
+    const parent=node.parentElement;
+    if(!parent||parent.closest("script,style,textarea,[contenteditable='true'],[data-no-translate],.chat-message-body,.profile-bio,.forum-post-body,.user-generated"))continue;
+    const raw=node.nodeValue,trimmed=raw.trim();
+    if(!trimmed)continue;
+    const translated=APP_UI_TEXT[trimmed];
+    if(translated)node.nodeValue=raw.replace(trimmed,translated[langIndex]);
+  }
+  root.querySelectorAll?.("input[placeholder],textarea[placeholder],input[aria-label],button[aria-label],select[aria-label]").forEach(el=>{
+    for(const attr of ["placeholder","aria-label"]){const v=el.getAttribute(attr);if(v&&APP_UI_TEXT[v])el.setAttribute(attr,APP_UI_TEXT[v][langIndex]);}
+  });
+}
+let appUiTranslationObserver=null;
+if(typeof MutationObserver!=="undefined"&&document.body){
+  appUiTranslationObserver=new MutationObserver(records=>{
+    for(const record of records){
+      if(record.type==="childList")record.addedNodes.forEach(node=>{if(node.nodeType===Node.ELEMENT_NODE)translateVisibleUI(node);else if(node.nodeType===Node.TEXT_NODE)translateVisibleUI(node.parentElement);});
+      else if(record.type==="characterData")translateVisibleUI(record.target.parentElement);
+    }
+  });
+  appUiTranslationObserver.observe(document.body,{childList:true,subtree:true,characterData:true});
+}
+
 const APP_PAGE_LABELS={
 profiles:[["Ankiety uczniów","Student surveys","Анкеты учеников","Анкети учнів"],["Poznaj społeczność swojej szkoły","Meet your school community","Познакомься со школьным сообществом","Познайомся зі шкільною спільнотою"]],
 "my-profile":[["Mój profil","My profile","Мой профиль","Мій профіль"],["Twój profil w społeczności ZSPM","Your ZSPM community profile","Твой профиль в сообществе ZSPM","Твій профіль у спільноті ZSPM"]],
@@ -40,8 +257,9 @@ const bell=document.getElementById("notif-bell");if(bell)bell.setAttribute("aria
 const account=document.querySelector(".account-menu-heading");if(account)account.textContent=shellTr("account");
 const logout=document.querySelector("#account-logout");if(logout){const svg=logout.querySelector("svg");logout.textContent="";if(svg)logout.appendChild(svg);logout.append(" "+shellTr("logout"));}
 }
-function setAppLanguage(value){appLanguage=APP_LANGS[value]?value:"pl";try{localStorage.setItem(APP_LANG_KEY,appLanguage);}catch(e){}document.documentElement.lang=appLanguage;applyShellTranslations();if(typeof currentAppPage!=="undefined"&&currentAppPage!=="home"){const title=document.getElementById("page-title"),sub=document.getElementById("page-subtitle");if(title)title.textContent=pageLabel(currentAppPage,0,title.textContent);if(sub)sub.textContent=pageLabel(currentAppPage,1,sub.textContent);}if(typeof currentAppPage!=="undefined"&&currentAppPage==="settings")renderSettingsPage();}
+function setAppLanguage(value){appLanguage=APP_LANGS[value]?value:"pl";try{localStorage.setItem(APP_LANG_KEY,appLanguage);}catch(e){}document.documentElement.lang=appLanguage;applyShellTranslations();translateVisibleUI();if(typeof currentAppPage!=="undefined"&&currentAppPage!=="home"){const title=document.getElementById("page-title"),sub=document.getElementById("page-subtitle");if(title)title.textContent=pageLabel(currentAppPage,0,title.textContent);if(sub)sub.textContent=pageLabel(currentAppPage,1,sub.textContent);}if(typeof currentAppPage!=="undefined"&&currentAppPage==="settings")renderSettingsPage();}
 applyShellTranslations();
+translateVisibleUI();
 
 // Add the verified public transfer account here only after an adult has approved it.
 const SUPPORT_ACCOUNT_NUMBER = String(window.ZSPM_SUPPORT_ACCOUNT_NUMBER || "").replace(/\s+/g, "");
