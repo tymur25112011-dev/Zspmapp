@@ -124,6 +124,8 @@ const DEMO_PROFILES = [
 ];
 
 let currentUser = null;
+let isAdmin = false;
+let currentUserBadge = null;
 let myProfileCache = null;
 let publicProfilesCache = [];
 let profileSocialCache = {};
@@ -281,10 +283,39 @@ $("login").addEventListener("submit", async event => {
 async function enterApp() {
   if (!currentUser) return;
 
+  const { data: adminResult, error: adminError } = await supabaseClient.rpc("is_app_admin");
+  isAdmin = !adminError && adminResult === true;
+  if (adminError) console.warn("Admin role check failed:", adminError);
+
+  const { data: badgeRow, error: badgeError } = await supabaseClient
+    .from("user_badges").select("badge").eq("user_id", currentUser.id).maybeSingle();
+  currentUserBadge = badgeError ? null : (badgeRow?.badge || null);
+
   $("auth").classList.add("hidden");
   $("app").classList.remove("hidden");
   $("user-name").textContent = currentUser.name;
   updateNotifBadge();
+  updateAdminHomeCard();
+
+  const { data: ownModeration, error: moderationError } = await supabaseClient
+    .from("user_moderation")
+    .select("action,reason,expires_at,created_at")
+    .eq("user_id", currentUser.id)
+    .is("revoked_at", null)
+    .order("created_at", { ascending: false });
+  const activeBan = (ownModeration || []).find(item => item.action === "ban" &&
+    (!item.expires_at || new Date(item.expires_at).getTime() > Date.now()));
+  if (activeBan && !isAdmin) {
+    $("home-page").classList.add("hidden");
+    $("other-page").classList.remove("hidden");
+    $("page-title").textContent = "Konto zablokowane";
+    $("page-subtitle").textContent = "Informacja o moderacji";
+    $("page-content").innerHTML = '<div class="page-content moderation-lock"><h3>Twoje konto jest tymczasowo zablokowane</h3><p>Powód: ' +
+      escapeHTML(activeBan.reason) + '</p><p>Termin: ' +
+      (activeBan.expires_at ? escapeHTML(new Date(activeBan.expires_at).toLocaleString("pl-PL")) : "Bezterminowo") +
+      '</p><p>Jeśli uważasz, że to pomyłka, skontaktuj się z administratorem.</p></div>';
+    return;
+  }
 
   await loadMyProfileFromSupabase();
   await loadBlockedUsers();
@@ -335,6 +366,12 @@ const pages = {
     content: ""
   },
 
+  admin: {
+    title: "Panel administracji",
+    subtitle: "Moderacja i statusy użytkowników",
+    content: ""
+  },
+
   support: {
     title: "Wesprzyj twórcę",
     subtitle: "Pomóż rozwijać projekt",
@@ -360,6 +397,133 @@ const pages = {
   }
 };
 
+
+function updateAdminHomeCard() {
+  const grid = document.querySelector("#home-page .menu-grid");
+  if (!grid) return;
+  const existing = grid.querySelector('[data-page="admin"]');
+  if (!isAdmin && existing) existing.remove();
+  if (isAdmin && !existing) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "menu-item admin-menu-item";
+    card.dataset.page = "admin";
+    card.innerHTML = '<div class="menu-icon">🛡️</div><h3>Panel administracji</h3><p>Moderacja i statusy użytkowników</p>';
+    grid.appendChild(card);
+    card.addEventListener("click", () => openPage("admin"));
+  }
+}
+
+function formatModerationExpiry(value) {
+  return value ? new Date(value).toLocaleString("pl-PL") : "Bezterminowo";
+}
+
+async function renderAdminPage() {
+  const host = $("page-content");
+  host.innerHTML = '<div class="page-content"><p>Ładowanie panelu administracji...</p></div>';
+  const [profilesResult, reportsResult, moderationResult, badgesResult] = await Promise.all([
+    supabaseClient.from("public_profiles").select("id,nickname,class_name,is_visible").order("nickname"),
+    supabaseClient.from("content_reports").select("id,reporter_id,reported_user_id,target_type,target_id,reason,created_at").order("created_at", {ascending:false}).limit(100),
+    supabaseClient.from("user_moderation").select("id,user_id,action,reason,expires_at,created_at").is("revoked_at", null).order("created_at", {ascending:false}),
+    supabaseClient.from("user_badges").select("user_id,badge")
+  ]);
+  const errors = [profilesResult.error,reportsResult.error,moderationResult.error,badgesResult.error].filter(Boolean);
+  if (errors.length) console.warn("Admin data load warnings:", errors);
+  const profiles = profilesResult.data || [];
+  const nameById = new Map(profiles.map(p => [p.id,p.nickname]));
+  const badgeById = new Map((badgesResult.data || []).map(b => [b.user_id,b.badge]));
+  const activeById = new Map();
+  (moderationResult.data || []).filter(m => !m.expires_at || new Date(m.expires_at).getTime() > Date.now())
+    .forEach(m => { if (!activeById.has(m.user_id)) activeById.set(m.user_id,[]); activeById.get(m.user_id).push(m); });
+
+  const usersHtml = profiles.map(profile => {
+    const actions = activeById.get(profile.id) || [];
+    const activeHtml = actions.map(m => '<div class="admin-active-action"><strong>' +
+      (m.action === "ban" ? "BAN" : "MUTE") + '</strong> · ' + escapeHTML(m.reason) +
+      '<small>' + escapeHTML(formatModerationExpiry(m.expires_at)) +
+      '</small><button type="button" class="admin-small-btn" data-admin-action="revoke" data-id="' +
+      escapeHTML(m.id) + '">Zdejmij</button></div>').join("");
+    const badge = profile.id === currentUser.id ? '<span class="user-role-badge admin-role">ADMIN</span>' :
+      badgeById.get(profile.id) === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : "";
+    return '<article class="admin-user-card"><div class="admin-user-head"><div><strong>' +
+      escapeHTML(profile.nickname) + '</strong> ' + badge + '<small>' +
+      escapeHTML(profile.class_name || "Klasa niepodana") + '</small></div></div>' +
+      (activeHtml || '<p class="admin-no-action">Brak aktywnych kar</p>') +
+      '<div class="admin-controls"><label>Rodzaj<select data-kind="' + profile.id +
+      '"><option value="mute">Mute</option><option value="ban">Ban</option></select></label>' +
+      '<label>Czas<select data-duration="' + profile.id +
+      '"><option value="1h">1 godzina</option><option value="24h">24 godziny</option><option value="7d" selected>7 dni</option><option value="30d">30 dni</option><option value="permanent">Na zawsze</option></select></label>' +
+      '<label>Powód<select data-reason="' + profile.id +
+      '"><option value="Spam">Spam</option><option value="Obraźliwe zachowanie">Obraźliwe zachowanie</option><option value="Nękanie lub dokuczanie">Nękanie lub dokuczanie</option><option value="Nieodpowiednie treści">Nieodpowiednie treści</option><option value="Inne naruszenie zasad">Inne naruszenie zasad</option></select></label>' +
+      '<button type="button" class="admin-action-btn" data-admin-action="apply" data-id="' + profile.id +
+      '">Zastosuj karę</button>' +
+      (profile.id === currentUser.id ? '' : '<button type="button" class="admin-premium-btn" data-admin-action="premium" data-id="' +
+        profile.id + '">' + (badgeById.get(profile.id) === "premium" ? "Usuń PREMIUM" : "Nadaj PREMIUM") + '</button>') +
+      '</div></article>';
+  }).join("");
+
+  const reportsHtml = (reportsResult.data || []).map(report =>
+    '<div class="admin-report"><strong>' + escapeHTML(nameById.get(report.reported_user_id) || "Nieznany użytkownik") +
+    '</strong><small>' + escapeHTML(report.target_type === "message" ? "Zgłoszona wiadomość" : "Zgłoszony profil") +
+    ' · ' + escapeHTML(new Date(report.created_at).toLocaleString("pl-PL")) + '</small>' +
+    '<p>' + escapeHTML(report.reason || "Użytkownik nie podał dodatkowego opisu.") + '</p></div>'
+  ).join("");
+
+  host.innerHTML = '<div class="admin-overview"><div class="admin-stat"><strong>' + profiles.length +
+    '</strong><span>Widoczne profile</span></div><div class="admin-stat"><strong>' +
+    (reportsResult.data || []).length + '</strong><span>Zgłoszenia</span></div><div class="admin-stat"><strong>' +
+    (moderationResult.data || []).length + '</strong><span>Kary</span></div></div>' +
+    '<div class="page-content admin-intro"><h3>🛡️ Panel administracji</h3><p>Panel jest przypisany do konta administratora i chroniony przez Supabase.</p></div>' +
+    '<h3 class="admin-section-title">Użytkownicy i moderacja</h3>' +
+    '<div class="admin-user-list">' + (usersHtml || '<div class="page-content"><p>Brak widocznych profili.</p></div>') + '</div>' +
+    '<h3 class="admin-section-title">Ostatnie zgłoszenia</h3>' +
+    '<div class="admin-report-list">' + (reportsHtml || '<div class="page-content"><p>Nie ma nowych zgłoszeń.</p></div>') + '</div>' +
+    '<p class="admin-feedback" id="admin-feedback" aria-live="polite"></p>';
+
+  host.querySelectorAll("[data-admin-action]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const action = button.dataset.adminAction;
+      const id = button.dataset.id;
+      button.disabled = true;
+      try {
+        if (action === "apply") {
+          if (id === currentUser.id) throw new Error("Nie możesz nałożyć kary na własne konto.");
+          const kind = host.querySelector('[data-kind="' + id + '"]').value;
+          const duration = host.querySelector('[data-duration="' + id + '"]').value;
+          const reason = host.querySelector('[data-reason="' + id + '"]').value;
+          const expires = duration === "permanent" ? null : new Date(Date.now() + ({
+            "1h":3600000,"24h":86400000,"7d":604800000,"30d":2592000000
+          })[duration]).toISOString();
+          const { error } = await supabaseClient.from("user_moderation").insert({
+            user_id:id, action:kind, reason, expires_at:expires, moderator_id:currentUser.id
+          });
+          if (error) throw error;
+        } else if (action === "revoke") {
+          const { error } = await supabaseClient.from("user_moderation")
+            .update({revoked_at:new Date().toISOString(),revoked_by:currentUser.id})
+            .eq("id",id);
+          if (error) throw error;
+        } else if (action === "premium") {
+          const existing = badgeById.get(id);
+          const result = existing === "premium"
+            ? await supabaseClient.from("user_badges").delete().eq("user_id",id)
+            : await supabaseClient.from("user_badges").upsert({
+                user_id:id,badge:"premium",updated_at:new Date().toISOString(),updated_by:currentUser.id
+              },{onConflict:"user_id"});
+          if (result.error) throw result.error;
+        }
+        await renderAdminPage();
+      } catch (error) {
+        console.error("Admin action failed:", error);
+        const feedback = $("admin-feedback");
+        if (feedback) feedback.textContent = error.message || "Nie udało się wykonać działania.";
+        button.disabled = false;
+      }
+    });
+  });
+}
+
+
 async function openPage(page) {
   const home = $("home-page");
   const other = $("other-page");
@@ -378,7 +542,13 @@ async function openPage(page) {
     $("page-title").textContent = selected.title;
     $("page-subtitle").textContent = selected.subtitle;
 
-    if (page === "profiles") {
+    if (page === "admin") {
+      if (!isAdmin) {
+        $("page-content").innerHTML = '<div class="page-content"><h3>Brak dostępu</h3><p>Ta sekcja jest dostępna wyłącznie dla administratora.</p></div>';
+      } else {
+        await renderAdminPage();
+      }
+    } else if (page === "profiles") {
       $("page-content").innerHTML = '<div class="page-content"><p>Ładowanie profili...</p></div>';
       await loadPublicProfilesFromSupabase();
       await loadFriendsData();
@@ -491,6 +661,9 @@ async function loadMyProfileFromSupabase() {
 
   myProfileCache = await mapDatabaseProfile(data);
   if (myProfileCache) {
+    myProfileCache.badge = isAdmin ? "admin" : currentUserBadge;
+    if (isAdmin) $("user-name").innerHTML = escapeHTML(myProfileCache.nickname) + ' <span class="user-role-badge admin-role">ADMIN</span>';
+    else if (currentUserBadge === "premium") $("user-name").innerHTML = escapeHTML(myProfileCache.nickname) + ' <span class="user-role-badge premium-role">PREMIUM</span>';
     const profiles = getUserProfiles();
     profiles[currentUser.email] = myProfileCache;
     saveUserProfiles(profiles);
@@ -572,9 +745,20 @@ async function loadPublicProfilesFromSupabase() {
     return [];
   }
 
-  publicProfilesCache = (await Promise.all((data || [])
-    .filter(row => row.id !== currentUser?.id)
-    .map(row => mapDatabaseProfile(row)))).filter(Boolean);
+  const visibleRows = (data || []).filter(row => row.id !== currentUser?.id);
+  const ids = visibleRows.map(row => row.id);
+  let badgeMap = new Map();
+  if (ids.length) {
+    const { data: badges, error: badgeError } = await supabaseClient
+      .from("user_badges").select("user_id,badge").in("user_id", ids);
+    if (badgeError) console.warn("Profile badges load error:", badgeError);
+    (badges || []).forEach(row => badgeMap.set(row.user_id, row.badge));
+  }
+  publicProfilesCache = (await Promise.all(visibleRows.map(async row => {
+    const profile = await mapDatabaseProfile(row);
+    if (profile) profile.badge = badgeMap.get(row.id) || null;
+    return profile;
+  }))).filter(Boolean);
   return publicProfilesCache;
 }
 
@@ -704,7 +888,11 @@ function profileCardHTML(profile, own) {
     ? `<div class="profile-klasa">Klasa ${escapeHTML(profile.klasa)}</div>`
     : "";
 
-  const badge = own ? `<span class="you-badge">Twój profil</span>` : "";
+  const roleBadge = profile.id === currentUser?.id && isAdmin
+    ? '<span class="user-role-badge admin-role">ADMIN</span>'
+    : profile.badge === "premium"
+      ? '<span class="user-role-badge premium-role">PREMIUM</span>' : "";
+  const badge = (own ? `<span class="you-badge">Twój profil</span>` : "") + roleBadge;
 
   const action = own
     ? `<button class="report-btn" data-action="edit-profile">Edytuj swój profil</button>`
@@ -2047,6 +2235,8 @@ async function logout() {
   }
 
   currentUser = null;
+  isAdmin = false;
+  currentUserBadge = null;
   myProfileCache = null;
   publicProfilesCache = [];
   profileSocialCache = {};
