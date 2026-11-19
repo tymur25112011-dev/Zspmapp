@@ -36,7 +36,7 @@ function applyTheme(theme) {
   const allowedThemes = ["system", "dark", "liquid-glass"];
   const selectedTheme = allowedThemes.includes(theme) ? theme : "system";
   document.documentElement.dataset.theme = selectedTheme;
-  const themeColor = selectedTheme === "liquid-glass" ? "#dcecff" : selectedTheme === "dark" ? "#0b1422" : "#f3f7fc";
+  const themeColor = selectedTheme === "liquid-glass" ? "#dcecff" : selectedTheme === "dark" ? "#101010" : "#080f1d";
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   if (themeMeta) themeMeta.setAttribute("content", themeColor);
   try {
@@ -52,7 +52,7 @@ function applyChristmasDecorations(enabled) {
   const decorations = document.getElementById("christmas-decorations");
   if (decorations) decorations.classList.toggle("hidden", !active);
   const themeMeta = document.querySelector('meta[name="theme-color"]');
-  if (themeMeta) themeMeta.setAttribute("content", active ? "#123b63" : (document.documentElement.dataset.theme === "liquid-glass" ? "#dcecff" : document.documentElement.dataset.theme === "dark" ? "#0b1422" : "#f3f7fc"));
+  if (themeMeta) themeMeta.setAttribute("content", document.documentElement.dataset.theme === "liquid-glass" ? "#dcecff" : document.documentElement.dataset.theme === "dark" ? "#101010" : "#080f1d");
   try {
     localStorage.setItem(CHRISTMAS_KEY, active ? "on" : "off");
   } catch (error) {}
