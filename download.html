@@ -25,6 +25,51 @@
     footer{text-align:center;color:#7187a2;font-size:11px;padding:28px 0 12px}
     @media(max-width:560px){body{padding:17px}.features{grid-template-columns:1fr}.feature{display:flex;gap:13px;align-items:flex-start}.feature b{margin:1px 0 4px}.feature .ico{min-width:25px}main{padding-top:28px}.app-icon{width:90px;height:90px}}
     @media(prefers-reduced-motion:no-preference){.primary{transition:transform .18s,filter .18s}.primary:active{transform:scale(.98)}}
+  
+    .showcase{position:relative;isolation:isolate;overflow:hidden;min-height:430px;margin:2px calc(50% - 50vw) 28px;padding:36px max(24px,calc((100vw - 980px)/2)) 0;background:radial-gradient(ellipse at 50% 100%,rgba(37,99,235,.22),transparent 48%),linear-gradient(145deg,#050914 0%,#0a1425 55%,#07101d 100%);border-top:1px solid rgba(133,180,255,.1);border-bottom:1px solid rgba(133,180,255,.12)}
+    .showcase:before,.showcase:after{content:"";position:absolute;z-index:-1;border:1px solid rgba(96,165,250,.12);border-radius:50%;width:420px;height:420px;pointer-events:none}
+    .showcase:before{left:-210px;top:70px}.showcase:after{right:-230px;top:-220px;width:560px;height:560px}
+    .showcase-inner{width:min(100%,980px);min-height:390px;margin:auto;display:grid;grid-template-columns:.86fr 1.14fr;align-items:center;gap:16px}
+    .showcase-copy{position:relative;z-index:3;padding:8px 0 42px}
+    .showcase-brand{display:flex;align-items:center;gap:11px;font-size:clamp(27px,4vw,42px);font-weight:850;letter-spacing:-1.8px;color:#f7fbff}
+    .showcase-brand img{width:48px;height:48px;border-radius:14px;box-shadow:0 8px 24px #2563eb55}
+    .showcase-brand span{color:#60a5fa}
+    .showcase-tag{margin-top:23px;color:#8dbfff;font-size:11px;letter-spacing:2.2px;font-weight:800;text-transform:uppercase}
+    .showcase-copy h2{margin:10px 0 12px;font-size:clamp(29px,4vw,46px);line-height:1.04;letter-spacing:-1.7px;color:#fff}
+    .showcase-copy h2 span{color:#70b4ff}
+    .showcase-copy p{max-width:340px;margin:0;color:#9fb1cb;font-size:14px;line-height:1.65}
+    .showcase-points{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+    .showcase-points span{padding:7px 10px;border:1px solid #8abaff30;border-radius:99px;background:#13264288;color:#c8ddfa;font-size:11px}
+    .device-stage{position:relative;min-height:390px;perspective:1000px;overflow:visible}
+    .device{position:absolute;width:218px;height:390px;padding:8px;border:1px solid #65758b;border-radius:32px;background:linear-gradient(145deg,#354052,#090d16 28%,#1b2638 72%,#080b12);box-shadow:0 28px 65px #000b,0 0 0 2px #03060b;overflow:hidden}
+    .device:before{content:"";position:absolute;z-index:4;top:8px;left:50%;transform:translateX(-50%);width:64px;height:14px;border-radius:0 0 11px 11px;background:#05080e}
+    .device-one{left:8%;top:26px;transform:rotate(-8deg);animation:phoneFloatA 6s ease-in-out infinite}
+    .device-two{right:5%;top:-8px;transform:rotate(8deg);animation:phoneFloatB 6.8s ease-in-out infinite}
+    .screen{height:100%;overflow:hidden;border-radius:25px;padding:27px 12px 12px;background:linear-gradient(160deg,#101b2e,#080e19 75%);color:#f5f8ff}
+    .screen-status{display:flex;justify-content:space-between;font-size:8px;color:#a9bbd2;margin:0 3px 17px}
+    .screen-brand{display:flex;align-items:center;gap:6px;font-weight:850;font-size:14px;letter-spacing:-.4px;margin-bottom:17px}
+    .screen-brand img{width:22px;height:22px;border-radius:7px}
+    .screen-title{font-size:17px;font-weight:850;line-height:1.12;margin:5px 0 5px}
+    .screen-sub{font-size:8px;color:#9badc6;margin-bottom:13px}
+    .mini-card{padding:10px;border:1px solid #304665;border-radius:12px;background:linear-gradient(130deg,#172b47,#101b2d);margin:8px 0}
+    .mini-label{font-size:7px;color:#8dbfff;text-transform:uppercase;letter-spacing:1px;font-weight:800}
+    .mini-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+    .avatar-dot{width:29px;height:29px;display:grid;place-items:center;border-radius:10px;background:#274c79;font-size:15px}
+    .mini-name{font-size:9px;font-weight:800}.mini-muted{font-size:7px;color:#92a7c2;margin-top:3px}
+    .mini-action{margin-left:auto;padding:5px 8px;border-radius:7px;background:#2879dc;color:white;font-size:7px;font-weight:800}
+    .mini-tabs{display:flex;gap:5px;margin:12px 0}.mini-tabs i{font-style:normal;padding:6px 7px;border-radius:7px;background:#1b2c44;color:#9eb6d4;font-size:7px}.mini-tabs i:first-child{background:#246cc2;color:white}
+    .idea{padding:9px;border-radius:10px;background:#121f33;border:1px solid #263b58;margin:7px 0}
+    .idea strong{display:block;font-size:8px;margin-bottom:5px}.idea p{font-size:7px;line-height:1.45;color:#9db1cb;margin:0}
+    .idea-foot{display:flex;justify-content:space-between;margin-top:8px;color:#70b4ff;font-size:7px}
+    .chat-bubble{max-width:85%;padding:8px 9px;border-radius:10px;background:#1b2d47;color:#dceaff;font-size:7px;line-height:1.45;margin:9px 0}
+    .chat-bubble.right{margin-left:auto;background:#236ac0;color:white}
+    .screen-nav{position:absolute;bottom:12px;left:18px;right:18px;display:flex;justify-content:space-around;padding:9px 4px;border-radius:13px;background:#0c1728;border:1px solid #273a55;color:#8fb5e5;font-size:10px}
+    @keyframes phoneFloatA{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-11px) rotate(-6deg)}}
+    @keyframes phoneFloatB{0%,100%{transform:translateY(0) rotate(8deg)}50%{transform:translateY(12px) rotate(6deg)}}
+    @media(max-width:650px){.showcase{min-height:570px;padding:30px 18px 0;margin-top:0}.showcase-inner{grid-template-columns:1fr;gap:0;min-height:540px}.showcase-copy{text-align:center;padding:4px 0 0}.showcase-brand{justify-content:center;font-size:30px}.showcase-copy p{margin:0 auto;font-size:12px}.showcase-tag{margin-top:13px}.showcase-copy h2{font-size:34px;margin:8px 0}.showcase-points{justify-content:center;margin-top:12px}.device-stage{min-height:290px;margin:2px -12px 0;transform:scale(.83);transform-origin:top center}.device{width:190px;height:340px}.device-one{left:8%;top:12px}.device-two{right:8%;top:-5px}}
+    @media(max-width:390px){.showcase{min-height:535px}.showcase-inner{min-height:510px}.showcase-copy h2{font-size:30px}.device-stage{transform:scale(.73);min-height:260px}.showcase-points span{font-size:10px}}
+    @media(prefers-reduced-motion:reduce){.device-one,.device-two{animation:none}}
+
   </style>
 </head>
 <body>
@@ -33,6 +78,45 @@
       <img src="./public/icons/icon.svg" alt="" width="42" height="42">
       <div class="brand">ZSPM Community<small>Społeczność uczniów</small></div>
     </header>
+
+    <section class="showcase" aria-label="Poznaj ZSPM Community">
+      <div class="showcase-inner">
+        <div class="showcase-copy">
+          <div class="showcase-brand"><img src="./public/icons/icon.svg" alt=""><div>ZSPM <span>Community</span></div></div>
+          <div class="showcase-tag">Twoja szkoła. Twoja społeczność.</div>
+          <h2>Więcej niż<br><span>szkolna aplikacja.</span></h2>
+          <p>Poznaj uczniów, rozmawiaj, dziel się pomysłami i bądź na bieżąco z tym, co dzieje się w naszej społeczności.</p>
+          <div class="showcase-points"><span>✦ Poznaj ludzi</span><span>✦ Rozmawiaj</span><span>✦ Dziel się pomysłami</span></div>
+        </div>
+        <div class="device-stage" aria-hidden="true">
+          <div class="device device-one">
+            <div class="screen">
+              <div class="screen-status"><span>9:41</span><span>●●●  ▰</span></div>
+              <div class="screen-brand"><img src="./public/icons/icon.svg" alt=""> ZSPM Community</div>
+              <div class="screen-title">Cześć! 👋</div><div class="screen-sub">Twoja społeczność czeka na Ciebie</div>
+              <div class="mini-card"><div class="mini-label">Polecany profil</div><div class="mini-row"><div class="avatar-dot">🦊</div><div><div class="mini-name">SzybkiLis</div><div class="mini-muted">2B · Matematyka, szachy</div></div><span class="mini-action">Profil</span></div></div>
+              <div class="mini-tabs"><i>Odkrywaj</i><i>Znajomi</i><i>Aktywność</i></div>
+              <div class="mini-card"><div class="mini-label">Społeczność</div><div class="mini-row"><div class="avatar-dot">🐼</div><div><div class="mini-name">KreatywnaAnia</div><div class="mini-muted">Dołącz do rozmowy</div></div></div></div>
+              <div class="mini-card"><div class="mini-row"><div class="avatar-dot">🐺</div><div><div class="mini-name">WilkSportowy</div><div class="mini-muted">Sport · 1C</div></div></div></div>
+              <div class="screen-nav"><span>⌂</span><span>♙</span><span>✉</span><span>☆</span></div>
+            </div>
+          </div>
+          <div class="device device-two">
+            <div class="screen">
+              <div class="screen-status"><span>9:41</span><span>●●●  ▰</span></div>
+              <div class="screen-brand"><img src="./public/icons/icon.svg" alt=""> ZSPM Community</div>
+              <div class="screen-title">Wasze pomysły</div><div class="screen-sub">Twórzmy coś razem</div>
+              <div class="idea"><strong>🎨 Strefa kreatywna</strong><p>Może zorganizujemy konkurs na najlepszy projekt plakatu?</p><div class="idea-foot"><span>♡ 24 polubienia</span><span>Komentarze 8</span></div></div>
+              <div class="idea"><strong>🎮 Turniej po lekcjach</strong><p>Zbierzmy ekipę i zaplanujmy wspólną zabawę!</p><div class="idea-foot"><span>♡ 17 polubień</span><span>Komentarze 5</span></div></div>
+              <div class="screen-title" style="font-size:12px;margin-top:14px">Wiadomości</div>
+              <div class="chat-bubble">Hej! Masz ochotę dołączyć do naszego pomysłu?</div>
+              <div class="chat-bubble right">Jasne! Opowiedz więcej 😊</div>
+              <div class="screen-nav"><span>⌂</span><span>♙</span><span>✉</span><span>☆</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
     <main>
       <img class="app-icon" src="./public/icons/icon.svg" alt="Ikona ZSPM Community" width="104" height="104">
       <div class="eyebrow"><span>✦</span> Aplikacja internetowa PWA</div>
