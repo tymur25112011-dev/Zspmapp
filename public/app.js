@@ -726,6 +726,9 @@ async function saveMyProfile(profile) {
     .select("id,nickname,class_name,bio,interests,photo_path,is_visible,show_class,show_interests")
     .single();
 
+  if (error?.code === "23505") {
+    throw new Error("Ten pseudonim jest już zajęty. Wybierz inną nazwę.");
+  }
   if (error) throw error;
 
   if (oldPhotoPath && oldPhotoPath !== photoPath) {
