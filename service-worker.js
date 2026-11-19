@@ -1,4 +1,4 @@
-const CACHE_NAME = "zspm-community-shell-v51";
+const CACHE_NAME = "zspm-community-shell-v52";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -10,7 +10,8 @@ const APP_SHELL = [
   "./manifest.webmanifest",
   "./public/icons/icon.svg",
   "./public/icons/icon-192.svg",
-  "./public/icons/icon-512.svg"
+  "./public/icons/icon-512.svg",
+  "./public/icons/community-logo.svg"
 ];
 
 self.addEventListener("install", event => {
