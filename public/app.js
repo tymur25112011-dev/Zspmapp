@@ -1392,7 +1392,7 @@ function renderQuestionnairePage() {
 
     <form id="my-profile-form">
       <div class="page-content">
-        <h3>Edytuj profil</h3>
+        <h3>Edytuj ankietę</h3><p class="section-sub">Ankieta jest niezależna od Twojego publicznego profilu społeczności.</p>
 
         <div class="field">
           <label>Pseudonim</label>
@@ -1430,7 +1430,7 @@ function renderQuestionnairePage() {
             placeholder="np. sport, muzyka, gry" value="${escapeHTML(interests)}">
         </div>
 
-        <button class="main-btn" type="submit">Zapisz zmiany</button>
+        <button class="main-btn" type="submit">Zapisz ankietę</button>
       </div>
     </form>
   `;
@@ -1555,7 +1555,7 @@ function bindQuestionnairePage() {
       showMessage("my-profile-message", error.message || "Nie udało się zapisać profilu.");
     } finally {
       submitButton.disabled = false;
-      submitButton.textContent = "Zapisz zmiany";
+      submitButton.textContent = "Zapisz ankietę";
     }
   });
 }
@@ -1598,7 +1598,7 @@ function renderSettingsPage() {
       <p>Ustawienia prywatności profilu są zapisywane na Twoim koncie.</p>
       <div class="switch-row">
         <div>
-          <div class="switch-label">Profil widoczny na liście</div>
+          <div class="switch-label">Ankieta widoczna na liście</div>
           <div class="switch-hint">Gdy wyłączysz, Twój profil nie będzie wyświetlany w sekcji „Profile uczniów".</div>
         </div>
         <label class="toggle">
@@ -1608,7 +1608,7 @@ function renderSettingsPage() {
       </div>
       <div class="switch-row">
         <div>
-          <div class="switch-label">Pokazuj moją klasę</div>
+          <div class="switch-label">Pokazuj klasę w ankiecie</div>
           <div class="switch-hint">Ukrywa numer klasy na Twoim profilu publicznym.</div>
         </div>
         <label class="toggle">
@@ -1618,7 +1618,7 @@ function renderSettingsPage() {
       </div>
       <div class="switch-row">
         <div>
-          <div class="switch-label">Pokazuj zainteresowania</div>
+          <div class="switch-label">Pokazuj zainteresowania w ankiecie</div>
           <div class="switch-hint">Ukrywa Twoje zainteresowania na profilu publicznym.</div>
         </div>
         <label class="toggle">
