@@ -3168,3 +3168,51 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
 .menu-item .menu-icon { margin-left: auto; margin-right: auto; }
 .profile-own-likes { display: inline-flex; align-items: center; gap: 6px; color: var(--zspm-muted); font-size: 13px; font-weight: 700; }
 .profile-own-likes > span { color: var(--zspm-text); }
+
+
+/* New section icons: hard-center the SVG artwork inside each tile */
+.menu-item[data-page="ideas"], .menu-item[data-page="ranking"], .menu-item[data-page="information"] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.menu-item[data-page="ideas"] .menu-icon,
+.menu-item[data-page="ranking"] .menu-icon,
+.menu-item[data-page="information"] .menu-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  padding: 0;
+  line-height: 0;
+  flex: 0 0 46px;
+}
+.menu-item[data-page="ideas"] .menu-icon svg,
+.menu-item[data-page="ranking"] .menu-icon svg,
+.menu-item[data-page="information"] .menu-icon svg {
+  display: block;
+  position: static;
+  inset: auto;
+  margin: 0;
+  transform: none;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+}
+.admin-tabs { display:flex; gap:8px; overflow-x:auto; padding:4px 1px 12px; margin-bottom:12px; }
+.admin-tab { flex:1 0 auto; border:1px solid var(--zspm-border); border-radius:12px; padding:11px 14px; background:var(--zspm-panel); color:var(--zspm-muted); font-weight:700; font-size:13px; }
+.admin-tab.active { color:#fff; background:var(--zspm-blue-2); border-color:var(--zspm-blue); }
+.admin-panel { display:none; }
+.admin-panel.active { display:block; }
+.admin-reported-content { margin:10px 0; padding:10px 12px; border-left:3px solid var(--zspm-blue); border-radius:8px; background:var(--zspm-panel-2); color:var(--zspm-text); white-space:pre-wrap; overflow-wrap:anywhere; }
+.bubble-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; margin-top:8px; }
+.msg-action { border:1px solid var(--zspm-border); border-radius:8px; padding:5px 8px; background:var(--zspm-blue-soft); color:var(--zspm-muted); font-size:11px; }
+.msg-action.liked { color:#ff789d; border-color:rgba(255,120,157,.35); }
+.msg-action.danger { color:#ff8793; }
+.bubble-reply-context, .chat-reply-hint { margin:4px 0 8px; padding:7px 9px; border-left:3px solid var(--zspm-blue); border-radius:7px; background:var(--zspm-blue-soft); color:var(--zspm-muted); font-size:11px; overflow-wrap:anywhere; }
+.global-message .bubble-actions { justify-content:flex-start; }
+.global-message .bubble-actions .msg-action { font-size:11px; }
+.global-chat-composer { flex-wrap:wrap; }
+.global-chat-composer .chat-reply-hint { flex:1 0 100%; }
