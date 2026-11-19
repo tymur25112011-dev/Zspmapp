@@ -2176,7 +2176,7 @@ async function openGlobalChat() {
   }
   const box = $("global-chat-messages"); if (box) box.scrollTop = box.scrollHeight;
   globalChatChannel = supabaseClient.channel("global-chat-live")
-    .on("postgres_changes",{event:"INSERT",schema:"public",table:"global_chat_messages"},async payload=>{
+     .on("postgres_changes",{event:"*",schema:"public",table:"global_chat_messages"},async payload=>{
       const fresh=payload.new;
       if ($("global-chat-messages")) await openGlobalChat();
     }).subscribe();
@@ -2358,7 +2358,7 @@ async function openChat(conversationId) {
 
   activeChatChannel = supabaseClient.channel("messages-" + conversationId)
     .on("postgres_changes", {
-      event: "INSERT",
+      event: "*",
       schema: "public",
       table: "messages",
       filter: "conversation_id=eq." + conversationId
