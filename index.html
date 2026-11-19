@@ -1412,7 +1412,11 @@ async function enterApp() {
   updateNotifBadge();
 
   await loadMyProfileFromSupabase();
-  openPage("home");
+  await loadBlockedUsers();
+  await loadFriendsData();
+  await loadNotifications();
+  await setupRealtimeSubscriptions();
+  await openPage("home");
 }
 
 
@@ -1440,6 +1444,12 @@ const pages = {
   friends: {
     title: "Znajomi",
     subtitle: "Zaproszenia i Twoi znajomi",
+    content: ""
+  },
+
+  notifications: {
+    title: "Powiadomienia",
+    subtitle: "Twoja aktywność w społeczności",
     content: ""
   },
 
@@ -1483,14 +1493,19 @@ async function openPage(page) {
     if (page === "profiles") {
       $("page-content").innerHTML = '<div class="page-content"><p>Ładowanie profili...</p></div>';
       await loadPublicProfilesFromSupabase();
+      await loadFriendsData();
+      await loadBlockedUsers();
+      await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
       $("page-content").innerHTML = renderProfilesPage();
       bindProfilesPage();
     } else if (page === "my-profile") {
       renderMyProfilePage();
     } else if (page === "chat") {
-      renderChatList();
+      await renderChatList();
     } else if (page === "friends") {
-      renderFriendsPage();
+      await renderFriendsPage();
+    } else if (page === "notifications") {
+      await renderNotificationsPage();
     } else if (page === "settings") {
       renderSettingsPage();
     } else {
@@ -2948,6 +2963,8 @@ document.querySelectorAll("[data-page]").forEach(button => {
   });
 });
 
+$("notif-bell").addEventListener("click", () => openPage("notifications"));
+
 const accountSwitchButton = $("account-switch");
 const accountMenu = $("account-menu");
 
@@ -2983,6 +3000,14 @@ $("account-logout").addEventListener("click", async () => {
 
 async function logout() {
   closeAccountMenu();
+  if (activeChatChannel) {
+    await supabaseClient.removeChannel(activeChatChannel);
+    activeChatChannel = null;
+  }
+  if (notificationsChannel) {
+    await supabaseClient.removeChannel(notificationsChannel);
+    notificationsChannel = null;
+  }
   if (supabaseClient) {
     const { error } = await supabaseClient.auth.signOut();
     if (error) {
@@ -2993,6 +3018,16 @@ async function logout() {
   }
 
   currentUser = null;
+  myProfileCache = null;
+  publicProfilesCache = [];
+  profileSocialCache = {};
+  friendsDataCache = { incoming: [], outgoing: [], friends: [] };
+  blockedUsersCache = [];
+  notificationsCache = [];
+  conversationsCache = [];
+  activeConversationId = null;
+  activeChatProfile = null;
+  updateNotifBadge();
   $("app").classList.add("hidden");
   $("auth").classList.remove("hidden");
   $("register").reset();
