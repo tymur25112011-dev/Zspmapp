@@ -1918,3 +1918,34 @@ body.christmas-enabled #app .bottom-nav { margin-bottom: 0; }
 @media (prefers-reduced-motion: reduce) {
   .christmas-garland i, .christmas-snow { animation: none !important; }
 }
+
+/* Layered snowfall motion and compact mobile ornaments */
+@keyframes snowfall-back {
+  from { background-position: 0 -180px, 35px -260px, 80px -210px; transform: translate3d(0,0,0); }
+  to { background-position: 70px 1050px, -65px 1180px, 110px 980px; transform: translate3d(-2%,0,0); }
+}
+@keyframes snowfall-mid {
+  from { background-position: 0 -220px, 70px -300px, 130px -180px; transform: translate3d(0,0,0); }
+  to { background-position: -90px 1250px, 105px 1420px, -75px 1160px; transform: translate3d(2%,0,0); }
+}
+@keyframes snowfall-front {
+  from { background-position: 20px -260px, 110px -340px; transform: translate3d(0,0,0); }
+  to { background-position: -120px 1450px, 150px 1580px; transform: translate3d(-3%,0,0); }
+}
+@media (max-width: 760px) {
+  .christmas-garland { height: 27px; }
+  .christmas-garland i { width: 5px; height: 8px; margin-top: 8px; }
+  .christmas-snowbank { height: 79px; bottom: -17px; }
+  .christmas-scene { transform: scale(.76); transform-origin: bottom center; }
+  .christmas-snowman { right: max(4px, env(safe-area-inset-right)); }
+  .christmas-tree { left: max(4px, env(safe-area-inset-left)); }
+  .snowfall-back { opacity: .48; }
+  .snowfall-mid { opacity: .66; }
+  .snowfall-front { opacity: .36; }
+}
+@media (max-width: 380px) {
+  .christmas-scene { transform: scale(.68); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .snowfall-back, .snowfall-mid, .snowfall-front { animation: none !important; }
+}
