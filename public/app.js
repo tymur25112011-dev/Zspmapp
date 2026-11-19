@@ -2505,7 +2505,7 @@ async function openGlobalChat(roomId = null) {
     replyToMessageId=null;input.value="";await openGlobalChat(activeGlobalRoomId);
   });
   const box=$("global-chat-messages");if(box)box.scrollTop=box.scrollHeight;
-  globalChatChannel=supabaseClient.channel("global-chat-live").on("postgres_changes",{event:"*",schema:"public",table:"global_chat_messages"},async()=>{if($("global-chat-messages"))await openGlobalChat(activeGlobalRoomId);}).subscribe();
+  globalChatChannel=supabaseClient.channel("global-chat-live").on("postgres_changes",{event:"*",schema:"public",table:"global_chat_messages"},async()=>{if($("global-chat-messages"))await openGlobalChat(activeGlobalRoomId);}).on("postgres_changes",{event:"*",schema:"public",table:"global_chat_message_reactions"},async()=>{if($("global-chat-messages"))await openGlobalChat(activeGlobalRoomId);}).subscribe();
 }
 
 async function loadConversationMessages(conversationId) {
