@@ -354,7 +354,7 @@ async function enterApp() {
 
 const pages = {
   profiles: {
-    title: "Profile uczniów",
+    title: "Ankiety uczniów",
     subtitle: "Poznaj społeczność swojej szkoły",
     content: ""
   },
@@ -1599,7 +1599,7 @@ function renderSettingsPage() {
       <div class="switch-row">
         <div>
           <div class="switch-label">Ankieta widoczna na liście</div>
-          <div class="switch-hint">Gdy wyłączysz, Twój profil nie będzie wyświetlany w sekcji „Profile uczniów".</div>
+          <div class="switch-hint">Gdy wyłączysz, Twój profil nie będzie wyświetlany w sekcji „Ankiety uczniów".</div>
         </div>
         <label class="toggle">
           <input type="checkbox" id="privacy-visible" ${privacy.visible !== false ? "checked" : ""}>
@@ -1787,7 +1787,7 @@ function renderCommunityProfileEditor(profile) {
       '<div class="community-theme-grid">'+bannerChoices+'</div></section>' +
       '<section class="community-editor-section"><h4>Avatar i dekoracje</h4><div class="community-avatar-editor-row">'+communityAvatarMarkup(current,"editor-avatar")+'<div><label class="community-upload-btn">Zmień avatar<input id="community-avatar-file" type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button type="button" class="pill-btn" id="community-clear-avatar">Usuń avatar</button></div></div>' +
       '<div class="community-decoration-grid">'+decorationChoices+'</div></section>' +
-      '<section class="community-editor-section"><h4>Informacje</h4>' +
+      '<section class="community-editor-section"><h4>Informacje</h4><p class="community-public-note">Informacje na tej stronie widzą inni zalogowani użytkownicy. Imię i nazwisko są opcjonalne — nie wpisuj danych, których nie chcesz udostępniać.</p>' +
         '<label class="community-form-field">Nick<input id="community-nickname" maxlength="32" minlength="2" required value="'+escapeHTML(current.nickname||currentUser.name)+'"></label>' +
         '<label class="community-form-field">Status<input id="community-status" maxlength="80" placeholder="Co u Ciebie?" value="'+escapeHTML(current.status_text||'')+'"></label>' +
         '<label class="community-form-field">Opis<textarea id="community-bio" maxlength="500" rows="4" placeholder="Napisz kilka słów o sobie...">'+escapeHTML(current.bio||'')+'</textarea></label>' +
@@ -1942,9 +1942,10 @@ document.addEventListener("click", event => {
   const avatar = event.target.closest("[data-open-community-profile]");
   if (avatar) {
     event.preventDefault();
+    event.stopPropagation();
     openCommunityProfile(avatar.dataset.openCommunityProfile);
   }
-});
+}, true);
 document.addEventListener("keydown", event => {
   if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-open-community-profile]")) {
     event.preventDefault();
@@ -2215,7 +2216,7 @@ async function renderFriendsPage() {
       </div>` : ""}
     <div class="page-content">
       <h3>Moi znajomi (${friendsDataCache.friends.length})</h3>
-      ${friendsHTML || '<p class="section-sub">Nie masz jeszcze znajomych. Poznaj uczniów w sekcji „Profile uczniów”.</p>'}
+      ${friendsHTML || '<p class="section-sub">Nie masz jeszcze znajomych. Poznaj uczniów w sekcji „Ankiety uczniów”.</p>'}
     </div>
   `;
   bindFriendsPage();
@@ -2810,7 +2811,7 @@ async function setupRealtimeSubscriptions() {
       await loadFriendsData();
       const pageTitle = document.querySelector("#page-title")?.textContent;
       if (pageTitle === "Znajomi") await renderFriendsPage();
-      if (pageTitle === "Profile uczniów") {
+      if (pageTitle === "Ankiety uczniów") {
         await loadBlockedUsers();
         await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
         $("page-content").innerHTML = renderProfilesPage();
@@ -2821,7 +2822,7 @@ async function setupRealtimeSubscriptions() {
       await loadFriendsData();
       const pageTitle = document.querySelector("#page-title")?.textContent;
       if (pageTitle === "Znajomi") await renderFriendsPage();
-      if (pageTitle === "Profile uczniów") {
+      if (pageTitle === "Ankiety uczniów") {
         await loadBlockedUsers();
         await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
         $("page-content").innerHTML = renderProfilesPage();
@@ -2832,14 +2833,14 @@ async function setupRealtimeSubscriptions() {
 
   socialChannel = supabaseClient.channel("profile-social-" + currentUser.id)
     .on("postgres_changes", { event: "*", schema: "public", table: "profile_likes" }, async () => {
-      if (document.querySelector("#page-title")?.textContent === "Profile uczniów") {
+      if (document.querySelector("#page-title")?.textContent === "Ankiety uczniów") {
         await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
         $("page-content").innerHTML = renderProfilesPage();
         bindProfilesPage();
       }
     })
     .on("postgres_changes", { event: "*", schema: "public", table: "profile_comments" }, async () => {
-      if (document.querySelector("#page-title")?.textContent === "Profile uczniów") {
+      if (document.querySelector("#page-title")?.textContent === "Ankiety uczniów") {
         await loadProfileSocialData([currentUser.id, ...publicProfilesCache.map(item => item.id)]);
         $("page-content").innerHTML = renderProfilesPage();
         bindProfilesPage();
