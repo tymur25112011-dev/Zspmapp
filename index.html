@@ -1579,10 +1579,14 @@ function profileSocialHTML(profile) {
   const liked = item.liked === true;
   const likes = Math.max(0, Number(item.likes) || 0);
   const comments = Array.isArray(item.comments) ? item.comments : [];
-  const commentsHTML = comments.map(comment =>
-    '<div class="profile-comment"><strong>' + escapeHTML(comment.author || "Uczeń") +
+  const commentsHTML = comments.map((comment, index) =>
+    '<div class="profile-comment' + (index >= 2 ? ' profile-comment-extra' : '') + '">' +
+    '<strong>' + escapeHTML(comment.author || "Uczeń") +
     '</strong><span>' + escapeHTML(comment.text || "") + '</span></div>'
   ).join("");
+  const commentsToggle = comments.length > 2
+    ? '<button type="button" class="profile-comments-toggle" data-action="toggle-comments" aria-expanded="false">Więcej</button>'
+    : "";
 
   return '<div class="profile-social">' +
     '<div class="profile-social-actions">' +
@@ -1594,7 +1598,8 @@ function profileSocialHTML(profile) {
     '<span class="profile-comment-count">' + comments.length + ' komentarzy</span></div>' +
     '<div class="profile-comments">' +
     (commentsHTML || '<p class="no-comments">Jeszcze nie ma komentarzy.</p>') +
-    '</div><form class="profile-comment-form" data-profile-id="' +
+    '</div>' + commentsToggle +
+    '<form class="profile-comment-form" data-profile-id="' +
     escapeHTML(profile.id) + '">' +
     '<input type="text" name="comment" maxlength="240" placeholder="Napisz komentarz..." aria-label="Napisz komentarz" required>' +
     '<button type="submit">Dodaj</button></form></div>';
@@ -1748,6 +1753,15 @@ function bindProfilesPage() {
       data[id] = item;
       saveProfileSocialData(data);
       rerenderProfiles();
+    });
+  });
+
+  container.querySelectorAll("[data-action='toggle-comments']").forEach(button => {
+    button.addEventListener("click", () => {
+      const comments = button.parentElement.querySelector(".profile-comments");
+      const expanded = comments.classList.toggle("expanded");
+      button.textContent = expanded ? "Mniej" : "Więcej";
+      button.setAttribute("aria-expanded", expanded ? "true" : "false");
     });
   });
 
