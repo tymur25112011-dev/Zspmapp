@@ -411,6 +411,10 @@ const pages = {
     content: ""
   },
 
+  forum: { title: "Forum społeczności", subtitle: "Rozmawiaj na tematy szkolne i nie tylko", content: "" },
+  planner: { title: "Mój plan", subtitle: "Zadania, sprawdziany i terminy", content: "" },
+  cosmetics: { title: "Sklep wyglądu", subtitle: "Odblokowuj ozdoby wraz z poziomem", content: "" },
+
   ranking: {
     title: "Ranking",
     subtitle: "Najaktywniejsi, wspierający i lubiani",
@@ -698,6 +702,12 @@ async function openPage(page, options = {}) {
       renderSettingsPage();
     } else if (page === "ideas") {
       await renderIdeasPage();
+    } else if (page === "forum") {
+      await renderCommunityForumPage();
+    } else if (page === "planner") {
+      await renderCommunityPlannerPage();
+    } else if (page === "cosmetics") {
+      await renderCommunityCosmeticsPage();
     } else if (page === "ranking") {
       await renderRankingPage();
     } else if (page === "information") {
@@ -1716,6 +1726,10 @@ function communityAchievements(profile, roleBadge) {
   if (keys.has("messages_10")) items.push({icon:"🗨️",name:"Rozmowny",desc:"Wysłał 10 wiadomości"});
   if (keys.has("messages_100")) items.push({icon:"🏅",name:"Aktywny rozmówca",desc:"Wysłał 100 wiadomości"});
   if (keys.has("level_5")) items.push({icon:"⭐",name:"Poziom 5",desc:"Osiągnął 5 poziom społeczności"});
+  if (keys.has("messages_25")) items.push({icon:"🎯",name:"Stały uczestnik",desc:"Wysłał 25 wiadomości"});
+  if (keys.has("messages_500")) items.push({icon:"🏆",name:"Głos społeczności",desc:"Wysłał 500 wiadomości"});
+  if (keys.has("level_10")) items.push({icon:"🌟",name:"Poziom 10",desc:"Osiągnął 10 poziom społeczności"});
+  if (keys.has("level_20")) items.push({icon:"💎",name:"Weteran",desc:"Osiągnął 20 poziom społeczności"});
   if (profile?.bio && profile?.interests?.length && profile?.avatar_path) {
     items.push({icon:"◆",name:"Dopracowany profil",desc:"Uzupełnione informacje i avatar"});
   }
@@ -2813,12 +2827,20 @@ async function renderNotificationsPage() {
       </button>`;
   }).join("");
   $("page-content").innerHTML = `
-    <div class="page-content">
-      <h3>Powiadomienia</h3>
-      <p>Zaproszenia, wiadomości i aktywność przy Twojej ankiecie.</p>
+    <div class="page-content notif-page-head">
+      <div><h3>Powiadomienia</h3><p>Zaproszenia, wiadomości i aktywność w społeczności.</p></div>
+      <button type="button" class="secondary-btn" id="mark-all-notifications">Oznacz wszystkie jako przeczytane</button>
     </div>
     <div class="conv-list">${items || '<div class="page-content"><p>Nie masz jeszcze powiadomień.</p></div>'}</div>
   `;
+  const markAll = $("mark-all-notifications");
+  if (markAll) markAll.addEventListener("click", async () => {
+    markAll.disabled = true;
+    const {error} = await supabaseClient.from("notifications").update({read_at:new Date().toISOString()})
+      .eq("user_id",currentUser.id).is("read_at",null);
+    if (error) alert("Nie udało się zaktualizować powiadomień.");
+    await renderNotificationsPage();
+  });
   $("page-content").querySelectorAll("[data-notification-id]").forEach(button => {
     button.addEventListener("click", async () => {
       const notification = notificationsCache.find(item => item.id === button.dataset.notificationId);
@@ -2924,6 +2946,71 @@ async function setupRealtimeSubscriptions() {
       }
     })
     .subscribe();
+}
+
+
+// FORUM, SZKOLNY PLANER I PERSONALIZACJA
+
+const FORUM_CATEGORIES = {general:"Ogólne",school:"Szkoła",help:"Pomoc w nauce",ideas:"Pomysły",events:"Wydarzenia"};
+
+async function renderCommunityForumPage() {
+  const host=$("page-content");
+  host.innerHTML='<div class="page-content"><p>Ładowanie forum...</p></div>';
+  const [postsResult,profilesResult]=await Promise.all([
+    supabaseClient.from("community_forum_posts").select("id,author_id,category,title,body,is_locked,created_at").order("created_at",{ascending:false}).limit(60),
+    supabaseClient.from("public_profiles").select("id,nickname")
+  ]);
+  if(postsResult.error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować forum.</p></div>';return;}
+  const posts=postsResult.data||[], names=new Map((profilesResult.data||[]).map(p=>[p.id,p.nickname]));
+  const commentsResult=posts.length?await supabaseClient.from("community_forum_comments").select("id,post_id,author_id,body,created_at").in("post_id",posts.map(p=>p.id)).order("created_at",{ascending:true}).limit(300):{data:[],error:null};
+  const comments=commentsResult.data||[];
+  host.innerHTML='<div class="feature-intro"><strong>Forum ZSPM</strong><p>Wymieniaj się pomysłami, pytaj o szkołę i pomagaj innym. Nie publikuj prywatnych danych.</p></div>'+
+  '<form class="feature-form" id="forum-post-form"><h3>Nowy temat</h3><label>Kategoria<select id="forum-category">'+Object.entries(FORUM_CATEGORIES).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join("")+'</select></label><label>Tytuł<input id="forum-title" maxlength="100" minlength="4" required placeholder="O czym chcesz porozmawiać?"></label><label>Treść<textarea id="forum-body" maxlength="5000" minlength="10" rows="4" required placeholder="Napisz coś od siebie..."></textarea></label><button class="main-btn" type="submit">Opublikuj temat</button><p id="forum-feedback" class="feature-feedback" aria-live="polite"></p></form>'+
+  '<div class="feature-list">'+(posts.map(post=>{
+    const own=post.author_id===currentUser.id, postComments=comments.filter(c=>c.post_id===post.id);
+    return '<article class="feature-card"><div class="feature-card-top"><span class="feature-tag">'+(FORUM_CATEGORIES[post.category]||"Ogólne")+'</span><small>'+escapeHTML(names.get(post.author_id)||"Uczeń")+' · '+escapeHTML(new Date(post.created_at).toLocaleDateString("pl-PL"))+'</small></div><h3>'+escapeHTML(post.title)+'</h3><p class="feature-body">'+escapeHTML(post.body)+'</p>'+
+    (own||isAdmin?'<button type="button" class="text-action" data-forum-delete="'+post.id+'">Usuń temat</button>':"")+
+    '<div class="forum-comments"><strong>Komentarze ('+postComments.length+')</strong>'+(postComments.map(c=>'<div class="forum-comment"><b>'+escapeHTML(names.get(c.author_id)||"Uczeń")+'</b><p>'+escapeHTML(c.body)+'</p>'+(c.author_id===currentUser.id||isAdmin?'<button type="button" class="text-action" data-forum-comment-delete="'+c.id+'">Usuń</button>':"")+'</div>').join("")||'<small>Jeszcze nikt nie skomentował.</small>')+
+    (post.is_locked?'<p class="muted">Dyskusja zamknięta.</p>':'<form class="forum-comment-form" data-forum-comment-form="'+post.id+'"><input maxlength="2000" required placeholder="Dodaj komentarz"><button type="submit" aria-label="Wyślij komentarz">➤</button></form>')+'</div></article>';
+  }).join("")||'<div class="page-content"><p>Forum jest jeszcze puste. Dodaj pierwszy temat!</p></div>')+'</div>';
+  host.querySelector("#forum-post-form").addEventListener("submit",async e=>{
+    e.preventDefault();const b=e.currentTarget.querySelector("button[type=submit]");b.disabled=true;
+    const {error}=await supabaseClient.from("community_forum_posts").insert({author_id:currentUser.id,category:host.querySelector("#forum-category").value,title:host.querySelector("#forum-title").value.trim(),body:host.querySelector("#forum-body").value.trim()});
+    if(error){host.querySelector("#forum-feedback").textContent="Nie udało się opublikować tematu.";b.disabled=false;return;}await renderCommunityForumPage();
+  });
+  host.querySelectorAll("[data-forum-comment-form]").forEach(form=>form.addEventListener("submit",async e=>{
+    e.preventDefault();const input=form.querySelector("input");const body=input.value.trim();if(!body)return;
+    const {error}=await supabaseClient.from("community_forum_comments").insert({post_id:form.dataset.forumCommentForm,author_id:currentUser.id,body});
+    if(error){alert("Nie udało się dodać komentarza.");return;}await renderCommunityForumPage();
+  }));
+  host.querySelectorAll("[data-forum-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Usunąć ten temat i komentarze?"))return;const {error}=await supabaseClient.from("community_forum_posts").delete().eq("id",b.dataset.forumDelete);if(error)alert("Nie udało się usunąć tematu.");else await renderCommunityForumPage();}));
+  host.querySelectorAll("[data-forum-comment-delete]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await supabaseClient.from("community_forum_comments").delete().eq("id",b.dataset.forumCommentDelete);if(error)alert("Nie udało się usunąć komentarza.");else await renderCommunityForumPage();}));
+}
+
+async function renderCommunityPlannerPage() {
+  const host=$("page-content");
+  const {data:tasks,error}=await supabaseClient.from("community_planner_tasks").select("id,title,details,due_at,completed,created_at").eq("user_id",currentUser.id).order("completed").order("due_at",{ascending:true,nullsFirst:false}).limit(100);
+  if(error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować planera.</p></div>';return;}
+  host.innerHTML='<div class="feature-intro"><strong>Twój szkolny planer</strong><p>Terminy i zadania widzisz tylko Ty. Nie dodawaj wrażliwych danych.</p></div>'+
+  '<form class="feature-form" id="planner-form"><h3>Dodaj zadanie</h3><label>Nazwa<input id="planner-title" maxlength="120" required placeholder="Np. Powtórzyć fizykę"></label><label>Szczegóły<textarea id="planner-details" maxlength="1500" rows="3" placeholder="Temat, zakres lub notatka"></textarea></label><label>Termin<input id="planner-due" type="datetime-local"></label><button class="main-btn" type="submit">Dodaj do planu</button></form>'+
+  '<div class="feature-list">'+((tasks||[]).map(task=>'<article class="feature-card planner-task '+(task.completed?'is-complete':'')+'"><label class="planner-check"><input type="checkbox" data-planner-toggle="'+task.id+'" '+(task.completed?'checked':'')+'><span></span></label><div class="planner-task-content"><strong>'+escapeHTML(task.title)+'</strong>'+(task.details?'<p>'+escapeHTML(task.details)+'</p>':"")+(task.due_at?'<small>Termin: '+escapeHTML(new Date(task.due_at).toLocaleString("pl-PL"))+'</small>':'<small>Bez terminu</small>')+'</div><button type="button" class="text-action" data-planner-delete="'+task.id+'">Usuń</button></article>').join("")||'<div class="page-content"><p>Nie masz jeszcze zadań. Dodaj pierwsze!</p></div>')+'</div>';
+  host.querySelector("#planner-form").addEventListener("submit",async e=>{e.preventDefault();const b=e.currentTarget.querySelector("button[type=submit]");b.disabled=true;const raw=host.querySelector("#planner-due").value;const {error}=await supabaseClient.from("community_planner_tasks").insert({user_id:currentUser.id,title:host.querySelector("#planner-title").value.trim(),details:host.querySelector("#planner-details").value.trim(),due_at:raw?new Date(raw).toISOString():null});if(error){alert("Nie udało się dodać zadania.");b.disabled=false;return;}await renderCommunityPlannerPage();});
+  host.querySelectorAll("[data-planner-toggle]").forEach(box=>box.addEventListener("change",async()=>{const {error}=await supabaseClient.from("community_planner_tasks").update({completed:box.checked,updated_at:new Date().toISOString()}).eq("id",box.dataset.plannerToggle).eq("user_id",currentUser.id);if(error)alert("Nie udało się zmienić zadania.");else await renderCommunityPlannerPage();}));
+  host.querySelectorAll("[data-planner-delete]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await supabaseClient.from("community_planner_tasks").delete().eq("id",b.dataset.plannerDelete).eq("user_id",currentUser.id);if(error)alert("Nie udało się usunąć zadania.");else await renderCommunityPlannerPage();}));
+}
+
+async function renderCommunityCosmeticsPage() {
+  const host=$("page-content");host.innerHTML='<div class="page-content"><p>Ładowanie sklepu...</p></div>';
+  const [{data:progress},{data:profile},{data:items,error}]=await Promise.all([
+    supabaseClient.from("community_progress").select("level,xp").eq("user_id",currentUser.id).maybeSingle(),
+    supabaseClient.from("community_profiles").select("avatar_decoration,banner_theme").eq("user_id",currentUser.id).maybeSingle(),
+    supabaseClient.from("community_cosmetics").select("id,name,description,cosmetic_type,cosmetic_value,unlock_level").eq("is_active",true).order("sort_order")
+  ]);
+  if(error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować sklepu.</p></div>';return;}
+  const level=progress?.level||1;
+  host.innerHTML='<div class="feature-intro"><strong>Sklep wyglądu</strong><p>Ozdoby odblokowują się za aktywność i zdobywanie poziomów. Nie ma płatności ani wydawania XP.</p><div class="cosmetic-level">Twój poziom: <b>'+level+'</b> · '+(progress?.xp||0)+' XP</div></div>'+
+  '<div class="feature-list cosmetics-grid">'+(items||[]).map(item=>{const unlocked=level>=item.unlock_level;const equipped=item.cosmetic_type==="avatar_decoration"?profile?.avatar_decoration===item.cosmetic_value:profile?.banner_theme===item.cosmetic_value;return '<article class="feature-card cosmetic-card '+(unlocked?'':'is-locked')+'"><div class="cosmetic-preview '+(item.cosmetic_type==="banner_theme"?'theme-'+item.cosmetic_value:'decor-'+item.cosmetic_value)+'">'+(item.cosmetic_type==="banner_theme"?'▰':'✦')+'</div><div><strong>'+escapeHTML(item.name)+'</strong><p>'+escapeHTML(item.description)+'</p><small>'+(unlocked?(equipped?'Используется':'Открыто'):'Откроется на уровне '+item.unlock_level)+'</small></div><button type="button" class="secondary-btn" data-cosmetic-equip="'+item.id+'" '+(!unlocked||equipped?'disabled':'')+'> '+(equipped?'Выбрано':unlocked?'Применить':'Закрыто')+'</button></article>';}).join("")+'</div>';
+  host.querySelectorAll("[data-cosmetic-equip]").forEach(b=>b.addEventListener("click",async()=>{const item=items.find(x=>x.id===b.dataset.cosmeticEquip);if(!item||level<item.unlock_level)return;const field=item.cosmetic_type==="avatar_decoration"?"avatar_decoration":"banner_theme";const {error}=await supabaseClient.from("community_profiles").update({[field]:item.cosmetic_value,updated_at:new Date().toISOString()}).eq("user_id",currentUser.id);if(error){alert("Nie udało się zastosować wyglądu.");return;}await renderCommunityCosmeticsPage();}));
 }
 
 // OBSŁUGA PRZYCISKÓW
