@@ -2189,7 +2189,7 @@ function friendButtonHTML(profile) {
   if (outgoing) {
     return '<button class="report-btn" data-action="cancel-invite" data-request-id="' + escapeHTML(outgoing.requestId) + '">Anuluj prośbę</button>' + blockButton;
   }
-  return '<button class="accept-btn" data-action="add-friend" data-person-id="' + escapeHTML(profile.id) + '">Poproś o kontakt</button>' + blockButton;
+  return '<button class="accept-btn" data-action="add-friend" data-person-id="' + escapeHTML(profile.id) + '">Dodaj do znajomych</button>' + blockButton;
 }
 
 function personCardHTML(profile, buttonsHTML) {
