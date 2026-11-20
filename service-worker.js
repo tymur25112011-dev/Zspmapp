@@ -11,7 +11,8 @@ const APP_SHELL = [
   "./public/icons/icon.svg",
   "./public/icons/icon-192.svg",
   "./public/icons/icon-512.svg",
-  "./public/icons/community-logo.svg"
+  "./public/icons/community-logo.svg",
+  "./public/icons/zspm-community-mark.svg"
 ];
 
 self.addEventListener("install", event => {
