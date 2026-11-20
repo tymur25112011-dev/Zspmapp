@@ -1026,6 +1026,8 @@ const pages = {
 
 
 function updateAdminHomeCard() {
+  const adminMoreLink = $("more-admin-link");
+  if (adminMoreLink) adminMoreLink.hidden = !isAdmin;
   const grid = document.querySelector("#home-page .menu-grid");
   if (!grid) return;
   const existing = grid.querySelector('[data-page="admin"]');
@@ -1371,12 +1373,15 @@ async function openPage(page, options = {}) {
     }
   }
 
-  document.querySelectorAll(".nav-item").forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.dataset.page === page
-    );
+  document.querySelectorAll(".nav-item[data-page]").forEach(button => {
+    button.classList.toggle("active", button.dataset.page === page);
   });
+  const moreButton = $("more-nav-toggle");
+  const morePages = ["profiles","my-profile","friends","forum","polls","updates","settings","admin"];
+  if (moreButton) moreButton.classList.toggle("active", morePages.includes(page));
+  const moreMenu = $("more-nav-menu");
+  if (moreMenu) moreMenu.classList.add("hidden");
+  if (moreButton) moreButton.setAttribute("aria-expanded","false");
 }
 
 function escapeHTML(value) {
@@ -4227,6 +4232,34 @@ document.querySelectorAll("[data-page]").forEach(button => {
     openPage(button.dataset.page);
   });
 });
+const moreNavToggle = $("more-nav-toggle");
+const moreNavMenu = $("more-nav-menu");
+if (moreNavToggle && moreNavMenu) {
+  moreNavToggle.addEventListener("click", event => {
+    event.stopPropagation();
+    const opening = moreNavMenu.classList.contains("hidden");
+    moreNavMenu.classList.toggle("hidden", !opening);
+    moreNavToggle.setAttribute("aria-expanded", String(opening));
+  });
+  moreNavMenu.addEventListener("click", event => {
+    if (event.target.closest("[data-page]")) {
+      moreNavMenu.classList.add("hidden");
+      moreNavToggle.setAttribute("aria-expanded","false");
+    }
+  });
+  document.addEventListener("click", event => {
+    if (!event.target.closest("#more-nav-menu") && !event.target.closest("#more-nav-toggle")) {
+      moreNavMenu.classList.add("hidden");
+      moreNavToggle.setAttribute("aria-expanded","false");
+    }
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      moreNavMenu.classList.add("hidden");
+      moreNavToggle.setAttribute("aria-expanded","false");
+    }
+  });
+}
 
 $("notif-bell").addEventListener("click", () => openPage("notifications"));
 
