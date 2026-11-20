@@ -307,6 +307,11 @@ const APP_PAGE_LABELS={
 search:[["Wyszukiwarka społeczności","Community search","Поиск по сообществу","Пошук спільноти"],["Znajdź osoby, tematy na forum i pomysły","Find people, forum topics and ideas","Найди людей, темы форума и идеи","Знайди людей, теми форуму та ідеї"]],
 feed:[["Aktywność społeczności","Community activity","Активность сообщества","Активність спільноти"],["Najnowsze wpisy z forum i pomysłów","The latest forum posts and ideas","Последние публикации форума и идеи","Останні дописи форуму та ідеї"]],
 events:[["Wydarzenia","Events","События","Події"],["Karty wydarzeń i ogłoszenia społeczności","Community event cards and announcements","Карточки мероприятий и объявления сообщества","Картки подій та оголошення спільноти"]],
+groups:[["Grupowe czaty","Group chats","Групповые чаты","Групові чати"],["Rozmowy ze znajomymi","Conversations with friends","Беседы с друзьями","Розмови з друзями"]],
+polls:[["Ankiety społeczności","Community polls","Опросы сообщества","Опитування спільноти"],["Twórz ankiety i głosuj","Create polls and vote","Создавай опросы и голосуй","Створюй опитування та голосуй"]],
+announcements:[["Ogłoszenia","Announcements","Объявления","Оголошення"],["Ważne informacje społeczności","Important community updates","Важная информация сообщества","Важлива інформація спільноти"]],
+favorites:[["Ulubione","Saved","Избранное","Обране"],["Zapisane treści","Saved content","Сохранённые материалы","Збережені матеріали"]],
+quests:[["Codzienne zadania","Daily quests","Ежедневные задания","Щоденні завдання"],["Zdobywaj XP za aktywność","Earn XP for activity","Получай XP за активность","Отримуй XP за активність"]],
 profiles:[["Ankiety uczniów","Student surveys","Анкеты учеников","Анкети учнів"],["Poznaj społeczność swojej szkoły","Meet your school community","Познакомься со школьным сообществом","Познайомся зі шкільною спільнотою"]],
 "my-profile":[["Mój profil","My profile","Мой профиль","Мій профіль"],["Twój profil w społeczności ZSPM","Your ZSPM community profile","Твой профиль в сообществе ZSPM","Твій профіль у спільноті ZSPM"]],
 chat:[["Wiadomości","Messages","Сообщения","Повідомлення"],["Prywatne rozmowy ze znajomymi","Private conversations with friends","Личные беседы с друзьями","Приватні розмови з друзями"]],
@@ -696,11 +701,164 @@ async function enterApp() {
 }
 
 
+
+/* ZSPM COMMUNITY: group chats, polls, favorites and daily quests */
+let communityGroupChannel = null;
+
+async function renderCommunityGroupsPage() {
+  const host=$("page-content");
+  if(communityGroupChannel){await supabaseClient.removeChannel(communityGroupChannel);communityGroupChannel=null;}
+  await loadFriendsData();
+  await loadBlockedUsers();
+  const membership=await supabaseClient.from("community_group_members").select("group_id,role").eq("user_id",currentUser.id);
+  if(membership.error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować grup.</p></div>';return;}
+  const ids=(membership.data||[]).map(x=>x.group_id);
+  const groupsResult=ids.length?await supabaseClient.from("community_group_chats").select("id,name,description,avatar_emoji,created_by,updated_at").in("id",ids).order("updated_at",{ascending:false}):{data:[],error:null};
+  if(groupsResult.error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować grup.</p></div>';return;}
+  const friends=(friendsDataCache.friends||[]).filter(p=>!isBlocked(p.id));
+  const friendChoices=friends.map(p=>'<label class="group-friend-choice"><input type="checkbox" name="group-friend" value="'+escapeHTML(p.id)+'"><span>'+escapeHTML(p.nickname||"Uczeń")+'</span></label>').join("");
+  const cards=(groupsResult.data||[]).map(g=>'<button type="button" class="community-group-card" data-open-group="'+g.id+'"><span class="community-group-avatar">'+escapeHTML(g.avatar_emoji||"👥")+'</span><span class="community-group-copy"><strong>'+escapeHTML(g.name)+'</strong><small>'+escapeHTML(g.description||"Grupa znajomych")+'</small></span><span class="community-group-arrow">›</span></button>').join("");
+  host.innerHTML='<section class="community-feature-hero"><div><span class="community-feature-kicker">ZSPM COMMUNITY</span><h2>Grupowe czaty</h2><p>Twórz rozmowy ze znajomymi. Do grup możesz zapraszać tylko zaakceptowanych znajomych.</p></div><span class="community-feature-hero-icon">👥</span></section><section class="community-feature-panel"><h3>Utwórz nową grupę</h3><form id="community-group-form" class="community-feature-form"><label>Nazwa grupy<input id="community-group-name" maxlength="60" minlength="2" required placeholder="Np. Ekipa z klasy"></label><label>Krótki opis<input id="community-group-description" maxlength="240" placeholder="O czym jest grupa?"></label><label>Ikona grupy<select id="community-group-emoji"><option>👥</option><option>🎓</option><option>🎮</option><option>📚</option><option>⚽</option><option>🎨</option></select></label><div class="group-friends-list"><strong>Dodaj znajomych</strong>'+(friendChoices||'<small>Nie masz jeszcze znajomych do zaproszenia.</small>')+'</div><button class="main-btn" type="submit">Utwórz grupę</button><p id="community-group-feedback" class="feature-feedback" aria-live="polite"></p></form></section><section class="community-feature-panel"><div class="community-feature-section-head"><h3>Twoje grupy</h3><span>'+groupsResult.data.length+'</span></div><div class="community-groups-list">'+(cards||'<div class="community-empty-state"><span>👥</span><strong>Nie należysz jeszcze do żadnej grupy</strong><small>Utwórz pierwszą grupę powyżej.</small></div>')+'</div></section>';
+  host.querySelector("#community-group-form").addEventListener("submit",async e=>{
+    e.preventDefault();const button=e.currentTarget.querySelector('button[type="submit"]');button.disabled=true;
+    const name=host.querySelector("#community-group-name").value.trim();
+    const selected=[...host.querySelectorAll('input[name="group-friend"]:checked')].map(x=>x.value).slice(0,15);
+    const created=await supabaseClient.from("community_group_chats").insert({created_by:currentUser.id,name,description:host.querySelector("#community-group-description").value.trim(),avatar_emoji:host.querySelector("#community-group-emoji").value}).select("id").single();
+    if(created.error){host.querySelector("#community-group-feedback").textContent=created.error.message||"Nie udało się utworzyć grupy.";button.disabled=false;return;}
+    const members=[{group_id:created.data.id,user_id:currentUser.id,role:"owner"},...selected.map(user_id=>({group_id:created.data.id,user_id,role:"member"}))];
+    const added=await supabaseClient.from("community_group_members").insert(members);
+    if(added.error){await supabaseClient.from("community_group_chats").delete().eq("id",created.data.id);host.querySelector("#community-group-feedback").textContent="Nie udało się dodać członków grupy.";button.disabled=false;return;}
+    await openCommunityGroupChat(created.data.id);
+  });
+  host.querySelectorAll("[data-open-group]").forEach(b=>b.addEventListener("click",()=>openCommunityGroupChat(b.dataset.openGroup)));
+}
+
+async function openCommunityGroupChat(groupId, fromRealtime=false) {
+  const host=$("page-content");
+  const groupResult=await supabaseClient.from("community_group_chats").select("id,name,description,avatar_emoji,created_by").eq("id",groupId).single();
+  if(groupResult.error||!groupResult.data){await renderCommunityGroupsPage();return;}
+  const group=groupResult.data;
+  const [membersResult,messagesResult]=await Promise.all([
+    supabaseClient.from("community_group_members").select("user_id,role").eq("group_id",groupId),
+    supabaseClient.from("community_group_messages").select("id,group_id,sender_id,content,created_at").eq("group_id",groupId).order("created_at",{ascending:true}).limit(150)
+  ]);
+  if(membersResult.error||messagesResult.error){host.innerHTML='<div class="page-content"><p>Nie udało się otworzyć czatu grupowego.</p></div>';return;}
+  const members=membersResult.data||[];
+  await loadProfilesByIds(members.map(m=>m.user_id));
+  const names=new Map(members.map(m=>{const p=getProfileById(m.user_id);return [m.user_id,p?.nickname||"Uczeń"];}));
+  const owner=group.created_by===currentUser.id;
+  const messages=(messagesResult.data||[]).map(m=>'<article class="community-group-message '+(m.sender_id===currentUser.id?"mine":"")+'"><div class="community-group-message-meta"><strong>'+escapeHTML(names.get(m.sender_id)||"Uczeń")+'</strong><time>'+escapeHTML(formatTime(m.created_at))+'</time></div><p>'+escapeHTML(m.content)+'</p>'+(m.sender_id===currentUser.id||owner?'<button type="button" data-group-message-delete="'+m.id+'">Usuń</button>':"")+'</article>').join("");
+  host.innerHTML='<section class="community-group-chat"><header class="community-group-chat-head"><button type="button" class="secondary-btn" id="group-chat-back">‹ Wróć</button><span class="community-group-avatar">'+escapeHTML(group.avatar_emoji||"👥")+'</span><div><h2>'+escapeHTML(group.name)+'</h2><small>'+members.length+' uczestników · czat tekstowy</small></div><button type="button" class="secondary-btn" id="group-chat-refresh">Odśwież</button></header><p class="community-group-description">'+escapeHTML(group.description||"")+'</p><div class="community-group-members">'+members.map(m=>'<span>'+escapeHTML(names.get(m.user_id)||"Uczeń")+(m.role==="owner"?" · właściciel":"")+'</span>').join("")+'</div><div class="community-group-messages" id="community-group-messages">'+(messages||'<div class="community-empty-state"><strong>To początek rozmowy</strong><small>Napisz pierwszą wiadomość.</small></div>')+'</div><form class="community-group-composer" id="community-group-message-form"><input id="community-group-message-input" maxlength="2000" required placeholder="Napisz wiadomość..." autocomplete="off"><button class="main-btn" type="submit">Wyślij</button></form><div class="community-group-footer">'+(owner?'<button type="button" class="text-action danger-text" id="group-delete">Usuń grupę</button>':'<button type="button" class="text-action" id="group-leave">Opuść grupę</button>')+'</div></section>';
+  host.querySelector("#group-chat-back").addEventListener("click",renderCommunityGroupsPage);
+  host.querySelector("#group-chat-refresh").addEventListener("click",()=>openCommunityGroupChat(groupId));
+  host.querySelector("#community-group-message-form").addEventListener("submit",async e=>{
+    e.preventDefault();const input=host.querySelector("#community-group-message-input"),button=e.currentTarget.querySelector("button");const content=input.value.trim();if(!content)return;button.disabled=true;
+    const {error}=await supabaseClient.from("community_group_messages").insert({group_id:groupId,sender_id:currentUser.id,content});
+    if(error){alert("Nie udało się wysłać wiadomości.");button.disabled=false;return;}input.value="";button.disabled=false;await openCommunityGroupChat(groupId);
+  });
+  host.querySelectorAll("[data-group-message-delete]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await supabaseClient.from("community_group_messages").delete().eq("id",b.dataset.groupMessageDelete);if(error)alert("Nie udało się usunąć wiadomości.");else await openCommunityGroupChat(groupId);}));
+  host.querySelector("#group-leave")?.addEventListener("click",async()=>{if(!confirm("Opuścić tę grupę?"))return;const {error}=await supabaseClient.from("community_group_members").delete().eq("group_id",groupId).eq("user_id",currentUser.id);if(error)alert("Nie udało się opuścić grupy.");else await renderCommunityGroupsPage();});
+  host.querySelector("#group-delete")?.addEventListener("click",async()=>{if(!confirm("Usunąć grupę i całą jej historię?"))return;const {error}=await supabaseClient.from("community_group_chats").delete().eq("id",groupId);if(error)alert("Nie udało się usunąć grupy.");else await renderCommunityGroupsPage();});
+  const container=host.querySelector("#community-group-messages");if(container)container.scrollTop=container.scrollHeight;
+  if(!fromRealtime){
+    if(communityGroupChannel)await supabaseClient.removeChannel(communityGroupChannel);
+    communityGroupChannel=supabaseClient.channel("community-group-"+groupId).on("postgres_changes",{event:"*",schema:"public",table:"community_group_messages",filter:"group_id=eq."+groupId},()=>{if(currentAppPage==="groups")openCommunityGroupChat(groupId,true);}).subscribe();
+  }
+}
+
+async function renderCommunityPollsPage() {
+  const host=$("page-content");
+  const [pollsResult,optionsResult,votesResult]=await Promise.all([
+    supabaseClient.from("community_polls").select("id,author_id,question,created_at,closes_at").order("created_at",{ascending:false}).limit(60),
+    supabaseClient.from("community_poll_options").select("id,poll_id,label,sort_order").order("sort_order"),
+    supabaseClient.from("community_poll_votes").select("poll_id,option_id,user_id")
+  ]);
+  if(pollsResult.error||optionsResult.error||votesResult.error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować ankiet.</p></div>';return;}
+  const polls=pollsResult.data||[],options=optionsResult.data||[],votes=votesResult.data||[];
+  const cards=polls.map(p=>{
+    const opts=options.filter(o=>o.poll_id===p.id),pollVotes=votes.filter(v=>v.poll_id===p.id),mine=pollVotes.find(v=>v.user_id===currentUser.id),total=pollVotes.length,closed=p.closes_at&&new Date(p.closes_at)<=new Date();
+    const choices=opts.map(o=>{const count=pollVotes.filter(v=>v.option_id===o.id).length,percent=total?Math.round(count/total*100):0;return '<div class="community-poll-option '+(mine?.option_id===o.id?"selected":"")+'">'+(!mine&&!closed?'<label><input type="radio" name="poll-'+p.id+'" value="'+o.id+'"><span>'+escapeHTML(o.label)+'</span></label>':'<span>'+escapeHTML(o.label)+'</span>')+(mine||closed?'<div class="community-poll-bar"><i style="width:'+percent+'%"></i></div><small>'+count+' · '+percent+'%</small>':"")+'</div>';}).join("");
+    return '<article class="community-poll-card"><div class="community-poll-top"><span>📊 Ankieta</span><time>'+escapeHTML(new Date(p.created_at).toLocaleDateString("pl-PL"))+'</time></div><h3>'+escapeHTML(p.question)+'</h3><div class="community-poll-options">'+choices+'</div><div class="community-poll-footer"><span>'+total+' głosów'+(mine?' · Twój głos zapisany':closed?' · Zakończona':"")+'</span>'+(mine||closed?"":'<button type="button" class="main-btn" data-poll-vote="'+p.id+'">Głosuj</button>')+(p.author_id===currentUser.id?'<button type="button" class="text-action" data-poll-delete="'+p.id+'">Usuń</button>':"")+'<button type="button" class="text-action" data-favorite-type="poll" data-favorite-id="'+p.id+'">☆ Zapisz</button></div></article>';
+  }).join("");
+  host.innerHTML='<section class="community-feature-hero"><div><span class="community-feature-kicker">ZSPM COMMUNITY</span><h2>Odpowiadaj i głosuj</h2><p>Twórz ankiety, poznawaj opinie społeczności i sprawdzaj wyniki.</p></div><span class="community-feature-hero-icon">📊</span></section><section class="community-feature-panel"><h3>Utwórz ankietę</h3><form id="community-poll-form" class="community-feature-form"><label>Pytanie<input id="poll-question" maxlength="180" minlength="5" required placeholder="Np. Jaką funkcję dodać jako następną?"></label><div class="community-poll-create-options"><label>Opcja 1<input class="poll-option-input" maxlength="100" required></label><label>Opcja 2<input class="poll-option-input" maxlength="100" required></label><label>Opcja 3<input class="poll-option-input" maxlength="100" placeholder="Opcjonalnie"></label><label>Opcja 4<input class="poll-option-input" maxlength="100" placeholder="Opcjonalnie"></label></div><button type="submit" class="main-btn">Opublikuj ankietę</button><p id="poll-feedback" class="feature-feedback" aria-live="polite"></p></form></section><section class="community-polls-list">'+(cards||'<div class="community-empty-state"><span>📊</span><strong>Brak ankiet</strong><small>Utwórz pierwszą ankietę dla społeczności.</small></div>')+'</section>';
+  host.querySelector("#community-poll-form").addEventListener("submit",async e=>{
+    e.preventDefault();const form=e.currentTarget,button=form.querySelector('button[type="submit"]');button.disabled=true;
+    const labels=[...form.querySelectorAll(".poll-option-input")].map(x=>x.value.trim()).filter(Boolean);
+    if(labels.length<2){host.querySelector("#poll-feedback").textContent="Dodaj co najmniej dwie opcje.";button.disabled=false;return;}
+    const created=await supabaseClient.from("community_polls").insert({author_id:currentUser.id,question:host.querySelector("#poll-question").value.trim()}).select("id").single();
+    if(created.error){host.querySelector("#poll-feedback").textContent=created.error.message||"Nie udało się utworzyć ankiety.";button.disabled=false;return;}
+    const added=await supabaseClient.from("community_poll_options").insert(labels.map((label,i)=>({poll_id:created.data.id,label,sort_order:i})));
+    if(added.error){await supabaseClient.from("community_polls").delete().eq("id",created.data.id);host.querySelector("#poll-feedback").textContent="Nie udało się zapisać opcji.";button.disabled=false;return;}
+    await renderCommunityPollsPage();
+  });
+  host.querySelectorAll("[data-poll-vote]").forEach(b=>b.addEventListener("click",async()=>{const selected=host.querySelector('input[name="poll-'+b.dataset.pollVote+'"]:checked');if(!selected){alert("Wybierz odpowiedź.");return;}b.disabled=true;const {error}=await supabaseClient.from("community_poll_votes").insert({poll_id:b.dataset.pollVote,option_id:selected.value,user_id:currentUser.id});if(error){alert("Nie udało się zapisać głosu. Być może już głosowałeś.");b.disabled=false;return;}await renderCommunityPollsPage();}));
+  host.querySelectorAll("[data-poll-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Usunąć tę ankietę?"))return;const {error}=await supabaseClient.from("community_polls").delete().eq("id",b.dataset.pollDelete);if(error)alert("Nie udało się usunąć ankiety.");else await renderCommunityPollsPage();}));
+}
+
+async function toggleCommunityFavorite(type,id,button) {
+  const existing=await supabaseClient.from("community_favorites").select("id").eq("user_id",currentUser.id).eq("target_type",type).eq("target_id",id).maybeSingle();
+  if(existing.error){alert("Nie udało się sprawdzić zapisanych elementów.");return;}
+  if(existing.data){const {error}=await supabaseClient.from("community_favorites").delete().eq("id",existing.data.id);if(error){alert("Nie udało się usunąć z ulubionych.");return;}if(button){button.classList.remove("saved");button.textContent="☆ Zapisz";}}
+  else {const {error}=await supabaseClient.from("community_favorites").insert({user_id:currentUser.id,target_type:type,target_id:id});if(error){alert("Nie udało się dodać do ulubionych.");return;}if(button){button.classList.add("saved");button.textContent="★ Zapisano";}}
+}
+
+async function renderCommunityFavoritesPage() {
+  const host=$("page-content");
+  const {data:rows,error}=await supabaseClient.from("community_favorites").select("id,target_type,target_id,created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(100);
+  if(error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować ulubionych.</p></div>';return;}
+  const byType={forum_post:[],idea:[],event:[],poll:[]};(rows||[]).forEach(r=>byType[r.target_type]?.push(r));
+  const [forums,ideas,events,polls]=await Promise.all([
+    byType.forum_post.length?supabaseClient.from("community_forum_posts").select("id,title,body").in("id",byType.forum_post.map(x=>x.target_id)):{data:[]},
+    byType.idea.length?supabaseClient.from("community_ideas").select("id,title,description").in("id",byType.idea.map(x=>x.target_id)):{data:[]},
+    byType.event.length?supabaseClient.from("community_events").select("id,title,description").in("id",byType.event.map(x=>x.target_id)):{data:[]},
+    byType.poll.length?supabaseClient.from("community_polls").select("id,question").in("id",byType.poll.map(x=>x.target_id)):{data:[]}
+  ]);
+  const maps={forum_post:new Map((forums.data||[]).map(x=>[x.id,{title:x.title,preview:x.body,route:"forum"}])),idea:new Map((ideas.data||[]).map(x=>[x.id,{title:x.title,preview:x.description,route:"ideas"}])),event:new Map((events.data||[]).map(x=>[x.id,{title:x.title,preview:x.description,route:"events"}])),poll:new Map((polls.data||[]).map(x=>[x.id,{title:x.question,preview:"Ankieta społeczności",route:"polls"}]))};
+  const labels={forum_post:"Forum",idea:"Pomysł",event:"Ogłoszenie / wydarzenie",poll:"Ankieta"};
+  const cards=(rows||[]).map(r=>{const item=maps[r.target_type]?.get(r.target_id);if(!item)return "";return '<article class="community-favorite-card"><div><span>'+escapeHTML(labels[r.target_type]||"Zapisane")+'</span><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.preview||"")+'</p><small>'+escapeHTML(new Date(r.created_at).toLocaleDateString("pl-PL"))+'</small></div><div><button type="button" class="secondary-btn" data-favorite-open="'+item.route+'">Otwórz</button><button type="button" class="text-action" data-favorite-remove="'+r.id+'">Usuń</button></div></article>';}).join("");
+  host.innerHTML='<section class="community-feature-hero"><div><span class="community-feature-kicker">ZSPM COMMUNITY</span><h2>Twoje ulubione</h2><p>Wszystkie zapisane pomysły, tematy, ankiety i ogłoszenia w jednym miejscu.</p></div><span class="community-feature-hero-icon">⭐</span></section><div class="community-favorites-list">'+(cards||'<div class="community-empty-state"><span>☆</span><strong>Lista jest pusta</strong><small>Zapisuj ciekawe treści, aby wrócić do nich później.</small></div>')+'</div>';
+  host.querySelectorAll("[data-favorite-open]").forEach(b=>b.addEventListener("click",()=>openPage(b.dataset.favoriteOpen)));
+  host.querySelectorAll("[data-favorite-remove]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await supabaseClient.from("community_favorites").delete().eq("id",b.dataset.favoriteRemove);if(error)alert("Nie udało się usunąć elementu.");else await renderCommunityFavoritesPage();}));
+}
+
+async function renderCommunityDailyQuestsPage() {
+  const host=$("page-content");
+  const day=new Date().toLocaleDateString("en-CA",{timeZone:"Europe/Warsaw"});
+  const [claimsResult,favoritesResult,pollsResult,ideasResult,commentsResult,votesResult]=await Promise.all([
+    supabaseClient.from("community_daily_quest_claims").select("quest_key").eq("user_id",currentUser.id).eq("quest_date",day),
+    supabaseClient.from("community_favorites").select("created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(50),
+    supabaseClient.from("community_polls").select("created_at").eq("author_id",currentUser.id).order("created_at",{ascending:false}).limit(30),
+    supabaseClient.from("community_ideas").select("created_at").eq("author_id",currentUser.id).order("created_at",{ascending:false}).limit(30),
+    supabaseClient.from("community_forum_comments").select("created_at").eq("author_id",currentUser.id).order("created_at",{ascending:false}).limit(50),
+    supabaseClient.from("community_poll_votes").select("created_at").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(50)
+  ]);
+  if([claimsResult,favoritesResult,pollsResult,ideasResult,commentsResult,votesResult].some(r=>r.error)){host.innerHTML='<div class="page-content"><p>Nie udało się załadować zadań.</p></div>';return;}
+  const isToday=rows=>(rows||[]).some(x=>new Date(x.created_at).toLocaleDateString("en-CA",{timeZone:"Europe/Warsaw"})===day);
+  const done={save_favorite:isToday(favoritesResult.data),create_poll:isToday(pollsResult.data),publish_idea:isToday(ideasResult.data),forum_comment:isToday(commentsResult.data),vote_poll:isToday(votesResult.data)};
+  const claimed=new Set((claimsResult.data||[]).map(x=>x.quest_key));
+  const quests=[
+    ["save_favorite","⭐","Zapisz treść w ulubionych","Dodaj ciekawy wpis do swojej listy."],
+    ["create_poll","📊","Utwórz ankietę","Zadaj społeczności interesujące pytanie."],
+    ["publish_idea","💡","Opublikuj pomysł","Podziel się propozycją ulepszenia aplikacji."],
+    ["forum_comment","💬","Skomentuj temat na forum","Dodaj pomocny komentarz w dyskusji."],
+    ["vote_poll","🗳️","Weź udział w ankiecie","Oddaj głos w ankiecie społeczności."]
+  ];
+  host.innerHTML='<section class="community-feature-hero"><div><span class="community-feature-kicker">ZSPM COMMUNITY</span><h2>Codzienne zadania</h2><p>Wykonuj różne aktywności i odbieraj XP. Każde zadanie można odebrać raz dziennie.</p></div><span class="community-feature-hero-icon">🏆</span></section><div class="community-quest-list">'+quests.map(q=>'<article class="community-quest-card '+(claimed.has(q[0])?"claimed":done[q[0]]?"completed":"")+'"><span class="community-quest-icon">'+q[1]+'</span><div class="community-quest-copy"><strong>'+q[2]+'</strong><p>'+q[3]+'</p><small>'+(claimed.has(q[0])?"Nagroda odebrana":done[q[0]]?"Zadanie wykonane · gotowe do odbioru":"Do wykonania")+'</small></div><div class="community-quest-action"><b>+15 XP</b><button type="button" class="secondary-btn" data-quest-claim="'+q[0]+'" '+(!done[q[0]]||claimed.has(q[0])?"disabled":"")+'>'+(claimed.has(q[0])?"Odebrano":done[q[0]]?"Odbierz":"Wykonaj")+'</button></div></article>').join("")+'</div>';
+  host.querySelectorAll("[data-quest-claim]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;const {data,error}=await supabaseClient.rpc("claim_community_daily_quest",{p_quest_key:b.dataset.questClaim});if(error){alert("Nie udało się odebrać XP.");b.disabled=false;return;}if(!data?.ok){alert(data?.reason==="already_claimed"?"To zadanie zostało już odebrane.":"Najpierw wykonaj zadanie.");}await renderCommunityDailyQuestsPage();}));
+}
+
+async function renderCommunityAnnouncementsPage(){await renderCommunityEventsPage("announcement");}
+
 // NAWIGACJA
 
 const pages = {
   feed: { title: "Aktywność społeczności", subtitle: "Najnowsze wpisy z forum i pomysłów", content: "" },
   events: { title: "Wydarzenia", subtitle: "Karty wydarzeń i ogłoszenia społeczności", content: "" },
+  announcements: { title: "Ogłoszenia", subtitle: "Informacje i ogłoszenia społeczności", content: "" },
+  groups: { title: "Grupowe czaty", subtitle: "Rozmowy ze znajomymi", content: "" },
+  polls: { title: "Ankiety", subtitle: "Głosowania społeczności", content: "" },
+  favorites: { title: "Ulubione", subtitle: "Zapisane treści", content: "" },
+  quests: { title: "Codzienne zadania", subtitle: "Zdobywaj XP za aktywność", content: "" },
   search: { title: "Wyszukiwarka", subtitle: "Szukaj osób, tematów na forum i pomysłów", content: "" },
 
   profiles: {
@@ -1036,6 +1194,16 @@ async function openPage(page, options = {}) {
       }
     } else if (page === "events") {
       await renderCommunityEventsPage();
+    } else if (page === "announcements") {
+      await renderCommunityAnnouncementsPage();
+    } else if (page === "groups") {
+      await renderCommunityGroupsPage();
+    } else if (page === "polls") {
+      await renderCommunityPollsPage();
+    } else if (page === "favorites") {
+      await renderCommunityFavoritesPage();
+    } else if (page === "quests") {
+      await renderCommunityDailyQuestsPage();
     } else if (page === "feed") {
       await renderCommunityFeedPage();
     } else if (page === "search") {
@@ -3537,11 +3705,13 @@ uk:{intro:"Зустрічі, події та оголошення від уча�
 };
 function eventText(key){return EVENT_TEXT[appLanguage]?.[key]||EVENT_TEXT.pl[key]||key;}
 
-async function renderCommunityEventsPage(){
+async function renderCommunityEventsPage(categoryFilter=null){
  const host=$("page-content");
  host.innerHTML='<div class="events-loading"><span class="feed-spinner"></span><p>'+escapeHTML(eventText("loading"))+'</p></div>';
+ const eventQuery=supabaseClient.from("community_events").select("*").order("created_at",{ascending:false}).limit(80);
+ if(categoryFilter)eventQuery.eq("category",categoryFilter);
  const [eventsResult,profilesResult,responsesResult]=await Promise.all([
-  supabaseClient.from("community_events").select("*").order("created_at",{ascending:false}).limit(80),
+  eventQuery,
   supabaseClient.from("profiles").select("id,nickname"),
   supabaseClient.from("community_event_responses").select("event_id,user_id,response")
  ]);
@@ -3778,6 +3948,16 @@ async function renderCommunityCosmeticsPage() {
   '<div class="feature-list cosmetics-grid">'+(items||[]).map(item=>{const unlocked=level>=item.unlock_level;const equipped=item.cosmetic_type==="avatar_decoration"?profile?.avatar_decoration===item.cosmetic_value:profile?.banner_theme===item.cosmetic_value;return '<article class="feature-card cosmetic-card '+(unlocked?'':'is-locked')+'"><div class="cosmetic-preview '+(item.cosmetic_type==="banner_theme"?'theme-'+item.cosmetic_value:'decor-'+item.cosmetic_value)+'">'+(item.cosmetic_type==="banner_theme"?'▰':'✦')+'</div><div><strong>'+escapeHTML(item.name)+'</strong><p>'+escapeHTML(item.description)+'</p><small>'+(unlocked?(equipped?'Używasz':'Odblokowano'):'Odblokuje się na poziomie '+item.unlock_level)+'</small></div><button type="button" class="secondary-btn" data-cosmetic-equip="'+item.id+'" '+(!unlocked||equipped?'disabled':'')+'> '+(equipped?'Wybrano':unlocked?'Zastosuj':'Zablokowane')+'</button></article>';}).join("")+'</div>';
   host.querySelectorAll("[data-cosmetic-equip]").forEach(b=>b.addEventListener("click",async()=>{const item=items.find(x=>x.id===b.dataset.cosmeticEquip);if(!item||level<item.unlock_level)return;const field=item.cosmetic_type==="avatar_decoration"?"avatar_decoration":"banner_theme";const {error}=await supabaseClient.from("community_profiles").update({[field]:item.cosmetic_value,updated_at:new Date().toISOString()}).eq("user_id",currentUser.id);if(error){alert("Nie udało się zastosować wyglądu.");return;}await renderCommunityCosmeticsPage();}));
 }
+
+
+document.addEventListener("click",async event=>{
+ const button=event.target.closest("[data-favorite-type][data-favorite-id]");
+ if(!button)return;
+ event.preventDefault();event.stopPropagation();
+ button.disabled=true;
+ await toggleCommunityFavorite(button.dataset.favoriteType,button.dataset.favoriteId,button);
+ button.disabled=false;
+});
 
 // OBSŁUGA PRZYCISKÓW
 
