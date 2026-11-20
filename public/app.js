@@ -246,7 +246,19 @@ const APP_UI_TEXT={
 "Zapisz":["Save","Сохранить","Зберегти"],
 "Zamknij":["Close","Закрыть","Закрити"],
 "Potwierdź":["Confirm","Подтвердить","Підтвердити"],
-"Odśwież":["Refresh","Обновить","Оновити"]
+"Odśwież":["Refresh","Обновить","Оновити"],
+"Dodaj pomysł":["Add idea","Добавить идею","Додати ідею"],
+"Dodaj temat":["Add topic","Добавить тему","Додати тему"],
+"Wybierz wygląd karty":["Choose card design","Выберите дизайн карточки","Оберіть дизайн картки"],
+"Klasyczny":["Classic","Классический","Класичний"],
+"Prosty i elegancki":["Simple and elegant","Простой и элегантный","Простий та елегантний"],
+"Kolorowy gradient":["Colorful gradient","Цветной градиент","Кольоровий градієнт"],
+"Wyrazisty i nowoczesny":["Bold and modern","Яркий и современный","Яскравий і сучасний"],
+"Czysty i spokojny":["Clean and calm","Чистый и спокойный","Чистий і спокійний"],
+"Opublikuj pomysł":["Publish idea","Опубликовать идею","Опублікувати ідею"],
+"Opublikuj temat":["Publish topic","Опубликовать тему","Опублікувати тему"],
+"Opisz swoją propozycję i wybierz jej wygląd.":["Describe your suggestion and choose its look.","Опишите своё предложение и выберите его оформление.","Опишіть свою пропозицію та оберіть її вигляд."]
+
 };
 const APP_UI_LANG_INDEX={pl:-1,en:0,ru:1,uk:2};
 const appUiOriginalText=new WeakMap();
@@ -1148,96 +1160,47 @@ function renderCommunitySearchPage(){
 
 // COMMUNITY IDEAS, RANKING AND INFORMATION
 
+
+const COMMUNITY_CARD_STYLES=[{id:"classic",name:"Klasyczny",desc:"Prosty i elegancki"},{id:"aurora",name:"Aurora",desc:"Kolorowy gradient"},{id:"neon",name:"Neon",desc:"Wyrazisty i nowoczesny"},{id:"minimal",name:"Minimal",desc:"Czysty i spokojny"}];
+function communityCardStylePicker(selected="classic",inputId="community-card-style"){
+ return '<fieldset class="community-style-picker"><legend>Wybierz wygląd karty</legend><div class="community-style-options">'+COMMUNITY_CARD_STYLES.map(style=>'<button type="button" class="community-style-option '+(selected===style.id?"active":"")+'" data-card-style-option="'+style.id+'" aria-pressed="'+(selected===style.id)+'"><span class="community-style-preview preview-'+style.id+'"><i></i><i></i><i></i></span><strong>'+style.name+'</strong><small>'+style.desc+'</small></button>').join("")+'</div><input type="hidden" id="'+inputId+'" value="'+selected+'"></fieldset>';
+}
+function bindCommunityCardStylePicker(root,inputId){
+ const input=root.querySelector("#"+inputId);if(!input)return;
+ root.querySelectorAll("[data-card-style-option]").forEach(button=>button.addEventListener("click",()=>{
+  input.value=button.dataset.cardStyleOption;
+  root.querySelectorAll("[data-card-style-option]").forEach(option=>{const active=option===button;option.classList.toggle("active",active);option.setAttribute("aria-pressed",String(active));});
+ }));
+}
+function communityCardCover(style,kind){
+ const labels={classic:"SPOŁECZNOŚĆ",aurora:"CREATIVE SPACE",neon:"IDEA LAB",minimal:"COMMUNITY"};
+ return '<div class="community-card-cover cover-'+style+'"><span class="community-cover-symbol">'+(kind==="idea"?"✦":"✧")+'</span><span class="community-cover-label">'+labels[style]+'</span><span class="community-cover-orbit"></span></div>';
+}
 async function renderIdeasPage() {
-  const host = $("page-content");
-  host.innerHTML = '<div class="page-content"><p>Ładowanie pomysłów...</p></div>';
-  const [ideasResult, votesResult, profilesResult] = await Promise.all([
-    supabaseClient.from("community_ideas").select("id,author_id,title,description,created_at").order("created_at",{ascending:false}).limit(100),
-    supabaseClient.from("community_idea_votes").select("idea_id,user_id,vote"),
-    supabaseClient.from("public_profiles").select("id,nickname")
-  ]);
-  const error = ideasResult.error || votesResult.error || profilesResult.error;
-  if (error) {
-    host.innerHTML = '<div class="page-content"><p>Nie udało się załadować pomysłów. Spróbuj ponownie później.</p></div>';
-    console.error("Ideas load error:", error);
-    return;
-  }
-  const names = new Map((profilesResult.data || []).map(p => [p.id,p.nickname]));
-  const votes = votesResult.data || [];
-  const voteByUser = new Map(votes.filter(v => v.user_id === currentUser.id).map(v => [v.idea_id,v.vote]));
-  const totals = new Map();
-  votes.forEach(v => {
-    const item = totals.get(v.idea_id) || {up:0,down:0};
-    if (v.vote === 1) item.up++; else item.down++;
-    totals.set(v.idea_id,item);
-  });
-  const cards = (ideasResult.data || []).map(idea => {
-    const total = totals.get(idea.id) || {up:0,down:0};
-    const myVote = voteByUser.get(idea.id);
-    const own = idea.author_id === currentUser.id;
-    return '<article class="idea-card"><div class="idea-card-head"><div><h3>' +
-      escapeHTML(idea.title) + '</h3><small>' + escapeHTML(names.get(idea.author_id) || "Uczeń") +
-      ' · ' + escapeHTML(new Date(idea.created_at).toLocaleDateString("pl-PL")) +
-      '</small></div>' + (own || isAdmin ? '<button type="button" class="idea-delete" data-idea-delete="' + idea.id + '" aria-label="Usuń pomysł"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 14h12l1-14M9 7V4h6v3"/></svg></button>' : '') +
-      '</div><p>' + escapeHTML(idea.description).replace(/\n/g,"<br>") + '</p>' +
-      '<div class="idea-votes"><button type="button" class="idea-vote up ' + (myVote === 1 ? 'selected' : '') + '" data-idea-vote="1" data-idea-id="' + idea.id + '" aria-label="Popieram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> <span>' + total.up + '</span></button>' +
-      '<button type="button" class="idea-vote down ' + (myVote === -1 ? 'selected' : '') + '" data-idea-vote="-1" data-idea-id="' + idea.id + '" aria-label="Nie popieram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg> <span>' + total.down + '</span></button></div></article>';
-  }).join("");
-  host.innerHTML = '<div class="ideas-intro"><div class="ideas-intro-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M8.5 14.5a6 6 0 1 1 7 0c-.8.6-1.2 1.3-1.3 2.5h-4.4c-.1-1.2-.5-1.9-1.3-2.5Z"/><path d="M12 2v2M4.9 4.9l1.4 1.4M19.1 4.9l-1.4 1.4"/></svg></div><div><strong>Masz pomysł na rozwój aplikacji?</strong><p>Opublikuj propozycję. Społeczność może ją poprzeć lub odrzucić.</p></div></div>' +
-    '<form class="idea-form" id="idea-form"><h3>Dodaj nowy pomysł</h3><label>Tytuł<input id="idea-title" maxlength="90" minlength="4" required placeholder="Np. Nowa funkcja czatu"></label>' +
-    '<label>Opis<textarea id="idea-description" maxlength="1200" minlength="10" required rows="4" placeholder="Opisz, jak miałaby działać ta funkcja..."></textarea></label>' +
-    '<button type="submit" class="main-btn">Opublikuj pomysł</button><p class="idea-feedback" id="idea-feedback" aria-live="polite"></p></form>' +
-    '<div class="ideas-list">' + (cards || '<div class="page-content"><p>Jeszcze nie ma pomysłów. Dodaj pierwszy!</p></div>') + '</div>';
-  host.querySelector("#idea-form").addEventListener("submit", async event => {
-    event.preventDefault();
-    const button = event.currentTarget.querySelector('button[type="submit"]');
-    const feedback = host.querySelector("#idea-feedback");
-    button.disabled = true;
-    const { error } = await supabaseClient.from("community_ideas").insert({
-      author_id:currentUser.id,
-      title:host.querySelector("#idea-title").value.trim(),
-      description:host.querySelector("#idea-description").value.trim()
-    });
-    if (error) {
-      feedback.textContent = error.message || "Nie udało się opublikować pomysłu.";
-      button.disabled = false;
-      return;
-    }
-    await renderIdeasPage();
-  });
-  host.querySelectorAll("[data-idea-vote]").forEach(button => button.addEventListener("click", async () => {
-    button.disabled = true;
-    const ideaId = button.dataset.ideaId;
-    const value = Number(button.dataset.ideaVote);
-    const existing = voteByUser.get(ideaId);
-    let result;
-    if (existing === value) {
-      result = await supabaseClient.from("community_idea_votes").delete().eq("idea_id",ideaId).eq("user_id",currentUser.id);
-    } else {
-      result = await supabaseClient.from("community_idea_votes").upsert({
-        idea_id:ideaId,user_id:currentUser.id,vote:value,updated_at:new Date().toISOString()
-      },{onConflict:"idea_id,user_id"});
-    }
-    if (result.error) {
-      const feedback = host.querySelector("#idea-feedback");
-      if (feedback) feedback.textContent = result.error.message || "Nie udało się zapisać głosu.";
-      button.disabled = false;
-      return;
-    }
-    await renderIdeasPage();
-  }));
-  host.querySelectorAll("[data-idea-delete]").forEach(button => button.addEventListener("click", async () => {
-    if (!confirm("Czy na pewno chcesz usunąć ten pomysł?")) return;
-    button.disabled = true;
-    const { error } = await supabaseClient.from("community_ideas").delete().eq("id",button.dataset.ideaDelete);
-    if (error) {
-      const feedback = host.querySelector("#idea-feedback");
-      if (feedback) feedback.textContent = error.message || "Nie udało się usunąć pomysłu.";
-      button.disabled = false;
-      return;
-    }
-    await renderIdeasPage();
-  }));
+ const host=$("page-content");host.innerHTML='<div class="page-content"><p>Ładowanie pomysłów...</p></div>';
+ const [ideasResult,votesResult,profilesResult]=await Promise.all([
+  supabaseClient.from("community_ideas").select("id,author_id,title,description,card_style,created_at").order("created_at",{ascending:false}).limit(100),
+  supabaseClient.from("community_idea_votes").select("idea_id,user_id,vote"),
+  supabaseClient.from("public_profiles").select("id,nickname")
+ ]);
+ const error=ideasResult.error||votesResult.error||profilesResult.error;
+ if(error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować pomysłów. Spróbuj ponownie później.</p></div>';console.error("Ideas load error:",error);return;}
+ const names=new Map((profilesResult.data||[]).map(p=>[p.id,p.nickname])),votes=votesResult.data||[];
+ const voteByUser=new Map(votes.filter(v=>v.user_id===currentUser.id).map(v=>[v.idea_id,v.vote])),totals=new Map();
+ votes.forEach(v=>{const item=totals.get(v.idea_id)||{up:0,down:0};if(v.vote===1)item.up++;else item.down++;totals.set(v.idea_id,item);});
+ const cards=(ideasResult.data||[]).map(idea=>{
+  const total=totals.get(idea.id)||{up:0,down:0},myVote=voteByUser.get(idea.id),own=idea.author_id===currentUser.id,style=COMMUNITY_CARD_STYLES.some(s=>s.id===idea.card_style)?idea.card_style:"classic";
+  return '<article class="idea-card community-designed-card style-'+style+'">'+communityCardCover(style,"idea")+'<div class="community-designed-content"><div class="idea-card-head"><div><h3>'+escapeHTML(idea.title)+'</h3><small>'+escapeHTML(names.get(idea.author_id)||"Uczeń")+' · '+escapeHTML(new Date(idea.created_at).toLocaleDateString("pl-PL"))+'</small></div>'+(own||isAdmin?'<button type="button" class="idea-delete" data-idea-delete="'+idea.id+'" aria-label="Usuń pomysł"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 14h12l1-14M9 7V4h6v3"/></svg></button>':"")+'</div><p>'+escapeHTML(idea.description).replace(/\n/g,"<br>")+'</p><div class="idea-votes"><button type="button" class="idea-vote up '+(myVote===1?"selected":"")+'" data-idea-vote="1" data-idea-id="'+idea.id+'" aria-label="Popieram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> <span>'+total.up+'</span></button><button type="button" class="idea-vote down '+(myVote===-1?"selected":"")+'" data-idea-vote="-1" data-idea-id="'+idea.id+'" aria-label="Nie popieram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg> <span>'+total.down+'</span></button></div></div></article>';
+ }).join("");
+ host.innerHTML='<section class="ideas-intro ideas-intro-redesigned"><div class="ideas-intro-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M8.5 14.5a6 6 0 1 1 7 0c-.8.6-1.2 1.3-1.3 2.5h-4.4c-.1-1.2-.5-1.9-1.3-2.5Z"/><path d="M12 2v2M4.9 4.9l1.4 1.4M19.1 4.9l-1.4 1.4"/></svg></div><div><strong>Masz pomysł na rozwój aplikacji?</strong><p>Podziel się propozycją. Społeczność może ją poprzeć lub odrzucić.</p></div><button type="button" class="community-create-button" id="open-idea-modal">＋ Dodaj pomysł</button></section><div class="ideas-list">'+(cards||'<div class="community-empty-state"><span>✦</span><strong>Jeszcze nie ma pomysłów</strong><small>Dodaj pierwszy pomysł i zainspiruj społeczność.</small></div>')+'</div><div class="community-create-backdrop" id="idea-modal" hidden><section class="community-create-dialog" role="dialog" aria-modal="true" aria-labelledby="idea-modal-title"><header class="community-dialog-header"><div><span class="community-dialog-eyebrow">ZSPM COMMUNITY · IDEAS</span><h3 id="idea-modal-title">Dodaj pomysł</h3><p>Opisz swoją propozycję i wybierz jej wygląd.</p></div><button type="button" class="community-dialog-close" id="close-idea-modal" aria-label="Zamknij">×</button></header><form class="community-create-form" id="idea-form"><label>Tytuł<input id="idea-title" maxlength="90" minlength="4" required placeholder="Np. Nowa funkcja czatu"></label><label>Opis<textarea id="idea-description" maxlength="1200" minlength="10" required rows="4" placeholder="Opisz, jak miałaby działać ta funkcja..."></textarea></label>'+communityCardStylePicker("classic","idea-card-style")+'<button type="submit" class="community-dialog-submit">Opublikuj pomysł</button><p class="idea-feedback" id="idea-feedback" aria-live="polite"></p></form></section></div>';
+ const modal=host.querySelector("#idea-modal"),form=host.querySelector("#idea-form");
+ const close=()=>{modal.hidden=true;form.reset();host.querySelector("#idea-card-style").value="classic";host.querySelectorAll("[data-card-style-option]").forEach(b=>{const active=b.dataset.cardStyleOption==="classic";b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));});document.removeEventListener("keydown",onKey);};
+ const onKey=e=>{if(e.key==="Escape"&&!modal.hidden)close();};
+ host.querySelector("#open-idea-modal").addEventListener("click",()=>{modal.hidden=false;document.addEventListener("keydown",onKey);});
+ host.querySelector("#close-idea-modal").addEventListener("click",close);modal.addEventListener("click",e=>{if(e.target===modal)close();});bindCommunityCardStylePicker(host,"idea-card-style");
+ form.addEventListener("submit",async event=>{event.preventDefault();const button=form.querySelector('button[type="submit"]');button.disabled=true;const {error}=await supabaseClient.from("community_ideas").insert({author_id:currentUser.id,title:host.querySelector("#idea-title").value.trim(),description:host.querySelector("#idea-description").value.trim(),card_style:host.querySelector("#idea-card-style").value});if(error){host.querySelector("#idea-feedback").textContent=error.message||"Nie udało się opublikować pomysłu.";button.disabled=false;return;}close();await renderIdeasPage();});
+ host.querySelectorAll("[data-idea-vote]").forEach(button=>button.addEventListener("click",async()=>{button.disabled=true;const ideaId=button.dataset.ideaId,value=Number(button.dataset.ideaVote),existing=voteByUser.get(ideaId);let result;if(existing===value)result=await supabaseClient.from("community_idea_votes").delete().eq("idea_id",ideaId).eq("user_id",currentUser.id);else result=await supabaseClient.from("community_idea_votes").upsert({idea_id:ideaId,user_id:currentUser.id,vote:value,updated_at:new Date().toISOString()},{onConflict:"idea_id,user_id"});if(result.error){button.disabled=false;alert(result.error.message||"Nie udało się zapisać głosu.");return;}await renderIdeasPage();}));
+ host.querySelectorAll("[data-idea-delete]").forEach(button=>button.addEventListener("click",async()=>{if(!confirm("Czy na pewno chcesz usunąć ten pomysł?"))return;button.disabled=true;const {error}=await supabaseClient.from("community_ideas").delete().eq("id",button.dataset.ideaDelete);if(error){button.disabled=false;alert(error.message||"Nie udało się usunąć pomysłu.");return;}await renderIdeasPage();}));
 }
 
 function formatActiveTime(seconds) {
@@ -3627,47 +3590,31 @@ async function renderAdminEventQueue(){
 const FORUM_CATEGORIES = {general:"Ogólne",school:"Szkoła",help:"Pomoc w nauce",ideas:"Pomysły",events:"Wydarzenia"};
 
 async function renderCommunityForumPage() {
-  const host=$("page-content");
-  host.innerHTML='<div class="page-content"><p>Ładowanie forum...</p></div>';
-  const [postsResult,profilesResult]=await Promise.all([
-    supabaseClient.from("community_forum_posts").select("id,author_id,category,title,body,is_locked,created_at").order("created_at",{ascending:false}).limit(60),
-    supabaseClient.from("public_profiles").select("id,nickname")
-  ]);
-  if(postsResult.error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować forum.</p></div>';return;}
-  const posts=postsResult.data||[], names=new Map((profilesResult.data||[]).map(p=>[p.id,p.nickname]));
-  const commentsResult=posts.length?await supabaseClient.from("community_forum_comments").select("id,post_id,author_id,body,created_at").in("post_id",posts.map(p=>p.id)).order("created_at",{ascending:true}).limit(300):{data:[],error:null};
-  const comments=commentsResult.data||[];
-  host.innerHTML='<div class="feature-intro"><strong>Forum ZSPM</strong><p>Wymieniaj się pomysłami, pytaj o szkołę i pomagaj innym. Nie publikuj prywatnych danych.</p></div>'+
-  '<form class="feature-form" id="forum-post-form"><h3>Nowy temat</h3><label>Kategoria<select id="forum-category">'+Object.entries(FORUM_CATEGORIES).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join("")+'</select></label><label>Tytuł<input id="forum-title" maxlength="100" minlength="4" required placeholder="O czym chcesz porozmawiać?"></label><label>Treść<textarea id="forum-body" maxlength="5000" minlength="10" rows="4" required placeholder="Napisz coś od siebie..."></textarea></label><button class="main-btn" type="submit">Opublikuj temat</button><p id="forum-feedback" class="feature-feedback" aria-live="polite"></p></form>'+
-  '<div class="feature-list">'+(posts.map(post=>{
-    const own=post.author_id===currentUser.id, postComments=comments.filter(c=>c.post_id===post.id);
-    return '<article class="feature-card"><div class="feature-card-top"><span class="feature-tag">'+(FORUM_CATEGORIES[post.category]||"Ogólne")+'</span><small>'+escapeHTML(names.get(post.author_id)||"Uczeń")+' · '+escapeHTML(new Date(post.created_at).toLocaleDateString("pl-PL"))+'</small></div><h3>'+escapeHTML(post.title)+'</h3><p class="feature-body">'+escapeHTML(post.body)+'</p>'+
-    (own||isAdmin?'<button type="button" class="text-action" data-forum-delete="'+post.id+'">Usuń temat</button>':"")+
-    (!own&&!isAdmin?'<button type="button" class="text-action" data-forum-report="'+post.id+'" data-author="'+post.author_id+'">Zgłoś temat</button>':"")+
-    '<div class="forum-comments"><strong>Komentarze ('+postComments.length+')</strong>'+(postComments.map(c=>'<div class="forum-comment"><b>'+escapeHTML(names.get(c.author_id)||"Uczeń")+'</b><p>'+escapeHTML(c.body)+'</p>'+(c.author_id===currentUser.id||isAdmin?'<button type="button" class="text-action" data-forum-comment-delete="'+c.id+'">Usuń</button>':"")+'</div>').join("")||'<small>Jeszcze nikt nie skomentował.</small>')+
-    (post.is_locked?'<p class="muted">Dyskusja zamknięta.</p>':'<form class="forum-comment-form" data-forum-comment-form="'+post.id+'"><input maxlength="2000" required placeholder="Dodaj komentarz"><button type="submit" aria-label="Wyślij komentarz">➤</button></form>')+'</div></article>';
-  }).join("")||'<div class="page-content"><p>Forum jest jeszcze puste. Dodaj pierwszy temat!</p></div>')+'</div>';
-  host.querySelector("#forum-post-form").addEventListener("submit",async e=>{
-    e.preventDefault();const b=e.currentTarget.querySelector("button[type=submit]");b.disabled=true;
-    const {error}=await supabaseClient.from("community_forum_posts").insert({author_id:currentUser.id,category:host.querySelector("#forum-category").value,title:host.querySelector("#forum-title").value.trim(),body:host.querySelector("#forum-body").value.trim()});
-    if(error){host.querySelector("#forum-feedback").textContent="Nie udało się opublikować tematu.";b.disabled=false;return;}await renderCommunityForumPage();
-  });
-  host.querySelectorAll("[data-forum-comment-form]").forEach(form=>form.addEventListener("submit",async e=>{
-    e.preventDefault();const input=form.querySelector("input");const body=input.value.trim();if(!body)return;
-    const {error}=await supabaseClient.from("community_forum_comments").insert({post_id:form.dataset.forumCommentForm,author_id:currentUser.id,body});
-    if(error){alert("Nie udało się dodać komentarza.");return;}await renderCommunityForumPage();
-  }));
-  host.querySelectorAll("[data-forum-report]").forEach(b=>b.addEventListener("click",async()=>{
-    const reason=prompt("Opisz krótko, dlaczego zgłaszasz ten temat:");
-    if(!reason||!reason.trim())return;
-    const {error}=await supabaseClient.from("content_reports").insert({reporter_id:currentUser.id,reported_user_id:b.dataset.author,target_type:"forum_post",target_id:b.dataset.forumReport,reason:reason.trim().slice(0,500)});
-    if(error){alert("Nie udało się wysłać zgłoszenia.");return;}
-    alert("Zgłoszenie zostało wysłane do administracji.");
-  }));
-  host.querySelectorAll("[data-forum-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Usunąć ten temat i komentarze?"))return;const {error}=await supabaseClient.from("community_forum_posts").delete().eq("id",b.dataset.forumDelete);if(error)alert("Nie udało się usunąć tematu.");else await renderCommunityForumPage();}));
-  host.querySelectorAll("[data-forum-comment-delete]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await supabaseClient.from("community_forum_comments").delete().eq("id",b.dataset.forumCommentDelete);if(error)alert("Nie udało się usunąć komentarza.");else await renderCommunityForumPage();}));
+ const host=$("page-content");host.innerHTML='<div class="page-content"><p>Ładowanie forum...</p></div>';
+ const [postsResult,profilesResult]=await Promise.all([
+  supabaseClient.from("community_forum_posts").select("id,author_id,category,title,body,is_locked,card_style,created_at").order("created_at",{ascending:false}).limit(60),
+  supabaseClient.from("public_profiles").select("id,nickname")
+ ]);
+ if(postsResult.error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować forum.</p></div>';return;}
+ const posts=postsResult.data||[],names=new Map((profilesResult.data||[]).map(p=>[p.id,p.nickname]));
+ const commentsResult=posts.length?await supabaseClient.from("community_forum_comments").select("id,post_id,author_id,body,created_at").in("post_id",posts.map(p=>p.id)).order("created_at",{ascending:true}).limit(300):{data:[],error:null};
+ const comments=commentsResult.data||[];
+ const cards=posts.map(post=>{
+  const own=post.author_id===currentUser.id,postComments=comments.filter(c=>c.post_id===post.id),style=COMMUNITY_CARD_STYLES.some(s=>s.id===post.card_style)?post.card_style:"classic";
+  return '<article class="feature-card forum-post-card community-designed-card style-'+style+'">'+communityCardCover(style,"forum")+'<div class="community-designed-content"><div class="feature-card-top"><span class="feature-tag">'+escapeHTML(FORUM_CATEGORIES[post.category]||"Ogólne")+'</span><small>'+escapeHTML(names.get(post.author_id)||"Uczeń")+' · '+escapeHTML(new Date(post.created_at).toLocaleDateString("pl-PL"))+'</small></div><h3>'+escapeHTML(post.title)+'</h3><p class="feature-body">'+escapeHTML(post.body)+'</p>'+(own||isAdmin?'<button type="button" class="text-action" data-forum-delete="'+post.id+'">Usuń temat</button>':"")+(!own&&!isAdmin?'<button type="button" class="text-action" data-forum-report="'+post.id+'" data-author="'+post.author_id+'">Zgłoś temat</button>':"")+'<div class="forum-comments"><strong>Komentarze ('+postComments.length+')</strong>'+(postComments.map(c=>'<div class="forum-comment"><b>'+escapeHTML(names.get(c.author_id)||"Uczeń")+'</b><p>'+escapeHTML(c.body)+'</p>'+(c.author_id===currentUser.id||isAdmin?'<button type="button" class="text-action" data-forum-comment-delete="'+c.id+'">Usuń</button>':"")+'</div>').join("")||'<small>Jeszcze nikt nie skomentował.</small>')+(post.is_locked?'<p class="muted">Dyskusja zamknięta.</p>':'<form class="forum-comment-form" data-forum-comment-form="'+post.id+'"><input maxlength="2000" required placeholder="Dodaj komentarz"><button type="submit" aria-label="Wyślij komentarz">➤</button></form>')+'</div></div></article>';
+ }).join("");
+ host.innerHTML='<section class="forum-page-intro"><div class="forum-page-intro-copy"><span class="community-dialog-eyebrow">ZSPM COMMUNITY · FORUM</span><h2>Forum ZSPM</h2><p>Wymieniaj się pomysłami, pytaj o szkołę i pomagaj innym. Nie publikuj prywatnych danych.</p></div><button type="button" class="community-create-button" id="open-forum-modal">＋ Dodaj temat</button></section><div class="feature-list">'+(cards||'<div class="community-empty-state"><span>✧</span><strong>Forum jest jeszcze puste</strong><small>Dodaj pierwszy temat i rozpocznij rozmowę.</small></div>')+'</div><div class="community-create-backdrop" id="forum-modal" hidden><section class="community-create-dialog" role="dialog" aria-modal="true" aria-labelledby="forum-modal-title"><header class="community-dialog-header"><div><span class="community-dialog-eyebrow">ZSPM COMMUNITY · FORUM</span><h3 id="forum-modal-title">Dodaj temat</h3><p>Wybierz kategorię, napisz treść i dopasuj styl karty.</p></div><button type="button" class="community-dialog-close" id="close-forum-modal" aria-label="Zamknij">×</button></header><form class="community-create-form" id="forum-post-form"><label>Kategoria<select id="forum-category">'+Object.entries(FORUM_CATEGORIES).map(([k,v])=>'<option value="'+k+'">'+escapeHTML(v)+'</option>').join("")+'</select></label><label>Tytuł<input id="forum-title" maxlength="100" minlength="4" required placeholder="O czym chcesz porozmawiać?"></label><label>Treść<textarea id="forum-body" maxlength="5000" minlength="10" rows="5" required placeholder="Napisz coś od siebie..."></textarea></label>'+communityCardStylePicker("classic","forum-card-style")+'<button type="submit" class="community-dialog-submit">Opublikuj temat</button><p id="forum-feedback" class="feature-feedback" aria-live="polite"></p></form></section></div>';
+ const modal=host.querySelector("#forum-modal"),form=host.querySelector("#forum-post-form");
+ const close=()=>{modal.hidden=true;form.reset();host.querySelector("#forum-card-style").value="classic";host.querySelectorAll("[data-card-style-option]").forEach(b=>{const active=b.dataset.cardStyleOption==="classic";b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));});document.removeEventListener("keydown",onKey);};
+ const onKey=e=>{if(e.key==="Escape"&&!modal.hidden)close();};
+ host.querySelector("#open-forum-modal").addEventListener("click",()=>{modal.hidden=false;document.addEventListener("keydown",onKey);});
+ host.querySelector("#close-forum-modal").addEventListener("click",close);modal.addEventListener("click",e=>{if(e.target===modal)close();});bindCommunityCardStylePicker(host,"forum-card-style");
+ form.addEventListener("submit",async e=>{e.preventDefault();const button=form.querySelector('button[type="submit"]');button.disabled=true;const {error}=await supabaseClient.from("community_forum_posts").insert({author_id:currentUser.id,category:host.querySelector("#forum-category").value,title:host.querySelector("#forum-title").value.trim(),body:host.querySelector("#forum-body").value.trim(),card_style:host.querySelector("#forum-card-style").value});if(error){host.querySelector("#forum-feedback").textContent="Nie udało się opublikować tematu.";button.disabled=false;return;}close();await renderCommunityForumPage();});
+ host.querySelectorAll("[data-forum-comment-form]").forEach(form=>form.addEventListener("submit",async e=>{e.preventDefault();const input=form.querySelector("input"),body=input.value.trim();if(!body)return;const {error}=await supabaseClient.from("community_forum_comments").insert({post_id:form.dataset.forumCommentForm,author_id:currentUser.id,body});if(error){alert("Nie udało się dodać комментария.");return;}await renderCommunityForumPage();}));
+ host.querySelectorAll("[data-forum-report]").forEach(b=>b.addEventListener("click",async()=>{const reason=prompt("Opisz krótko, dlaczego zgłaszasz ten temat:");if(!reason||!reason.trim())return;const {error}=await supabaseClient.from("content_reports").insert({reporter_id:currentUser.id,reported_user_id:b.dataset.author,target_type:"forum_post",target_id:b.dataset.forumReport,reason:reason.trim().slice(0,500)});if(error){alert("Nie udało się wysłać zgłoszenia.");return;}alert("Zgłoszenie zostało wysłane do administracji.");}));
+ host.querySelectorAll("[data-forum-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Usunąć ten temat i komentarze?"))return;const {error}=await supabaseClient.from("community_forum_posts").delete().eq("id",b.dataset.forumDelete);if(error)alert("Nie udało się usunąć tematu.");else await renderCommunityForumPage();}));
+ host.querySelectorAll("[data-forum-comment-delete]").forEach(b=>b.addEventListener("click",async()=>{const {error}=await supabaseClient.from("community_forum_comments").delete().eq("id",b.dataset.forumCommentDelete);if(error)alert("Nie udało się usunąć komentarza.");else await renderCommunityForumPage();}));
 }
-
 
 const SCHOOL_TIMETABLE_1DR = {
   1: [
