@@ -539,6 +539,7 @@ let chatMessageReactionsCache = new Map();
 let activePrivatePins = [];
 let activeGlobalPins = [];
 let replyToMessageId = null;
+let activeCommunityProfileClose = null;
 
 function showMessage(id, text, type = "error") {
   const element = $(id);
@@ -600,6 +601,7 @@ $("register").addEventListener("submit", async event => {
   const button = $("register").querySelector("button[type=submit]");
   button.disabled = true;
   button.textContent = "Tworzenie konta...";
+  let accountCreated = false;
 
   try {
     const { data, error } = await supabaseClient.auth.signUp({
@@ -613,8 +615,9 @@ $("register").addEventListener("submit", async event => {
     if (error) throw error;
 
     if (data.session && data.user) {
+      accountCreated = true;
       currentUser = getAppUser(data.user);
-      enterApp();
+      await enterApp();
     } else {
       showMessage(
         "register-message",
@@ -624,10 +627,22 @@ $("register").addEventListener("submit", async event => {
     }
   } catch (error) {
     console.error("Supabase registration error:", error);
-    const message = /already registered|already exists|user already/i.test(error.message || "")
-      ? "Ten adres e-mail jest już zarejestrowany. Zaloguj się."
-      : (error.message || "Nie udało się utworzyć konta. Spróbuj ponownie.");
-    showMessage("register-message", message);
+    if (accountCreated) {
+      await cleanupAllRealtimeChannels();
+      currentUser = null;
+      isAdmin = false;
+      isBanned = false;
+      currentUserBadge = null;
+      currentMute = null;
+      $("app").classList.add("hidden");
+      $("auth").classList.remove("hidden");
+      showMessage("register-message", "Konto zostało utworzone, ale aplikacja nie mogła się załadować. Spróbuj zalogować się ponownie.");
+    } else {
+      const message = /already registered|already exists|user already/i.test(error.message || "")
+        ? "Ten adres e-mail jest już zarejestrowany. Zaloguj się."
+        : (error.message || "Nie udało się utworzyć konta. Spróbuj ponownie.");
+      showMessage("register-message", message);
+    }
   } finally {
     button.disabled = false;
     button.textContent = "Utwórz konto →";
@@ -661,12 +676,23 @@ $("login").addEventListener("submit", async event => {
     if (error) throw error;
 
     currentUser = getAppUser(data.user);
-    enterApp();
+    await enterApp();
   } catch (error) {
     console.error("Supabase login error:", error);
+    await cleanupAllRealtimeChannels();
+    currentUser = null;
+    isAdmin = false;
+    isBanned = false;
+    currentUserBadge = null;
+    currentMute = null;
+    $("app").classList.add("hidden");
+    $("auth").classList.remove("hidden");
+    showLogin();
     const message = /email not confirmed/i.test(error.message || "")
       ? "Najpierw potwierdź adres e-mail, korzystając z wiadomości od Supabase."
-      : "Nieprawidłowy e-mail lub hasło. Sprawdź dane i spróbuj ponownie.";
+      : /invalid login credentials/i.test(error.message || "")
+        ? "Nieprawidłowy e-mail lub hasło. Sprawdź dane i spróbuj ponownie."
+        : "Nie udało się uruchomić aplikacji. Sprawdź połączenie i spróbuj ponownie.";
     showMessage("login-message", message);
   } finally {
     button.disabled = false;
@@ -706,6 +732,7 @@ async function enterApp() {
     .eq("user_id", currentUser.id)
     .is("revoked_at", null)
     .order("created_at", { ascending: false });
+  if (moderationError) throw moderationError;
   const activeBan = (ownModeration || []).find(item => item.action === "ban" &&
     (!item.expires_at || new Date(item.expires_at).getTime() > Date.now()));
   currentMute = (ownModeration || []).find(item => item.action === "mute" &&
@@ -750,6 +777,65 @@ async function enterApp() {
 
 /* ZSPM COMMUNITY: group chats, polls, favorites and daily quests */
 let communityGroupChannel = null;
+
+async function removeRealtimeChannels(channels) {
+  if (!supabaseClient) return;
+  await Promise.all((channels || []).filter(Boolean).map(async channel => {
+    try {
+      await supabaseClient.removeChannel(channel);
+    } catch (error) {
+      console.warn("Realtime channel cleanup failed:", error);
+    }
+  }));
+}
+
+async function cleanupChatRealtime() {
+  const channels = [activeChatChannel, chatListChannel, globalChatChannel];
+  activeChatChannel = null;
+  chatListChannel = null;
+  globalChatChannel = null;
+  activeConversationId = null;
+  activeChatProfile = null;
+  activeGlobalRoomId = null;
+  replyToMessageId = null;
+  activePrivatePins = [];
+  activeGlobalPins = [];
+  chatMessageLikesCache.clear();
+  chatMessageReactionsCache.clear();
+  await removeRealtimeChannels(channels);
+}
+
+async function cleanupGroupRealtime() {
+  const channel = communityGroupChannel;
+  communityGroupChannel = null;
+  await removeRealtimeChannels([channel]);
+}
+
+async function cleanupAllRealtimeChannels() {
+  const channels = [
+    activeChatChannel, chatListChannel, globalChatChannel, communityGroupChannel,
+    notificationsChannel, friendsChannel, feedChannel, socialChannel, presenceChannel
+  ];
+  activeChatChannel = null;
+  chatListChannel = null;
+  globalChatChannel = null;
+  communityGroupChannel = null;
+  notificationsChannel = null;
+  friendsChannel = null;
+  feedChannel = null;
+  socialChannel = null;
+  presenceChannel = null;
+  activeConversationId = null;
+  activeChatProfile = null;
+  activeGlobalRoomId = null;
+  replyToMessageId = null;
+  activePrivatePins = [];
+  activeGlobalPins = [];
+  chatMessageLikesCache.clear();
+  chatMessageReactionsCache.clear();
+  onlineUsers = new Set();
+  await removeRealtimeChannels(channels);
+}
 
 async function renderCommunityGroupsPage() {
   const host=$("page-content");
@@ -1287,7 +1373,9 @@ let currentAppPage = "home";
 async function openPage(page, options = {}) {
   if (isBanned) return;
   if (page !== "home" && !pages[page]) return;
-  if(page!=="groups" && communityGroupChannel){await supabaseClient.removeChannel(communityGroupChannel);communityGroupChannel=null;}
+  if (activeCommunityProfileClose) activeCommunityProfileClose();
+  if (page !== "chat") await cleanupChatRealtime();
+  if (page !== "groups") await cleanupGroupRealtime();
   if (!options.fromBack && page !== currentAppPage) appPageHistory.push(currentAppPage);
   currentAppPage = page;
   const backButton = $("app-back-button");
@@ -1572,7 +1660,11 @@ function getUserProfiles() {
 }
 
 function saveUserProfiles(profiles) {
-  localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+  try {
+    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+  } catch (error) {
+    console.warn("Local profile cache unavailable:", error);
+  }
 }
 
 function getMyProfile() {
@@ -2668,6 +2760,7 @@ function compressCommunityImage(file, maxSide) {
 
 async function openCommunityProfile(userId) {
   if (!userId || !supabaseClient) return;
+  if (activeCommunityProfileClose) activeCommunityProfileClose();
   let profile;
   try {
     profile = await loadCommunityProfile(userId);
@@ -2693,7 +2786,13 @@ async function openCommunityProfile(userId) {
     '<button type="button" class="community-profile-close" aria-label="Zamknij">×</button>' +
     communityProfileHTML(profile,roleBadge,own) + '</div>';
   document.body.appendChild(overlay);
-  const close=()=>overlay.remove();
+  let escapeHandler = null;
+  const close = () => {
+    overlay.remove();
+    if (escapeHandler) document.removeEventListener("keydown", escapeHandler);
+    if (activeCommunityProfileClose === close) activeCommunityProfileClose = null;
+  };
+  activeCommunityProfileClose = close;
   overlay.querySelector(".community-profile-close").addEventListener("click",close);
   overlay.addEventListener("click",e=>{if(e.target===overlay)close();});
   overlay.querySelector("#community-edit-profile")?.addEventListener("click",()=>{close();openPage("my-profile");});
@@ -2713,8 +2812,8 @@ async function openCommunityProfile(userId) {
   overlay.querySelectorAll("[data-action='unblock']").forEach(button=>button.addEventListener("click",async()=>{
     await unblockUser(userId); close(); await openCommunityProfile(userId);
   }));
-  const esc=e=>{if(e.key==="Escape"){close();document.removeEventListener("keydown",esc);}};
-  document.addEventListener("keydown",esc);
+  escapeHandler = event => { if (event.key === "Escape") close(); };
+  document.addEventListener("keydown", escapeHandler);
 }
 
 document.addEventListener("click", event => {
@@ -3107,16 +3206,7 @@ function myDisplayInfo() {
 }
 
 async function renderChatList() {
-  if (globalChatChannel) { await supabaseClient.removeChannel(globalChatChannel); globalChatChannel = null; }
-  if (activeChatChannel) {
-    await supabaseClient.removeChannel(activeChatChannel);
-    activeChatChannel = null;
-  }
-  if (chatListChannel) {
-    await supabaseClient.removeChannel(chatListChannel);
-    chatListChannel = null;
-  }
-  activeConversationId = null;
+  await cleanupChatRealtime();
   const { data, error } = await supabaseClient.from("conversations")
     .select("id,user_one,user_two,updated_at")
     .order("updated_at", { ascending: false });
@@ -4315,28 +4405,8 @@ $("account-logout").addEventListener("click", async () => {
 
 async function logout() {
   closeAccountMenu();
-  if (activeChatChannel) {
-    await supabaseClient.removeChannel(activeChatChannel);
-    activeChatChannel = null;
-  }
-  if (chatListChannel) {
-    await supabaseClient.removeChannel(chatListChannel);
-    chatListChannel = null;
-  }
-  if (notificationsChannel) {
-    await supabaseClient.removeChannel(notificationsChannel);
-    notificationsChannel = null;
-  }
-  if (friendsChannel) {
-    await supabaseClient.removeChannel(friendsChannel);
-    friendsChannel = null;
-  }
-  if (socialChannel) {
-    await supabaseClient.removeChannel(socialChannel);
-    socialChannel = null;
-  }
-  if (presenceChannel) { await supabaseClient.removeChannel(presenceChannel); presenceChannel = null; }
-  onlineUsers = new Set();
+  if (activeCommunityProfileClose) activeCommunityProfileClose();
+
   if (supabaseClient) {
     const { error } = await supabaseClient.auth.signOut();
     if (error) {
@@ -4346,12 +4416,14 @@ async function logout() {
     }
   }
 
+  await cleanupAllRealtimeChannels();
   currentUser = null;
   isAdmin = false;
   isBanned = false;
   currentUserBadge = null;
   currentMute = null;
   myProfileCache = null;
+  communityProfileCache = null;
   publicProfilesCache = [];
   profileSocialCache = {};
   friendsDataCache = { incoming: [], outgoing: [], friends: [] };
@@ -4360,8 +4432,8 @@ async function logout() {
   reportsCache = [];
   reportedMessageIdsCache = [];
   conversationsCache = [];
-  activeConversationId = null;
-  activeChatProfile = null;
+  appPageHistory = [];
+  currentAppPage = "home";
   updateNotifBadge();
   $("app").classList.add("hidden");
   $("auth").classList.remove("hidden");
@@ -4370,12 +4442,12 @@ async function logout() {
   showLogin();
 }
 
-
 // PRZYWRACANIE SESJI SUPABASE
 
 async function restoreSupabaseSession() {
   if (!supabaseClient) {
-    showMessage("register-message", authUnavailableMessage());
+    showLogin();
+    showMessage("login-message", authUnavailableMessage());
     return;
   }
 
@@ -4385,14 +4457,20 @@ async function restoreSupabaseSession() {
 
     if (data.session?.user) {
       currentUser = getAppUser(data.session.user);
-      enterApp();
+      await enterApp();
     }
   } catch (error) {
     console.error("Supabase session restore error:", error);
-    showMessage(
-      "register-message",
-      "Nie udało się przywrócić sesji. Odśwież stronę i spróbuj ponownie."
-    );
+    await cleanupAllRealtimeChannels();
+    currentUser = null;
+    isAdmin = false;
+    isBanned = false;
+    currentUserBadge = null;
+    currentMute = null;
+    $("app").classList.add("hidden");
+    $("auth").classList.remove("hidden");
+    showLogin();
+    showMessage("login-message", "Nie udało się przywrócić sesji. Odśwież stronę i spróbuj ponownie.");
   }
 }
 
