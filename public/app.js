@@ -1072,6 +1072,7 @@ async function renderAdminPage() {
   const profiles = profilesResult.data || [];
   const storageStats = storageResult.data || {};
   const cleanupPreview = cleanupPreviewResult.data || {};
+  const storageLoadError = storageResult.error || cleanupPreviewResult.error;
   const dbBytes = Number(storageStats.database_bytes) || 0;
   const dbLimit = Number(storageStats.database_limit_bytes) || 524288000;
   const storageBytes = Number(storageStats.storage_bytes) || 0;
@@ -1159,19 +1160,21 @@ async function renderAdminPage() {
     '<section class="admin-panel" data-admin-panel="events"><h3 class="admin-section-title">' + escapeHTML(eventText("adminTitle")) + '</h3><div id="admin-events-list"></div></section>' +
     '<section class="admin-panel" data-admin-panel="reports"><h3 class="admin-section-title">Zgłoszenia użytkowników i wiadomości</h3><input class="chat-search-input admin-search-input" id="admin-report-search" type="search" placeholder="Szukaj w zgłoszeniach…" aria-label="Szukaj w zgłoszeniach">' +
     '<div class="admin-report-list">' + (reportsHtml || '<div class="page-content"><p>Nie ma nowych zgłoszeń.</p></div>') + '</div></section>' +
-    '<section class="admin-panel" data-admin-panel="database"><h3 class="admin-section-title">Pamięć i stan bazy danych</h3>' +
+    '<section class="admin-panel" data-admin-panel="database"><div class="storage-panel-heading"><h3 class="admin-section-title">Pamięć i stan bazy danych</h3><button type="button" class="admin-small-btn" id="admin-refresh-storage">Odśwież pomiar</button></div>' +
     '<div class="storage-monitor-grid">' +
-      '<article class="storage-monitor-card"><div class="storage-monitor-head"><strong>Baza danych</strong><span class="storage-monitor-value">' + formatStorageBytes(dbBytes) + '</span></div><div class="storage-meter"><span style="width:' + dbPercent.toFixed(1) + '%"></span></div><p>' + dbPercent.toFixed(1) + '% · limit ' + formatStorageBytes(dbLimit) + '</p></article>' +
-      '<article class="storage-monitor-card"><div class="storage-monitor-head"><strong>Pliki Storage</strong><span class="storage-monitor-value">' + formatStorageBytes(storageBytes) + '</span></div><div class="storage-meter"><span style="width:' + storagePercent.toFixed(1) + '%"></span></div><p>' + storagePercent.toFixed(1) + '% · limit ' + formatStorageBytes(storageLimit) + '</p><small>Obiekty: ' + (Number(storageStats.storage_objects) || 0) + '</small></article>' +
+      '<article class="storage-monitor-card"><div class="storage-monitor-head"><strong>Baza danych</strong><span class="storage-monitor-value">' + formatStorageBytes(dbBytes) + '</span></div><div class="storage-meter"><span style="width:' + dbPercent.toFixed(1) + '%"></span></div><p>' + dbPercent.toFixed(1) + '% · wolne ' + formatStorageBytes(Math.max(0, dbLimit - dbBytes)) + ' · limit ' + formatStorageBytes(dbLimit) + '</p></article>' +
+      '<article class="storage-monitor-card"><div class="storage-monitor-head"><strong>Pliki Storage</strong><span class="storage-monitor-value">' + formatStorageBytes(storageBytes) + '</span></div><div class="storage-meter"><span style="width:' + storagePercent.toFixed(1) + '%"></span></div><p>' + storagePercent.toFixed(1) + '% · wolne ' + formatStorageBytes(Math.max(0, storageLimit - storageBytes)) + ' · limit ' + formatStorageBytes(storageLimit) + '</p><small>Obiekty: ' + (Number(storageStats.storage_objects) || 0) + '</small></article>' +
     '</div>' +
     '<div class="storage-status ' + (memoryCritical ? 'critical' : (dbPercent >= 80 || storagePercent >= 80 ? 'warning' : 'healthy')) + '">' +
-      (memoryCritical ? '<strong>Uwaga: wykorzystanie osiągnęło 90%.</strong> Zatwierdź czyszczenie starych wiadomości po sprawdzeniu podglądu.' : (dbPercent >= 80 || storagePercent >= 80 ? '<strong>Ostrzeżenie: wykorzystanie przekroczyło 80%.</strong> Warto sprawdzić zużycie pamięci.' : '<strong>Pamięć w normie.</strong> Automatyczne usuwanie nie jest uruchamiane.')) +
+      (storageLoadError ? '<strong>Nie udało się pobrać pełnych danych.</strong> ' + escapeHTML(storageLoadError.message || "Sprawdź uprawnienia i połączenie.") : (memoryCritical ? '<strong>Uwaga: wykorzystanie osiągnęło 90%.</strong> Zatwierdź czyszczenie starych wiadomości po sprawdzeniu podglądu.' : (dbPercent >= 80 || storagePercent >= 80 ? '<strong>Ostrzeżenie: wykorzystanie przekroczyło 80%.</strong> Warto sprawdzić zużycie pamięci.' : '<strong>Pamięć w normie.</strong> Automatyczne usuwanie nie jest uruchamiane.'))) +
     '</div>' +
     '<div class="storage-cleanup-card"><h4>Stare wiadomości (90 dni)</h4><p>Do ewentualnego usunięcia: prywatne — ' + (Number(cleanupPreview.private_messages) || 0) + ', globalny czat — ' + (Number(cleanupPreview.global_messages) || 0) + ', czaty grupowe — ' + (Number(cleanupPreview.group_messages) || 0) + '.</p><p class="muted">Wiadomości ze zgłoszeniami oraz przypięte zostają zachowane. Usunięcie wymaga każdorazowego potwierdzenia administratora.</p><button type="button" class="admin-action-btn" id="admin-cleanup-old-messages" ' + (cleanupCount === 0 ? 'disabled' : '') + '>' + (memoryCritical ? 'Zatwierdź czyszczenie (' + cleanupCount + ')' : 'Wyczyść po zatwierdzeniu (' + cleanupCount + ')') + '</button></div>' +
     '<p class="storage-updated-at">Ostatni pomiar: ' + (storageStats.measured_at ? escapeHTML(new Date(storageStats.measured_at).toLocaleString("pl-PL")) : "brak danych") + '</p></section>' +
     '<p class="admin-feedback" id="admin-feedback" aria-live="polite"></p>';
 
   renderAdminEventQueue();
+  const refreshStorageButton = host.querySelector("#admin-refresh-storage");
+  if (refreshStorageButton) refreshStorageButton.addEventListener("click", () => renderAdminPage());
   const cleanupButton = host.querySelector("#admin-cleanup-old-messages");
   if (cleanupButton) cleanupButton.addEventListener("click", async () => {
     const preview = "Будет удалено старше 90 дней: " + (Number(cleanupPreview.private_messages)||0) + " личных, " + (Number(cleanupPreview.global_messages)||0) + " общих и " + (Number(cleanupPreview.group_messages)||0) + " групповых сообщений. Сообщения с жалобами и закреплённые сохраняются. Продолжить?";
