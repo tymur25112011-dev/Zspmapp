@@ -5630,3 +5630,71 @@ body {
   #app .telegram-chat-msgs{max-height:calc(100dvh - 295px);padding-left:1px;padding-right:1px}
   #app .telegram-chat-msgs .bubble{max-width:91%}
 }
+
+
+/* Chat refinement: keep profile photos inside avatar frames and tighten bubbles. */
+#app .telegram-conv-item .conv-avatar,
+#app .telegram-chat-head .conv-avatar {
+  box-sizing:border-box;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  overflow:hidden;
+  border-radius:50%;
+  isolation:isolate;
+}
+#app .telegram-conv-item .conv-avatar { flex:0 0 46px; width:46px; height:46px; }
+#app .telegram-chat-head .conv-avatar { flex:0 0 40px; width:40px; height:40px; }
+#app .telegram-conv-item .conv-avatar img,
+#app .telegram-chat-head .conv-avatar img {
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:100%;
+  max-height:100%;
+  min-width:0;
+  min-height:0;
+  object-fit:cover;
+  border-radius:50%;
+}
+#app .telegram-conv-item .conv-avatar svg,
+#app .telegram-chat-head .conv-avatar svg {
+  display:block;
+  width:58%;
+  height:58%;
+  max-width:58%;
+  max-height:58%;
+  flex:0 0 auto;
+}
+#app .telegram-chat-msgs .bubble {
+  max-width:min(74%,460px);
+  min-width:0;
+  padding:7px 9px 6px;
+  border-radius:15px 15px 15px 5px;
+}
+#app .telegram-chat-msgs .chat-row.mine .bubble {
+  border-radius:15px 15px 5px 15px;
+}
+#app .telegram-chat-msgs .bubble-text {
+  font-size:12px;
+  line-height:1.4;
+}
+#app .telegram-chat-msgs .bubble-time { margin-top:3px; font-size:8px; }
+#app .telegram-chat-msgs .bubble-reply-context { margin-bottom:5px; padding:5px 7px; font-size:9px; }
+#app .telegram-chat-msgs .chat-reaction-row { margin-top:4px; }
+#app .telegram-chat-msgs .bubble-actions {
+  gap:6px;
+  margin-top:4px;
+  padding-top:4px;
+}
+#app .telegram-chat-msgs .msg-action { font-size:8px; }
+@media(max-width:600px) {
+  #app .telegram-conv-item .conv-avatar { flex-basis:44px; width:44px; height:44px; }
+  #app .telegram-chat-head .conv-avatar { flex-basis:38px; width:38px; height:38px; }
+  #app .telegram-chat-msgs .bubble { max-width:79%; }
+}
+@media(max-width:380px) {
+  #app .telegram-chat-msgs .bubble { max-width:82%; padding:7px 8px 5px; }
+}
