@@ -3761,3 +3761,53 @@ body::after {
   #app #page-content .community-profile-page .community-profile-heading h2 { font-size:20px; }
   #app #page-content .community-name-fields { grid-template-columns:1fr; }
 }
+
+
+/* Shared controls — consistent blue-glass buttons across all tabs */
+#app #page-content button:not(.main-btn):not(.accept-btn):not(.pill-btn):not(.report-btn):not(.chat-back):not(.chat-block-btn):not(.chat-send):not(.msg-action):not(.chat-reaction):not(.chat-reaction-add):not(.chat-reaction-pick):not(.emoji-option):not(.community-edit-btn):not(.community-questionnaire-link):not(.community-upload-btn):not(.text-action):not(.nav-item):not(.more-nav-link):not(.community-theme-choice):not(.community-decoration-choice):not(.friend-btn):not(.planner-check):not([class*="danger"]):not([class*="delete"]):not([data-action*="delete"]) {
+  min-height:38px;padding:8px 12px;border:1px solid rgba(83,158,229,.27);
+  border-radius:11px;background:linear-gradient(135deg,rgba(19,65,108,.82),rgba(11,39,69,.9));
+  color:#DCEEFF;font:inherit;font-size:11px;font-weight:750;
+  box-shadow:inset 0 1px rgba(255,255,255,.035),0 5px 14px rgba(0,0,0,.12);
+}
+#app #page-content button:not(:disabled):not(.main-btn):not(.accept-btn):not(.pill-btn):not(.report-btn):not(.chat-back):not(.chat-block-btn):not(.chat-send):not(.msg-action):not(.chat-reaction):not(.chat-reaction-add):not(.chat-reaction-pick):not(.emoji-option):not(.community-edit-btn):not(.community-questionnaire-link):not(.community-upload-btn):not(.text-action):not(.nav-item):not(.more-nav-link):not(.community-theme-choice):not(.community-decoration-choice):not(.friend-btn):not(.planner-check):hover {
+  border-color:rgba(91,177,255,.55);filter:brightness(1.08);
+}
+#app #page-content button:disabled {
+  cursor:not-allowed;opacity:.55;
+}
+#app #page-content .secondary-btn,
+#app #page-content .pill-btn {
+  min-height:38px;padding:8px 12px;border:1px solid rgba(83,158,229,.28);
+  border-radius:11px;background:rgba(17,51,83,.82);color:#DCEEFF;
+  font-size:11px;font-weight:750;
+}
+#app #page-content .text-action {
+  padding:5px 8px;border:0;border-radius:8px;background:transparent;
+  color:#8FC9FF;font-size:11px;font-weight:750;
+}
+#app #page-content .feature-list { display:grid;gap:11px; }
+#app #page-content .feature-card { min-width:0; }
+#app #page-content .feature-card small,
+#app #page-content .feature-intro small { color:#8FA9C7; }
+#app #page-content .feature-form {
+  display:grid;gap:12px;padding:17px;border:1px solid rgba(76,139,211,.25);
+  border-radius:18px;background:linear-gradient(145deg,rgba(17,31,52,.96),rgba(9,20,36,.96));
+}
+#app #page-content .feature-form label {
+  display:grid;gap:7px;color:#BBD0E9;font-size:11px;font-weight:700;
+}
+#app #page-content .feature-form input,
+#app #page-content .feature-form textarea,
+#app #page-content .feature-form select {
+  width:100%;min-width:0;min-height:42px;padding:10px 12px;
+  border:1px solid rgba(76,139,211,.3);border-radius:11px;
+  background:rgba(5,12,22,.9);color:#F4F7FF;font:inherit;font-size:13px;
+}
+#app #page-content .feature-form textarea { min-height:82px;resize:vertical; }
+@media(max-width:600px) {
+  #app #page-content .feature-intro,
+  #app #page-content .feature-card,
+  #app #page-content .feature-form { border-radius:15px; }
+  #app #page-content .feature-form { padding:14px; }
+}
