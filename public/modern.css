@@ -4368,3 +4368,23 @@ button.community-search-result{width:100%}
  #app #page-content .community-quest-copy>strong{font-size:13px}
  #app #page-content .community-quest-action{width:100%;justify-content:space-between;padding-left:52px}
 }
+
+
+/* Updates, unread indicators and release history */
+#app .menu-item{position:relative}
+#app .menu-unread-badge{display:none;align-items:center;justify-content:center;flex:0 0 auto;min-width:22px;height:22px;padding:0 7px;border-radius:99px;background:#e34d78;color:#fff;font-size:11px;font-weight:850;line-height:1;box-shadow:0 4px 12px rgba(227,77,120,.24)}
+#app .menu-unread-badge.is-visible{display:inline-flex}
+#app .menu-item>.menu-unread-badge{position:absolute;top:12px;right:12px}
+#app .community-group-card .menu-unread-badge,#app .conv-item>.menu-unread-badge{margin-left:auto}
+#app .updates-hero{padding:23px;border:1px solid var(--zspm-border);border-radius:22px;background:linear-gradient(135deg,var(--zspm-panel),var(--zspm-panel-2));box-shadow:var(--zspm-shadow);margin-bottom:16px}
+#app .updates-kicker{font-size:10px;font-weight:850;letter-spacing:.16em;color:var(--zspm-blue)}
+#app .updates-hero h2{margin:8px 0 6px;color:var(--zspm-text);font-size:28px}
+#app .updates-hero p{margin:0;color:var(--zspm-muted);line-height:1.55}
+#app .updates-release-list{display:grid;gap:12px}
+#app .updates-release-card{padding:19px;border:1px solid var(--zspm-border);border-radius:18px;background:var(--zspm-panel);box-shadow:var(--zspm-shadow)}
+#app .updates-release-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--zspm-muted);font-size:11px}
+#app .updates-release-meta span:last-child{padding:5px 9px;border-radius:99px;background:var(--zspm-blue-soft);color:var(--zspm-blue);font-weight:750}
+#app .updates-release-card h3{margin:12px 0;color:var(--zspm-text);font-size:17px}
+#app .updates-release-card ul{padding-left:19px;display:grid;gap:8px;color:var(--zspm-muted);font-size:13px;line-height:1.5}
+#app .updates-footnote{margin:14px 3px;color:var(--zspm-muted);font-size:11px}
+@media(max-width:600px){#app .updates-hero{padding:18px;border-radius:18px}#app .updates-release-card{padding:15px;border-radius:16px}#app .menu-item>.menu-unread-badge{top:9px;right:9px}}
