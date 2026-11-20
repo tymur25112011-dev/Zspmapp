@@ -5425,3 +5425,49 @@ body {
       url("https://zspm.wkraj.pl/data_small/7/0/scrshot_83770_0.jpg");
   }
 }
+
+
+/* Targeted fixes: keep the campus photo above theme-level hero backgrounds. */
+:root[data-theme] #app .hero.home-hero {
+  background-image:
+    linear-gradient(90deg,rgba(5,10,19,.97) 0%,rgba(5,10,19,.88) 43%,rgba(5,10,19,.42) 100%),
+    linear-gradient(0deg,rgba(5,10,19,.30),rgba(5,10,19,.08)),
+    url("https://zspm.wkraj.pl/data_small/7/0/scrshot_83770_0.jpg") !important;
+  background-size:cover !important;
+  background-position:center right !important;
+  background-repeat:no-repeat !important;
+}
+:root[data-theme] #app .hero.home-hero::after {
+  content:none !important;
+  display:none !important;
+}
+@media(max-width:600px) {
+  :root[data-theme] #app .hero.home-hero {
+    background-position:58% center !important;
+    background-image:
+      linear-gradient(90deg,rgba(5,10,19,.96) 0%,rgba(5,10,19,.82) 60%,rgba(5,10,19,.52) 100%),
+      linear-gradient(0deg,rgba(5,10,19,.28),rgba(5,10,19,.08)),
+      url("https://zspm.wkraj.pl/data_small/7/0/scrshot_83770_0.jpg") !important;
+  }
+}
+
+/* Keep profile nicknames intact instead of splitting a word across lines. */
+#app #page-content .community-profile-page .community-profile-heading h2 {
+  overflow-wrap:normal !important;
+  word-break:normal !important;
+  hyphens:none !important;
+  font-size:clamp(17px,3.8vw,24px);
+}
+
+/* Aurora should remain a clean gradient, without decorative halo overlays. */
+#app #page-content .community-editor-banner.theme-aurora,
+#app #page-content .theme-preview.theme-aurora {
+  background-image:linear-gradient(125deg,#123d67 0%,#172e59 55%,#173e55 100%) !important;
+}
+#app #page-content .community-editor-banner.theme-aurora::before,
+#app #page-content .community-editor-banner.theme-aurora::after,
+#app #page-content .theme-preview.theme-aurora::before,
+#app #page-content .theme-preview.theme-aurora::after {
+  content:none !important;
+  display:none !important;
+}
