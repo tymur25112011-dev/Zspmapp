@@ -4096,3 +4096,85 @@ button.community-search-result{width:100%}
   .community-feature-dialog{padding:17px;border-radius:19px}
   .community-feature-modal{padding:12px}
 }
+
+
+/* Unified visual language for group chats and polls */
+#app .community-feature-hero,
+#app .community-feature-panel,
+#app .community-poll-card,
+#app .community-group-card,
+#app .community-group-chat-head,
+#app .community-group-messages {
+  color:var(--zspm-text);
+  border-color:var(--zspm-border);
+}
+#app .community-feature-hero {
+  background:linear-gradient(135deg,rgba(89,168,255,.13),rgba(124,92,231,.13));
+  box-shadow:var(--zspm-shadow);
+}
+#app .community-feature-panel,
+#app .community-poll-card,
+#app .community-group-card {
+  background:linear-gradient(155deg,rgba(26,29,54,.94),rgba(17,20,39,.94));
+  box-shadow:0 10px 28px rgba(0,0,0,.13);
+}
+#app .community-group-card:hover,
+#app .community-poll-card:hover {border-color:rgba(89,168,255,.42);transform:translateY(-1px)}
+#app .community-group-avatar {
+  background:linear-gradient(145deg,rgba(89,168,255,.2),rgba(124,92,231,.2));
+  border:1px solid rgba(130,160,255,.2);
+}
+#app .community-group-chat-head {background:linear-gradient(120deg,rgba(89,168,255,.12),rgba(124,92,231,.12));border:1px solid var(--zspm-border)}
+#app .community-group-messages {background:rgba(7,10,24,.48)}
+#app .community-group-message {background:rgba(255,255,255,.065);border:1px solid rgba(160,180,220,.08)}
+#app .community-group-message.mine {background:linear-gradient(120deg,rgba(89,168,255,.2),rgba(124,92,231,.18));border-color:rgba(89,168,255,.18)}
+#app .community-poll-option {background:rgba(255,255,255,.045);border:1px solid rgba(160,180,220,.1);border-radius:13px}
+#app .community-poll-option.selected {border-color:var(--zspm-accent);background:rgba(89,168,255,.1)}
+#app .community-poll-bar {background:rgba(255,255,255,.09);border-radius:99px;overflow:hidden}
+#app .community-poll-bar i {background:linear-gradient(90deg,var(--zspm-accent),#8b75ed)}
+#app .community-feature-dialog {
+  background:linear-gradient(155deg,#1a1d36,#111427);
+  border-color:var(--zspm-border);
+}
+#app .community-feature-form input,
+#app .community-feature-form select {
+  background:rgba(7,10,24,.48);
+  border-color:rgba(130,160,220,.2);
+  color:var(--zspm-text);
+}
+#app .community-feature-form input::placeholder {color:rgba(169,171,199,.62)}
+#app .community-icon-field {display:grid;gap:9px}
+#app .community-icon-label {font-size:13px;font-weight:750}
+#app .community-icon-picker {
+  display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;
+  padding:11px;border:1px solid var(--zspm-border);border-radius:16px;
+  background:rgba(7,10,24,.42);
+}
+#app .community-icon-choice {
+  display:grid;place-items:center;aspect-ratio:1;min-width:0;
+  border:1px solid rgba(145,165,215,.13);border-radius:13px;
+  background:rgba(255,255,255,.045);color:var(--zspm-text);font-size:23px;
+}
+#app .community-icon-choice:hover {background:rgba(89,168,255,.12);border-color:rgba(89,168,255,.45)}
+#app .community-icon-choice.is-selected {
+  background:linear-gradient(145deg,rgba(89,168,255,.23),rgba(124,92,231,.24));
+  border-color:var(--zspm-accent);box-shadow:0 0 0 2px rgba(89,168,255,.13),0 7px 18px rgba(60,100,190,.15);
+}
+#app .community-feature-hero p,
+#app .community-group-copy small,
+#app .community-group-chat-head small,
+#app .community-poll-top,
+#app .community-group-description {color:var(--zspm-muted)}
+#app .community-feature-section-head span {color:var(--zspm-muted);background:rgba(255,255,255,.07);padding:4px 9px;border-radius:99px}
+#app .community-empty-state {padding:30px 18px;border:1px dashed var(--zspm-border);border-radius:18px;background:rgba(255,255,255,.025);text-align:center;color:var(--zspm-muted)}
+#app .community-empty-state strong {display:block;color:var(--zspm-text);margin:8px 0 4px}
+@media(max-width:600px){
+ #app .community-feature-hero {align-items:stretch;flex-direction:column;padding:19px;border-radius:18px}
+ #app .community-create-cta {width:100%}
+ #app .community-feature-panel,#app .community-poll-card {padding:15px;border-radius:17px}
+ #app .community-feature-dialog {padding:17px;border-radius:19px}
+ #app .community-icon-picker {grid-template-columns:repeat(4,minmax(0,1fr))}
+ #app .community-poll-create-options {grid-template-columns:1fr}
+ #app .community-group-chat-head {flex-wrap:wrap}
+ #app .community-group-messages {min-height:220px}
+}
