@@ -3721,3 +3721,110 @@ body.christmas-enabled #christmas-decorations .christmas-garland {
 .theme-dark .theme-preview{background:linear-gradient(135deg,#050b15,#102746 55%,#1c4674)!important}
 .theme-liquid-glass .theme-preview{background:linear-gradient(135deg,#8ed8ff,#c4b8ff 52%,#f5c6e7)!important}
 @media(max-width:380px){.bottom-nav{width:calc(100% - 10px)!important;padding-left:2px!important;padding-right:2px!important}.bottom-nav .nav-item{font-size:8px!important;letter-spacing:-.3px!important}.bottom-nav .nav-item>span:first-child{flex-basis:19px!important;width:19px!important;height:19px!important}.bottom-nav .nav-item>span:first-child svg{width:17px!important;height:17px!important}.settings-choice-panel{padding:15px!important}.settings-choice{min-height:62px!important;padding:8px!important;gap:6px!important}.choice-flag{flex-basis:30px!important;width:30px!important;height:30px!important;font-size:19px!important}.choice-copy strong{font-size:11px!important}.settings-theme-grid{gap:6px!important}.theme-choice{min-height:124px!important;padding:7px!important}.theme-choice .theme-preview{height:48px!important;min-height:48px!important}}
+
+
+/* ZSPM Community — subtle visual details across the app */
+#app .page-content,
+#app .profile-card,
+#app .menu-item,
+#app .conv-item,
+#app .chat-head {
+  position: relative;
+  isolation: isolate;
+}
+#app .page-content:not(.settings-choice-panel) {
+  background-image:
+    radial-gradient(ellipse at 100% 0%, rgba(91,164,255,.075), transparent 42%),
+    linear-gradient(145deg, rgba(255,255,255,.018), transparent 58%);
+}
+#app .page-content > h2:first-child,
+#app .page-content > h3:first-child,
+#app .section-title {
+  position: relative;
+  padding-bottom: 10px;
+}
+#app .page-content > h2:first-child::after,
+#app .page-content > h3:first-child::after,
+#app .section-title::after {
+  content: "";
+  display: block;
+  width: 46px;
+  height: 3px;
+  margin-top: 9px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--zspm-blue, #59a8ff), rgba(132,190,255,.12));
+  box-shadow: 0 0 13px rgba(76,153,255,.28);
+}
+#app .profile-card {
+  border-color: rgba(103,169,255,.22);
+  background-image:
+    radial-gradient(ellipse at 100% 0%, rgba(93,161,255,.12), transparent 48%),
+    linear-gradient(145deg, rgba(255,255,255,.025), transparent 62%);
+  box-shadow: 0 12px 34px rgba(10,40,82,.10), inset 0 1px 0 rgba(255,255,255,.035);
+}
+#app .profile-card.own {
+  border-color: rgba(91,166,255,.42);
+  box-shadow: 0 12px 36px rgba(39,111,201,.13), inset 0 1px 0 rgba(255,255,255,.07);
+}
+#app .menu-item {
+  border-color: rgba(103,169,255,.16);
+  background-image: linear-gradient(145deg, rgba(99,165,255,.075), transparent 68%);
+  box-shadow: 0 8px 22px rgba(10,35,75,.08), inset 0 1px 0 rgba(255,255,255,.045);
+}
+#app .menu-item .menu-icon,
+#app .section-icon {
+  filter: drop-shadow(0 3px 8px rgba(70,145,245,.24));
+}
+#app .conv-item {
+  border-color: rgba(103,169,255,.13);
+  transition: border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+#app .conv-item:hover,
+#app .menu-item:hover {
+  border-color: rgba(103,169,255,.34);
+  box-shadow: 0 12px 28px rgba(20,75,145,.13), inset 0 1px 0 rgba(255,255,255,.07);
+}
+#app .menu-item:active,
+#app .conv-item:active {
+  transform: scale(.985);
+}
+#app .page-content a:not(.main-btn),
+#app .profile-card a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+#app .main-btn,
+#app button.primary,
+#app .profile-action {
+  box-shadow: 0 6px 18px rgba(42,119,218,.16), inset 0 1px 0 rgba(255,255,255,.16);
+}
+#app input:not([type="checkbox"]):not([type="radio"]),
+#app textarea,
+#app select {
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+#app input:not([type="checkbox"]):not([type="radio"]):focus,
+#app textarea:focus,
+#app select:focus {
+  border-color: rgba(85,158,245,.72);
+  box-shadow: 0 0 0 3px rgba(76,148,235,.12);
+}
+#app .settings-panel-icon {
+  box-shadow: 0 5px 18px rgba(58,132,222,.18), inset 0 1px 0 rgba(255,255,255,.18);
+}
+@media (hover: none) {
+  #app .menu-item:hover,
+  #app .conv-item:hover {
+    border-color: rgba(103,169,255,.16);
+    box-shadow: 0 8px 22px rgba(10,35,75,.08), inset 0 1px 0 rgba(255,255,255,.045);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #app .menu-item,
+  #app .conv-item,
+  #app input,
+  #app textarea,
+  #app select {
+    transition: none !important;
+  }
+}
