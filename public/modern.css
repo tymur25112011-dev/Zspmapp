@@ -5381,3 +5381,47 @@ body {
     linear-gradient(160deg,#050A13 0%,#081321 55%,#050A13 100%);
   background-attachment:fixed;
 }
+
+
+
+/* Final home hero and profile heading refinements */
+#app .home-hero {
+  background-image:
+    linear-gradient(90deg, rgba(5,10,19,.97) 0%, rgba(5,10,19,.88) 43%, rgba(5,10,19,.42) 100%),
+    linear-gradient(0deg, rgba(5,10,19,.30), rgba(5,10,19,.08)),
+    url("https://zspm.wkraj.pl/data_small/7/0/scrshot_83770_0.jpg");
+  background-size:cover;
+  background-position:center right;
+  background-repeat:no-repeat;
+}
+#app .home-hero-symbol {
+  background:rgba(5,16,30,.48);
+  backdrop-filter:blur(8px);
+}
+#app #page-content .community-profile-page .community-profile-heading {
+  min-width:0;
+  flex:1 1 auto;
+}
+#app #page-content .community-profile-page .community-profile-heading h2 {
+  display:block;
+  max-width:100%;
+  min-width:0;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+#app #page-content .community-editor-banner.theme-aurora,
+#app #page-content .theme-preview.theme-aurora {
+  background-image:linear-gradient(125deg,#123d67 0%,#172e59 55%,#173e55 100%);
+}
+@media(max-width:600px) {
+  #app .home-hero {
+    background-position:58% center;
+    background-image:
+      linear-gradient(90deg,rgba(5,10,19,.96) 0%,rgba(5,10,19,.82) 60%,rgba(5,10,19,.52) 100%),
+      linear-gradient(0deg,rgba(5,10,19,.28),rgba(5,10,19,.08)),
+      url("https://zspm.wkraj.pl/data_small/7/0/scrshot_83770_0.jpg");
+  }
+}
