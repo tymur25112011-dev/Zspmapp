@@ -4307,3 +4307,64 @@ button.community-search-result{width:100%}
 #app .profile-comment .community-author-avatar{width:30px!important;height:30px!important;min-width:30px!important;flex-basis:30px}
 #app .profile-comment .community-author-presence{left:20px;width:9px;height:9px}
 @media(max-width:600px){#app .community-author-avatar{width:34px!important;height:34px!important;min-width:34px!important;flex-basis:34px}#app .community-author-presence{left:24px;width:10px;height:10px}#app .community-author-row{gap:8px}#app .community-author-name{font-size:13px}}
+
+
+/* Daily quests — polished, theme-aware cards */
+#app #page-content .community-quests-hero{
+  display:flex;align-items:center;justify-content:space-between;gap:22px;
+  padding:24px;border:1px solid var(--zspm-border);border-radius:22px;
+  background:var(--zspm-panel);box-shadow:var(--zspm-shadow);
+}
+#app #page-content .community-quests-hero-copy{flex:1;min-width:0}
+#app #page-content .community-quests-hero h2{margin:8px 0 6px;color:var(--zspm-text);font-size:clamp(23px,4vw,30px)}
+#app #page-content .community-quests-hero p{margin:0;color:var(--zspm-muted);line-height:1.55}
+#app #page-content .community-quests-trophy{
+  width:66px;height:66px;border-radius:20px;flex:0 0 auto;
+  background:linear-gradient(145deg,rgba(89,168,255,.18),rgba(124,92,231,.2));
+  border:1px solid rgba(130,160,255,.23);color:var(--zspm-accent);
+}
+#app #page-content .community-quests-trophy svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#app #page-content .community-quests-summary{display:flex;gap:18px;flex-wrap:wrap;margin:17px 0 10px;color:var(--zspm-muted);font-size:12px}
+#app #page-content .community-quests-summary strong{color:var(--zspm-text);font-size:15px}
+#app #page-content .community-quests-progress{height:8px;overflow:hidden;border-radius:99px;background:rgba(130,150,190,.16)}
+#app #page-content .community-quests-progress i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--zspm-accent),#8b75ed);transition:width .25s ease}
+#app #page-content .community-quests-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:22px 2px 12px}
+#app #page-content .community-quests-section-head h3{margin:0;color:var(--zspm-text);font-size:17px}
+#app #page-content .community-quests-section-head p{margin:4px 0 0;color:var(--zspm-muted);font-size:12px}
+#app #page-content .community-quests-section-head>span{padding:6px 10px;border:1px solid var(--zspm-border);border-radius:99px;color:var(--zspm-muted);font-size:11px;white-space:nowrap}
+#app #page-content .community-quest-card{
+  display:flex;align-items:center;gap:14px;padding:15px 16px;
+  border:1px solid var(--zspm-border);border-radius:17px;
+  background:var(--zspm-panel);box-shadow:var(--zspm-shadow);
+  transition:border-color .18s ease,transform .18s ease,background .18s ease;
+}
+#app #page-content .community-quest-card:hover{border-color:var(--zspm-accent);transform:translateY(-1px)}
+#app #page-content .community-quest-icon{
+  display:grid;place-items:center;width:48px;height:48px;flex:0 0 48px;
+  border:1px solid rgba(89,168,255,.17);border-radius:15px;
+  background:linear-gradient(145deg,rgba(89,168,255,.13),rgba(124,92,231,.13));color:var(--zspm-accent);
+}
+#app #page-content .community-quest-icon svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#app #page-content .community-quest-copy{flex:1;min-width:0}
+#app #page-content .community-quest-copy>strong{display:block;color:var(--zspm-text);font-size:14px}
+#app #page-content .community-quest-copy p{margin:4px 0 6px;color:var(--zspm-muted);font-size:12px;line-height:1.45}
+#app #page-content .community-quest-copy small{display:inline-flex;align-items:center;gap:6px;color:var(--zspm-muted);font-size:11px}
+#app #page-content .community-quest-status-dot{width:6px;height:6px;border-radius:50%;background:#35c98a}
+#app #page-content .community-quest-action{display:flex;align-items:center;gap:10px;text-align:right}
+#app #page-content .community-quest-action b{color:var(--zspm-accent);font-size:12px;white-space:nowrap}
+#app #page-content .community-quest-action .secondary-btn{min-width:100px;padding:9px 12px;border-radius:11px}
+#app #page-content .community-quest-action .secondary-btn:disabled{opacity:.55;cursor:default}
+#app #page-content .community-quest-card.completed{border-color:rgba(53,201,138,.34)}
+#app #page-content .community-quest-card.claimed{background:rgba(53,201,138,.045);opacity:.82}
+@media(max-width:600px){
+ #app #page-content .community-quests-hero{align-items:flex-start;padding:18px;border-radius:18px}
+ #app #page-content .community-quests-trophy{width:50px;height:50px;border-radius:15px}
+ #app #page-content .community-quests-trophy svg{width:26px;height:26px}
+ #app #page-content .community-quests-summary{gap:12px}
+ #app #page-content .community-quests-section-head{align-items:flex-start}
+ #app #page-content .community-quest-card{gap:10px;padding:12px;border-radius:15px}
+ #app #page-content .community-quest-icon{width:42px;height:42px;flex-basis:42px;border-radius:13px}
+ #app #page-content .community-quest-icon svg{width:21px;height:21px}
+ #app #page-content .community-quest-copy>strong{font-size:13px}
+ #app #page-content .community-quest-action{width:100%;justify-content:space-between;padding-left:52px}
+}
