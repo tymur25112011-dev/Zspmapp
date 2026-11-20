@@ -1096,7 +1096,7 @@ function renderCommunitySearchPage(){
   const results=host.querySelector("#community-search-results");
   form.addEventListener("submit",async event=>{
     event.preventDefault();
-    const query=input.value.trim().replace(/[%_]/g," ").slice(0,80);
+    const query=input.value.trim().replace(/[%,_()]/g," ").slice(0,80);
     if(query.length<2){results.innerHTML='<p class="community-search-message">'+escapeHTML(searchText("min"))+'</p>';return;}
     const button=form.querySelector('button[type="submit"]');
     button.disabled=true;
