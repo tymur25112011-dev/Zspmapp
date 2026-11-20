@@ -3555,21 +3555,26 @@ function bindComposer(conversationId) {
 }
 
 async function renderUpdatesPage() {
-  const releases = [{date:"20.11.2026",version:"Stabilność i moderacja",title:"Poprawki bezpieczeństwa i zgłoszeń",details:[
-    "Naprawiono zapisywanie zgłoszeń wiadomości w czatach grupowych.",
-    "Naprawiono warunek dostępu moderatorów do zgłoszonych wiadomości grupowych.",
-    "Usprawniono polityki bezpieczeństwa RLS w czatach grupowych.",
-    "Dodano licznik nieprzeczytanych powiadomień o ankietach i głosach."
-  ]},{date:"20.11.2026",version:"Nowości społeczności",title:"Updates, powiadomienia i liczniki wiadomości",details:[
-    "Dodano zakładkę Updates z historią zmian aplikacji.",
-    "Dodano powiadomienia o nowych ankietach, głosach i wiadomościach grupowych.",
-    "Dodano liczniki nieprzeczytanych wiadomości na kartach czatów w menu głównym.",
-    "Usprawniono odświeżanie liczników i obsługę powiadomień."
-  ]}];
-  await supabaseClient.from("notifications").update({read_at:new Date().toISOString()}).eq("user_id",currentUser.id).eq("type","app_update").is("read_at",null);
+  const host = $("page-content");
+  const { data: releases, error } = await supabaseClient.from("community_updates")
+    .select("id,version,title,details,published_at")
+    .order("published_at", { ascending: false })
+    .limit(100);
+  if (error) {
+    console.error("Updates load error:", error);
+    host.innerHTML = '<div class="page-content"><h3>Updates</h3><p>Nie udało się załadować historii aktualizacji. Spróbuj ponownie później.</p></div>';
+    return;
+  }
+  const cards = (releases || []).map(release => {
+    const date = new Date(release.published_at).toLocaleDateString("pl-PL", {day:"2-digit",month:"2-digit",year:"numeric"});
+    const details = Array.isArray(release.details) ? release.details : [];
+    return '<article class="updates-release-card"><div class="updates-release-meta"><span>'+escapeHTML(date)+'</span><span>'+escapeHTML(release.version)+'</span></div><h3>'+escapeHTML(release.title)+'</h3><ul>'+details.map(item=>'<li>'+escapeHTML(String(item))+'</li>').join("")+'</ul></article>';
+  }).join("");
+  host.innerHTML = '<section class="updates-hero"><span class="updates-kicker">ZSPM COMMUNITY</span><h2>Updates</h2><p>Tutaj znajdziesz historię nowych funkcji, poprawek i zmian w aplikacji.</p></section><div class="updates-release-list">'+(cards || '<div class="community-empty-state"><strong>Brak aktualizacji</strong><small>Nowości pojawią się tutaj po publikacji.</small></div>')+'</div><p class="updates-footnote">Historia jest zapisywana na serwerze i pozostaje dostępna po ponownym uruchomieniu aplikacji.</p>';
+  const { error: readError } = await supabaseClient.from("notifications").update({read_at:new Date().toISOString()})
+    .eq("user_id",currentUser.id).eq("type","app_update").is("read_at",null);
+  if (readError) console.error("Update notifications read error:", readError);
   await loadNotifications();
-  const cards = releases.map(release => '<article class="updates-release-card"><div class="updates-release-meta"><span>'+escapeHTML(release.date)+'</span><span>'+escapeHTML(release.version)+'</span></div><h3>'+escapeHTML(release.title)+'</h3><ul>'+release.details.map(item=>'<li>'+escapeHTML(item)+'</li>').join("")+'</ul></article>').join("");
-  $("page-content").innerHTML = '<section class="updates-hero"><span class="updates-kicker">ZSPM COMMUNITY</span><h2>Updates</h2><p>Tutaj znajdziesz historię nowych funkcji, poprawek i zmian w aplikacji.</p></section><div class="updates-release-list">'+cards+'</div><p class="updates-footnote">Historia jest aktualizowana przy kolejnych wydaniach aplikacji.</p>';
 }
 
 async function loadNotifications() {
