@@ -461,6 +461,7 @@ let globalChatChannel = null;
 let activeGlobalRoomId = null;
 let notificationsChannel = null;
 let friendsChannel = null;
+let feedChannel = null;
 let socialChannel = null;
 let presenceChannel = null;
 let onlineUsers = new Set();
@@ -3354,6 +3355,10 @@ async function setupRealtimeSubscriptions() {
     await supabaseClient.removeChannel(socialChannel);
     socialChannel = null;
   }
+  if (feedChannel) {
+    await supabaseClient.removeChannel(feedChannel);
+    feedChannel = null;
+  }
   if (presenceChannel) { await supabaseClient.removeChannel(presenceChannel); presenceChannel = null; }
   onlineUsers = new Set();
   presenceChannel = supabaseClient.channel("community-presence", {config:{presence:{key:currentUser.id}}})
@@ -3425,6 +3430,19 @@ async function setupRealtimeSubscriptions() {
       }
     })
     .subscribe();
+
+  feedChannel = supabaseClient.channel("community-feed-live")
+    .on("postgres_changes", { event: "*", schema: "public", table: "community_forum_posts" }, () => {
+      if (currentAppPage === "feed") renderCommunityFeedPage();
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "community_ideas" }, () => {
+      if (currentAppPage === "feed") renderCommunityFeedPage();
+    })
+    .subscribe(status => {
+      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        console.warn("Community feed live updates unavailable:", status);
+      }
+    });
 }
 
 
