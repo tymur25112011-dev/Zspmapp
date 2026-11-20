@@ -1045,20 +1045,41 @@ function formatModerationExpiry(value) {
   return value ? new Date(value).toLocaleString("pl-PL") : "Bezterminowo";
 }
 
+function formatStorageBytes(value) {
+  const bytes = Math.max(0, Number(value) || 0);
+  if (bytes < 1024) return bytes + " B";
+  const units = ["KB", "MB", "GB", "TB"];
+  let size = bytes / 1024, unit = 0;
+  while (size >= 1024 && unit < units.length - 1) { size /= 1024; unit++; }
+  return size.toFixed(size >= 10 ? 1 : 2) + " " + units[unit];
+}
+
 async function renderAdminPage() {
   const host = $("page-content");
   host.innerHTML = '<div class="page-content"><p>Ładowanie panelu administracji...</p></div>';
-  const [profilesResult, reportsResult, moderationResult, badgesResult, donationResult, pendingEventsResult] = await Promise.all([
+  const [profilesResult, reportsResult, moderationResult, badgesResult, donationResult, pendingEventsResult, storageResult, cleanupPreviewResult] = await Promise.all([
     supabaseClient.from("profiles").select("id,nickname,class_name,is_visible").order("nickname"),
     supabaseClient.from("content_reports").select("id,reporter_id,reported_user_id,target_type,target_id,reason,created_at").order("created_at", {ascending:false}).limit(100),
     supabaseClient.from("user_moderation").select("id,user_id,action,reason,expires_at,created_at").is("revoked_at", null).order("created_at", {ascending:false}),
     supabaseClient.from("user_badges").select("user_id,badge"),
     supabaseClient.from("donation_ranking").select("user_id,amount,updated_at").order("amount",{ascending:false}),
-    supabaseClient.from("community_events").select("id").eq("status","pending")
+    supabaseClient.from("community_events").select("id").eq("status","pending"),
+    supabaseClient.rpc("admin_get_storage_stats"),
+    supabaseClient.rpc("admin_preview_old_messages")
   ]);
   const errors = [profilesResult.error,reportsResult.error,moderationResult.error,badgesResult.error].filter(Boolean);
   if (errors.length) console.warn("Admin data load warnings:", errors);
   const profiles = profilesResult.data || [];
+  const storageStats = storageResult.data || {};
+  const cleanupPreview = cleanupPreviewResult.data || {};
+  const dbBytes = Number(storageStats.database_bytes) || 0;
+  const dbLimit = Number(storageStats.database_limit_bytes) || 524288000;
+  const storageBytes = Number(storageStats.storage_bytes) || 0;
+  const storageLimit = Number(storageStats.storage_limit_bytes) || 1073741824;
+  const dbPercent = dbLimit ? Math.min(100, dbBytes / dbLimit * 100) : 0;
+  const storagePercent = storageLimit ? Math.min(100, storageBytes / storageLimit * 100) : 0;
+  const cleanupCount = Number(cleanupPreview.total) || 0;
+  const memoryCritical = dbPercent >= 90 || storagePercent >= 90;
   const nameById = new Map(profiles.map(p => [p.id,p.nickname]));
   const badgeById = new Map((badgesResult.data || []).map(b => [b.user_id,b.badge]));
   const activeById = new Map();
@@ -1124,6 +1145,7 @@ async function renderAdminPage() {
       '<button type="button" class="admin-tab" data-admin-tab="events">Wydarzenia (' + ((pendingEventsResult.data || []).length) + ')</button>' +
       '<button type="button" class="admin-tab" data-admin-tab="reports">Zgłoszenia (' + (reportsResult.data || []).length + ')</button>' +
       '<button type="button" class="admin-tab" data-admin-tab="donations">Donaty</button>' +
+      '<button type="button" class="admin-tab" data-admin-tab="database">Baza i pamięć</button>' +
     '</div>' +
     '<section class="admin-panel active" data-admin-panel="users"><h3 class="admin-section-title">Użytkownicy i moderacja</h3><input class="chat-search-input admin-search-input" id="admin-user-search" type="search" placeholder="Szukaj użytkownika lub klasy…" aria-label="Szukaj użytkownika lub klasy">' +
     '<div class="admin-user-list">' + (usersHtml || '<div class="page-content"><p>Brak widocznych profili.</p></div>') + '</div></section>' +
@@ -1137,9 +1159,35 @@ async function renderAdminPage() {
     '<section class="admin-panel" data-admin-panel="events"><h3 class="admin-section-title">' + escapeHTML(eventText("adminTitle")) + '</h3><div id="admin-events-list"></div></section>' +
     '<section class="admin-panel" data-admin-panel="reports"><h3 class="admin-section-title">Zgłoszenia użytkowników i wiadomości</h3><input class="chat-search-input admin-search-input" id="admin-report-search" type="search" placeholder="Szukaj w zgłoszeniach…" aria-label="Szukaj w zgłoszeniach">' +
     '<div class="admin-report-list">' + (reportsHtml || '<div class="page-content"><p>Nie ma nowych zgłoszeń.</p></div>') + '</div></section>' +
+    '<section class="admin-panel" data-admin-panel="database"><h3 class="admin-section-title">Pamięć i stan bazy danych</h3>' +
+    '<div class="storage-monitor-grid">' +
+      '<article class="storage-monitor-card"><div class="storage-monitor-head"><strong>Baza danych</strong><span class="storage-monitor-value">' + formatStorageBytes(dbBytes) + '</span></div><div class="storage-meter"><span style="width:' + dbPercent.toFixed(1) + '%"></span></div><p>' + dbPercent.toFixed(1) + '% · limit ' + formatStorageBytes(dbLimit) + '</p></article>' +
+      '<article class="storage-monitor-card"><div class="storage-monitor-head"><strong>Pliki Storage</strong><span class="storage-monitor-value">' + formatStorageBytes(storageBytes) + '</span></div><div class="storage-meter"><span style="width:' + storagePercent.toFixed(1) + '%"></span></div><p>' + storagePercent.toFixed(1) + '% · limit ' + formatStorageBytes(storageLimit) + '</p><small>Obiekty: ' + (Number(storageStats.storage_objects) || 0) + '</small></article>' +
+    '</div>' +
+    '<div class="storage-status ' + (memoryCritical ? 'critical' : (dbPercent >= 80 || storagePercent >= 80 ? 'warning' : 'healthy')) + '">' +
+      (memoryCritical ? '<strong>Uwaga: wykorzystanie osiągnęło 90%.</strong> Zatwierdź czyszczenie starych wiadomości po sprawdzeniu podglądu.' : (dbPercent >= 80 || storagePercent >= 80 ? '<strong>Ostrzeżenie: wykorzystanie przekroczyło 80%.</strong> Warto sprawdzić zużycie pamięci.' : '<strong>Pamięć w normie.</strong> Automatyczne usuwanie nie jest uruchamiane.')) +
+    '</div>' +
+    '<div class="storage-cleanup-card"><h4>Stare wiadomości (90 dni)</h4><p>Do ewentualnego usunięcia: prywatne — ' + (Number(cleanupPreview.private_messages) || 0) + ', globalny czat — ' + (Number(cleanupPreview.global_messages) || 0) + ', czaty grupowe — ' + (Number(cleanupPreview.group_messages) || 0) + '.</p><p class="muted">Wiadomości ze zgłoszeniami oraz przypięte zostają zachowane. Usunięcie wymaga każdorazowego potwierdzenia administratora.</p><button type="button" class="admin-action-btn" id="admin-cleanup-old-messages" ' + (cleanupCount === 0 ? 'disabled' : '') + '>' + (memoryCritical ? 'Zatwierdź czyszczenie (' + cleanupCount + ')' : 'Wyczyść po zatwierdzeniu (' + cleanupCount + ')') + '</button></div>' +
+    '<p class="storage-updated-at">Ostatni pomiar: ' + (storageStats.measured_at ? escapeHTML(new Date(storageStats.measured_at).toLocaleString("pl-PL")) : "brak danych") + '</p></section>' +
     '<p class="admin-feedback" id="admin-feedback" aria-live="polite"></p>';
 
   renderAdminEventQueue();
+  const cleanupButton = host.querySelector("#admin-cleanup-old-messages");
+  if (cleanupButton) cleanupButton.addEventListener("click", async () => {
+    const preview = "Будет удалено старше 90 дней: " + (Number(cleanupPreview.private_messages)||0) + " личных, " + (Number(cleanupPreview.global_messages)||0) + " общих и " + (Number(cleanupPreview.group_messages)||0) + " групповых сообщений. Сообщения с жалобами и закреплённые сохраняются. Продолжить?";
+    if (!window.confirm(preview)) return;
+    cleanupButton.disabled = true;
+    const feedback = host.querySelector("#admin-feedback");
+    if (feedback) feedback.textContent = "Выполняется безопасная очистка…";
+    const { data, error } = await supabaseClient.rpc("admin_cleanup_old_messages");
+    if (error) {
+      if (feedback) feedback.textContent = error.message || "Не удалось выполнить очистку.";
+      cleanupButton.disabled = false;
+      return;
+    }
+    window.alert("Очистка завершена. Удалено сообщений: " + (Number(data?.deleted_total)||0) + ".");
+    await renderAdminPage();
+  });
   const userSearch = host.querySelector("#admin-user-search");
   if (userSearch) userSearch.addEventListener("input", () => host.querySelectorAll(".admin-user-card").forEach(card => { card.hidden = !card.textContent.toLocaleLowerCase("pl").includes(userSearch.value.trim().toLocaleLowerCase("pl")); }));
   const reportSearch = host.querySelector("#admin-report-search");
