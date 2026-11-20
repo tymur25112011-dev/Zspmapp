@@ -895,7 +895,7 @@ button { cursor: pointer; }
 
 .community-public-note{font-size:11px;line-height:1.5;color:#93aac7;background:rgba(33,90,148,.13);border:1px solid rgba(102,165,231,.17);padding:10px 12px;border-radius:10px;margin:0 0 12px}
 </style>
-<link rel="stylesheet" href="public/modern.css?v=65">
+<link rel="stylesheet" href="public/modern.css?v=66">
   <meta property="og:image" content="https://bolt.new/static/og_default.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
@@ -909,8 +909,8 @@ button { cursor: pointer; }
 <div id="auth" class="container">
 
   <div class="logo">
-    <div class="logo-icon" aria-hidden="true"><img src="./public/icons/community-logo.svg" alt=""></div>
-    <h1>ZSPM Community</h1>
+    <div class="auth-brand-mark" aria-hidden="true"><img src="./public/icons/zspm-community-mark.svg" alt=""></div>
+    <h1 class="auth-brand-title"><span>ZSPM</span> Community</h1>
     <p>Twoja społeczność szkolna</p>
   </div>
 
@@ -1029,9 +1029,9 @@ button { cursor: pointer; }
     <div id="home-page">
 
       <div class="topbar">
-        <div class="small-logo">
-          <div class="small-logo-icon" aria-hidden="true"><img src="./public/icons/community-logo.svg" alt=""></div>
-          ZSPM Community
+        <div class="small-logo brand-lockup" aria-label="ZSPM Community">
+          <img class="brand-emblem" src="./public/icons/zspm-community-mark.svg" alt="">
+          <span class="brand-wordmark"><strong>ZSPM</strong><span>COMMUNITY</span></span>
         </div>
 
         <div style="display:flex;gap:10px;align-items:center;">
@@ -1057,13 +1057,17 @@ button { cursor: pointer; }
         <p data-i18n="welcome">Witamy w społeczności Twojej szkoły.</p>
       </div>
 
-      <div class="hero">
-        <h3 data-i18n="hero">Witaj w ZSPM!</h3>
-        <p>
-          Poznawaj nowych ludzi, nawiązuj przyjaźnie
-          i integruj się ze społecznością szkolną.
-        </p>
-      </div><h3 class="section-title" data-i18n="discover">Odkryj aplikację</h3>
+      <section class="hero home-hero">
+        <div class="home-hero-copy">
+          <span class="home-hero-kicker">TWOJA SZKOLNA PRZESTRZEŃ</span>
+          <h3 data-i18n="hero">Witaj w ZSPM!</h3>
+          <p>Poznaj społeczność, rozmawiaj, dziel się pomysłami i bądź na bieżąco z życiem szkoły.</p>
+          <span class="home-hero-signature"><i></i> Zespół Szkół Poligraficzno-Medialnych · Kraków</span>
+        </div>
+        <div class="home-hero-symbol" aria-hidden="true">
+          <svg viewBox="0 0 120 120" fill="none"><path d="M60 8 101 23v31c0 27-16 47-41 58C35 101 19 81 19 54V23L60 8Z" stroke="currentColor" stroke-width="1.5"/><path d="M39 75c7-4 10-12 9-21l-8-8 15 2 6-13 7 14 15 2-12 8 1 15-12-8-13 9Z" fill="currentColor" opacity=".9"/><path d="M28 91h64" stroke="currentColor" stroke-opacity=".45" stroke-width="1.5"/></svg>
+        </div>
+      </section><h3 class="section-title" data-i18n="discover">Odkryj aplikację</h3>
 
       <div class="menu-grid">
 
