@@ -3200,6 +3200,28 @@ function formatTime(timestamp) {
   });
 }
 
+function formatConversationTime(timestamp) {
+  if (!timestamp) return "";
+  const date = new Date(timestamp);
+  const now = new Date();
+  const sameDay = date.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (sameDay) return formatTime(date.getTime());
+  if (date.toDateString() === yesterday.toDateString()) return "Wczoraj";
+  return date.toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" });
+}
+
+function formatChatDateLabel(timestamp) {
+  const date = new Date(timestamp);
+  const now = new Date();
+  if (date.toDateString() === now.toDateString()) return "Dzisiaj";
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return "Wczoraj";
+  return date.toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" });
+}
+
 function myDisplayInfo() {
   const myProfile = getMyProfile();
   return { nickname: myProfile?.nickname || currentUser.name };
@@ -3219,7 +3241,7 @@ async function renderChatList() {
   const otherIds = conversationsCache.map(conv => conv.user_one === currentUser.id ? conv.user_two : conv.user_one);
   await loadProfilesByIds(otherIds);
 
-  let latestByConversation = new Map();
+  const latestByConversation = new Map();
   if (conversationsCache.length) {
     const { data: messages, error: messagesError } = await supabaseClient.from("messages")
       .select("id,conversation_id,sender_id,content,created_at")
@@ -3239,34 +3261,52 @@ async function renderChatList() {
     const preview = last
       ? (last.sender_id === currentUser.id ? "Ty: " : "") + last.content
       : "Brak wiadomości";
+    const unread = unreadNotificationCount("message", conv.id);
+    const time = formatConversationTime(last?.created_at || conv.updated_at);
     return `
-      <button type="button" class="conv-item" data-conv="${escapeHTML(conv.id)}">
+      <button type="button" class="conv-item telegram-conv-item" data-conv="${escapeHTML(conv.id)}">
         ${profileAvatarHTML(profile, "conv-avatar")}
-        <div class="conv-info">
-          <div class="conv-nick">${escapeHTML(profile.nickname)}${profile.isAdmin ? '<span class="user-role-badge admin-role">ADMIN</span>' : profile.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : ""}</div>
-          <div class="conv-last">${escapeHTML(preview)}</div>
-        </div>
-        ${unreadNotificationCount("message",conv.id) ? '<span class="menu-unread-badge is-visible">'+unreadNotificationCount("message",conv.id)+'</span>' : ""}
+        <span class="conv-info">
+          <span class="conv-topline">
+            <span class="conv-nick">${escapeHTML(profile.nickname)}${profile.isAdmin ? '<span class="user-role-badge admin-role">ADMIN</span>' : profile.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : ""}</span>
+            <time class="conv-time">${escapeHTML(time)}</time>
+          </span>
+          <span class="conv-bottomline">
+            <span class="conv-last">${escapeHTML(preview)}</span>
+            ${unread ? '<span class="menu-unread-badge is-visible">'+unread+'</span>' : ""}
+          </span>
+        </span>
       </button>
     `;
   }).join("");
 
   $("page-content").innerHTML = `
-    <button type="button" class="global-chat-entry" id="open-global-chat">
+    <section class="private-chat-overview">
+      <div class="private-chat-overview-copy">
+        <span class="private-chat-kicker">ZSPM COMMUNITY</span>
+        <h3>Wiadomości</h3>
+        <p>Twoje prywatne rozmowy ze znajomymi</p>
+      </div>
+      <span class="private-chat-count">${conversationsCache.length}</span>
+    </section>
+    <button type="button" class="global-chat-entry telegram-global-entry" id="open-global-chat">
       <span class="global-chat-entry-icon">🌐</span>
-      <span class="global-chat-entry-copy"><strong>Czat ogólny</strong><small>Rozmowa wszystkich użytkowników</small></span>
+      <span class="global-chat-entry-copy"><strong>Czat ogólny</strong><small>Rozmowa całej społeczności</small></span>
       <span class="global-chat-entry-arrow">›</span>
     </button>
-    <div class="page-content">
-      <h3>Rozmowy prywatne</h3>
-      <p>Możesz pisać do zaakceptowanych znajomych. Czat obsługuje wyłącznie wiadomości tekstowe.</p>
+    <div class="chat-search-box telegram-list-search">
+      <span class="chat-search-icon" aria-hidden="true">⌕</span>
+      <input id="conversation-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj rozmowy…" aria-label="Szukaj rozmowy">
+      <button type="button" class="chat-search-clear" aria-label="Wyczyść wyszukiwanie" hidden>×</button>
     </div>
-    <div class="conv-list">${items || '<div class="page-content"><p>Nie masz jeszcze rozmów. Dodaj znajomego, aby rozpocząć czat.</p></div>'}</div>
+    <div class="telegram-list-heading"><strong>Ostatnie rozmowy</strong><span>${conversationsCache.length}</span></div>
+    <div class="conv-list telegram-conv-list" id="private-conversation-list">${items || '<div class="telegram-empty-state"><span>✉</span><strong>Пока нет переписок</strong><small>Добавь друга, чтобы начать общение.</small></div>'}</div>
   `;
   $("open-global-chat").addEventListener("click", () => openGlobalChat());
   $("page-content").querySelectorAll("[data-conv]").forEach(button => {
     button.addEventListener("click", () => openChat(button.dataset.conv));
   });
+  bindMessageSearch("conversation-search", "private-conversation-list", ".conv-item");
   chatListChannel = supabaseClient.channel("chat-list-" + currentUser.id)
     .on("postgres_changes", {
       event: "INSERT", schema: "public", table: "messages"
@@ -3277,7 +3317,6 @@ async function renderChatList() {
     })
     .subscribe();
 }
-
 
 async function openGlobalChat(roomId = null) {
   if(activeChatChannel){await supabaseClient.removeChannel(activeChatChannel);activeChatChannel=null;}
@@ -3487,7 +3526,6 @@ function messageBubbleHTML(message, allMessages = []) {
     pinAction +
     '<button type="button" class="msg-action' + (likes.liked ? ' liked' : '') + '" data-action="like-msg" data-msg-id="' + escapeHTML(message.id) + '">♥ ' + likes.count + '</button></div>';
   return '<div class="chat-row' + (mine ? ' mine' : '') + '"><div class="bubble">' +
-    (mine ? '<div class="bubble-author">' + communityAuthorHTML(currentUser.id,sender.nickname) + senderBadge + '</div>' : '<div class="bubble-author">' + communityAuthorHTML(message.sender_id,sender.nickname) + senderBadge + '</div>') +
     (parent ? '<div class="bubble-reply-context">↳ ' + escapeHTML(parent.content.slice(0,100)) + '</div>' : '') +
     '<div class="bubble-text" data-msg-id="' + escapeHTML(message.id) + '"></div>' +
     '<div class="bubble-time">' + formatTime(new Date(message.created_at).getTime()) + (message.edited_at ? ' · edytowano' : '') + '</div>' +
@@ -3498,9 +3536,20 @@ function messageBubbleHTML(message, allMessages = []) {
 function renderMessages(messages) {
   const container = $("chat-msgs");
   if (!container) return;
-  container.innerHTML = pinnedMessagesHTML(activePrivatePins, "data-action") + (messages.length
-    ? messages.map(message => messageBubbleHTML(message, messages)).join("")
-    : '<div class="page-content"><p>Brak wiadomości. Napisz pierwszą!</p></div>');
+  let previousDay = "";
+  const timeline = messages.map(message => {
+    const date = new Date(message.created_at);
+    const dayKey = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate();
+    let divider = "";
+    if (dayKey !== previousDay) {
+      previousDay = dayKey;
+      divider = '<div class="chat-date-divider"><span>' + escapeHTML(formatChatDateLabel(message.created_at)) + '</span></div>';
+    }
+    return divider + messageBubbleHTML(message, messages);
+  }).join("");
+  container.innerHTML = pinnedMessagesHTML(activePrivatePins, "data-action") + (timeline
+    ? timeline
+    : '<div class="telegram-message-empty"><span>✦</span><strong>Это начало вашей переписки</strong><small>Напишите первое сообщение.</small></div>');
   messages.forEach(message => {
     const element = container.querySelector('.bubble-text[data-msg-id="' + CSS.escape(message.id) + '"]');
     if (element) element.textContent = message.content;
@@ -3587,16 +3636,21 @@ async function openChat(conversationId) {
   const canSend = !canSendError && canSendResult === true;
 
   $("page-content").innerHTML = `
-    <div class="chat-head">
+    <div class="chat-head telegram-chat-head">
       <button type="button" class="chat-back" id="chat-back" aria-label="Powrót do rozmów">‹</button>
       ${profileAvatarHTML(activeChatProfile, "conv-avatar small")}
       <div class="chat-head-info">
         <div class="chat-head-nick">${escapeHTML(activeChatProfile.nickname)}${activeChatProfile.isAdmin ? '<span class="user-role-badge admin-role">ADMIN</span>' : activeChatProfile.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : ""}</div>
-        <div class="chat-head-status">Prywatna rozmowa · tylko tekst</div><div class="chat-search-box"><span class="chat-search-icon" aria-hidden="true">⌕</span><input id="private-chat-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj w rozmowie…" aria-label="Szukaj w rozmowie"><button type="button" class="chat-search-clear" aria-label="Wyczyść wyszukiwanie" hidden>×</button></div>
+        <div class="chat-head-status">Prywatna rozmowa · tylko tekst</div>
       </div>
       <button type="button" class="chat-block-btn" id="chat-block">${blocked ? "Odblokuj" : "Blokuj"}</button>
     </div>
-    <div class="chat-msgs" id="chat-msgs"></div>
+    <div class="chat-search-box telegram-message-search">
+      <span class="chat-search-icon" aria-hidden="true">⌕</span>
+      <input id="private-chat-search" class="chat-search-input" type="search" maxlength="80" placeholder="Szukaj w переписке…" aria-label="Szukaj w rozmowie">
+      <button type="button" class="chat-search-clear" aria-label="Wyczyść wyszukiwanie" hidden>×</button>
+    </div>
+    <div class="chat-msgs telegram-chat-msgs" id="chat-msgs"></div>
     ${blocked
       ? '<div class="page-content"><p>Ten użytkownik jest zablokowany. Odblokuj go, aby ponownie wysyłać wiadomości.</p></div>'
       : !canSend
@@ -3604,8 +3658,8 @@ async function openChat(conversationId) {
         : `
       <div class="composer-wrap">
         <form class="chat-composer" id="chat-form">
-          <input id="chat-input" class="chat-input" type="text" maxlength="${MAX_MESSAGE_LENGTH}"
-            placeholder="Napisz wiadomość..." autocomplete="off">
+          <textarea id="chat-input" class="chat-input telegram-chat-input" rows="1" maxlength="${MAX_MESSAGE_LENGTH}"
+            placeholder="Napisz wiadomość..." autocomplete="off"></textarea>
           <button class="chat-send" type="submit" aria-label="Wyślij">➤</button>
         </form>
         <div class="char-hint" id="char-hint">0 / ${MAX_MESSAGE_LENGTH}</div>
@@ -3671,6 +3725,14 @@ function bindComposer(conversationId) {
   const hint = $("char-hint");
   input.addEventListener("input", () => {
     hint.textContent = input.value.length + " / " + MAX_MESSAGE_LENGTH;
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 120) + "px";
+  });
+  input.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      form.requestSubmit();
+    }
   });
   form.addEventListener("submit", async event => {
     event.preventDefault();
@@ -3691,6 +3753,7 @@ function bindComposer(conversationId) {
       return;
     }
     input.value = "";
+    input.style.height = "44px";
     replyToMessageId = null;
     input.placeholder = "Napisz wiadomość...";
     hint.textContent = "0 / " + MAX_MESSAGE_LENGTH;
