@@ -2871,3 +2871,120 @@ body {
       url("https://zspm.wkraj.pl/data_small/7/0/scrshot_83770_0.jpg");
   }
 }
+
+
+/* Stage 4 — official school griffin and refined header */
+#app .brand-lockup {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+#app .brand-emblem {
+  display:block;
+  flex:0 0 48px;
+  width:48px;
+  height:48px;
+  padding:5px;
+  object-fit:contain;
+  border:1px solid rgba(77,166,255,.48);
+  border-radius:15px;
+  background:rgba(12,34,58,.72);
+  /* The official BIP crest has a white canvas. Invert it to dark,
+     then screen-blend so the canvas disappears on the dark UI. */
+  mix-blend-mode:screen;
+  filter:invert(1) grayscale(1) contrast(1.18) brightness(1.12)
+    drop-shadow(0 0 10px rgba(77,164,255,.42));
+}
+#app .brand-wordmark {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:4px;
+  min-width:0;
+  line-height:1;
+}
+#app .brand-wordmark strong {
+  color:#F4F7FF;
+  font-size:19px;
+  font-weight:900;
+  letter-spacing:.015em;
+}
+#app .brand-wordmark span {
+  color:#168DFF;
+  font-size:9px;
+  font-weight:850;
+  font-style:italic;
+  letter-spacing:.19em;
+}
+#app .topbar > div:last-child { gap:11px !important; }
+#app .bell-btn,
+#app .account-switch {
+  width:43px;
+  height:43px;
+  min-width:43px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  background:rgba(13,23,40,.88);
+  border:1px solid rgba(76,139,211,.34);
+  color:#B9DCFF;
+  box-shadow:inset 0 1px rgba(255,255,255,.05),0 8px 22px rgba(0,0,0,.18);
+  transition:background .18s ease,border-color .18s ease,transform .18s ease;
+}
+#app .bell-btn svg,
+#app .account-switch svg { width:20px;height:20px; }
+#app .bell-btn:active,
+#app .account-switch:active { transform:scale(.96); }
+#app .bell-btn:focus-visible,
+#app .account-switch:focus-visible {
+  outline:2px solid #168DFF;
+  outline-offset:3px;
+}
+#app .bell-badge:not(.hidden) {
+  min-width:17px;
+  height:17px;
+  padding:0 4px;
+  border:2px solid #050A13;
+  background:#F0445D;
+  color:#fff;
+  font-size:9px;
+  font-weight:900;
+}
+#app .home-hero-symbol img {
+  display:block;
+  object-fit:contain;
+  mix-blend-mode:screen;
+  filter:invert(1) grayscale(1) contrast(1.18) brightness(1.12)
+    drop-shadow(0 0 12px rgba(100,183,255,.38));
+}
+#auth .auth-brand-mark {
+  display:grid;
+  place-items:center;
+  width:94px;
+  height:94px;
+  margin:0 auto 16px;
+  padding:9px;
+  overflow:hidden;
+  border:1px solid rgba(77,166,255,.48);
+  border-radius:26px;
+  background:rgba(12,34,58,.72);
+  box-shadow:0 0 28px rgba(8,123,255,.16),inset 0 1px rgba(255,255,255,.06);
+}
+#auth .auth-brand-mark img {
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  mix-blend-mode:screen;
+  filter:invert(1) grayscale(1) contrast(1.18) brightness(1.12)
+    drop-shadow(0 0 10px rgba(100,183,255,.38));
+}
+@media(max-width:480px) {
+  #app .brand-emblem { flex-basis:43px;width:43px;height:43px;padding:4px;border-radius:13px; }
+  #app .brand-lockup { gap:9px; }
+  #app .brand-wordmark strong { font-size:17px; }
+  #app .brand-wordmark span { font-size:8px;letter-spacing:.16em; }
+  #app .bell-btn,#app .account-switch { width:40px;height:40px;min-width:40px;border-radius:13px; }
+  #auth .auth-brand-mark { width:84px;height:84px;border-radius:23px; }
+}
