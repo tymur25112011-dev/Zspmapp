@@ -778,6 +778,7 @@ async function renderCommunityGroupsPage() {
     const members=[{group_id:created.data.id,user_id:currentUser.id,role:"owner"},...selected.map(user_id=>({group_id:created.data.id,user_id,role:"member"}))];
     const added=await supabaseClient.from("community_group_members").insert(members);
     if(added.error){await supabaseClient.from("community_group_chats").delete().eq("id",created.data.id);host.querySelector("#community-group-feedback").textContent="Nie udało się dodać członków grupy.";button.disabled=false;return;}
+    closeGroupModal();
     await openCommunityGroupChat(created.data.id);
   });
   host.querySelectorAll("[data-open-group]").forEach(b=>b.addEventListener("click",()=>openCommunityGroupChat(b.dataset.openGroup)));
@@ -844,6 +845,7 @@ async function renderCommunityPollsPage() {
     if(created.error){host.querySelector("#poll-feedback").textContent=created.error.message||"Nie udało się utworzyć ankiety.";button.disabled=false;return;}
     const added=await supabaseClient.from("community_poll_options").insert(labels.map((label,i)=>({poll_id:created.data.id,label,sort_order:i})));
     if(added.error){await supabaseClient.from("community_polls").delete().eq("id",created.data.id);host.querySelector("#poll-feedback").textContent="Nie udało się zapisać opcji.";button.disabled=false;return;}
+    closePollModal();
     await renderCommunityPollsPage();
   });
   host.querySelectorAll("[data-poll-vote]").forEach(b=>b.addEventListener("click",async()=>{const selected=host.querySelector('input[name="poll-'+b.dataset.pollVote+'"]:checked');if(!selected){alert("Wybierz odpowiedź.");return;}b.disabled=true;const {error}=await supabaseClient.from("community_poll_votes").insert({poll_id:b.dataset.pollVote,option_id:selected.value,user_id:currentUser.id});if(error){alert("Nie udało się zapisać głosu. Być może już głosowałeś.");b.disabled=false;return;}await renderCommunityPollsPage();}));
