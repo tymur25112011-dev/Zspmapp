@@ -292,6 +292,7 @@ if(typeof MutationObserver!=="undefined"&&document.body){
 const APP_PAGE_LABELS={
 search:[["Wyszukiwarka społeczności","Community search","Поиск по сообществу","Пошук спільноти"],["Znajdź osoby, tematy na forum i pomysły","Find people, forum topics and ideas","Найди людей, темы форума и идеи","Знайди людей, теми форуму та ідеї"]],
 feed:[["Aktywność społeczności","Community activity","Активность сообщества","Активність спільноти"],["Najnowsze wpisy z forum i pomysłów","The latest forum posts and ideas","Последние публикации форума и идеи","Останні дописи форуму та ідеї"]],
+events:[["Wydarzenia","Events","События","Події"],["Karty wydarzeń i ogłoszenia społeczności","Community event cards and announcements","Карточки мероприятий и объявления сообщества","Картки подій та оголошення спільноти"]],
 profiles:[["Ankiety uczniów","Student surveys","Анкеты учеников","Анкети учнів"],["Poznaj społeczność swojej szkoły","Meet your school community","Познакомься со школьным сообществом","Познайомся зі шкільною спільнотою"]],
 "my-profile":[["Mój profil","My profile","Мой профиль","Мій профіль"],["Twój profil w społeczności ZSPM","Your ZSPM community profile","Твой профиль в сообществе ZSPM","Твій профіль у спільноті ZSPM"]],
 chat:[["Wiadomości","Messages","Сообщения","Повідомлення"],["Prywatne rozmowy ze znajomymi","Private conversations with friends","Личные беседы с друзьями","Приватні розмови з друзями"]],
@@ -685,6 +686,7 @@ async function enterApp() {
 
 const pages = {
   feed: { title: "Aktywność społeczności", subtitle: "Najnowsze wpisy z forum i pomysłów", content: "" },
+  events: { title: "Wydarzenia", subtitle: "Karty wydarzeń i ogłoszenia społeczności", content: "" },
   search: { title: "Wyszukiwarka", subtitle: "Szukaj osób, tematów na forum i pomysłów", content: "" },
 
   profiles: {
@@ -807,12 +809,13 @@ function formatModerationExpiry(value) {
 async function renderAdminPage() {
   const host = $("page-content");
   host.innerHTML = '<div class="page-content"><p>Ładowanie panelu administracji...</p></div>';
-  const [profilesResult, reportsResult, moderationResult, badgesResult, donationResult] = await Promise.all([
+  const [profilesResult, reportsResult, moderationResult, badgesResult, donationResult, pendingEventsResult] = await Promise.all([
     supabaseClient.from("profiles").select("id,nickname,class_name,is_visible").order("nickname"),
     supabaseClient.from("content_reports").select("id,reporter_id,reported_user_id,target_type,target_id,reason,created_at").order("created_at", {ascending:false}).limit(100),
     supabaseClient.from("user_moderation").select("id,user_id,action,reason,expires_at,created_at").is("revoked_at", null).order("created_at", {ascending:false}),
     supabaseClient.from("user_badges").select("user_id,badge"),
-    supabaseClient.from("donation_ranking").select("user_id,amount,updated_at").order("amount",{ascending:false})
+    supabaseClient.from("donation_ranking").select("user_id,amount,updated_at").order("amount",{ascending:false}),
+    supabaseClient.from("community_events").select("id").eq("status","pending")
   ]);
   const errors = [profilesResult.error,reportsResult.error,moderationResult.error,badgesResult.error].filter(Boolean);
   if (errors.length) console.warn("Admin data load warnings:", errors);
@@ -877,6 +880,7 @@ async function renderAdminPage() {
     '<div class="page-content admin-intro"><h3>Panel administracji</h3><p>Zarządzaj społecznością, wiadomościami i zgłoszeniami.</p></div>' +
     '<div class="admin-tabs" role="tablist">' +
       '<button type="button" class="admin-tab active" data-admin-tab="users">Użytkownicy</button>' +
+      '<button type="button" class="admin-tab" data-admin-tab="events">Wydarzenia (' + ((pendingEventsResult.data || []).length) + ')</button>' +
       '<button type="button" class="admin-tab" data-admin-tab="reports">Zgłoszenia (' + (reportsResult.data || []).length + ')</button>' +
       '<button type="button" class="admin-tab" data-admin-tab="donations">Donaty</button>' +
     '</div>' +
@@ -889,10 +893,12 @@ async function renderAdminPage() {
     '</select></label><label>Kwota (zł)<input id="donation-amount-input" type="number" min="0" max="1000000" step="0.01" placeholder="100.00"></label>' +
     '<button type="button" class="admin-action-btn" id="donation-save">Zapisz kwotę</button></div>' +
     '<div class="donation-admin-list">' + (donationRowsHtml || '<p class="muted">Nie dodano jeszcze żadnych osób do rankingu.</p>') + '</div></section></section>' +
+    '<section class="admin-panel" data-admin-panel="events"><h3 class="admin-section-title">' + escapeHTML(eventText("adminTitle")) + '</h3><div id="admin-events-list"></div></section>' +
     '<section class="admin-panel" data-admin-panel="reports"><h3 class="admin-section-title">Zgłoszenia użytkowników i wiadomości</h3><input class="chat-search-input admin-search-input" id="admin-report-search" type="search" placeholder="Szukaj w zgłoszeniach…" aria-label="Szukaj w zgłoszeniach">' +
     '<div class="admin-report-list">' + (reportsHtml || '<div class="page-content"><p>Nie ma nowych zgłoszeń.</p></div>') + '</div></section>' +
     '<p class="admin-feedback" id="admin-feedback" aria-live="polite"></p>';
 
+  renderAdminEventQueue();
   const userSearch = host.querySelector("#admin-user-search");
   if (userSearch) userSearch.addEventListener("input", () => host.querySelectorAll(".admin-user-card").forEach(card => { card.hidden = !card.textContent.toLocaleLowerCase("pl").includes(userSearch.value.trim().toLocaleLowerCase("pl")); }));
   const reportSearch = host.querySelector("#admin-report-search");
@@ -1014,6 +1020,8 @@ async function openPage(page, options = {}) {
       } else {
         await renderAdminPage();
       }
+    } else if (page === "events") {
+      await renderCommunityEventsPage();
     } else if (page === "feed") {
       await renderCommunityFeedPage();
     } else if (page === "search") {
@@ -3500,6 +3508,10 @@ async function setupRealtimeSubscriptions() {
     .on("postgres_changes", { event: "*", schema: "public", table: "community_ideas" }, () => {
       if (currentAppPage === "feed") renderCommunityFeedPage();
     })
+    .on("postgres_changes", { event: "*", schema: "public", table: "community_events" }, () => {
+      if (currentAppPage === "events") renderCommunityEventsPage();
+      if (currentAppPage === "admin" && isAdmin) renderAdminPage();
+    })
     .subscribe(status => {
       if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
         console.warn("Community feed live updates unavailable:", status);
@@ -3549,6 +3561,82 @@ async function renderCommunityFeedPage(){
     host.querySelectorAll(".feed-card").forEach(card=>{card.hidden=filter!=="all"&&!card.querySelector(".feed-type")?.classList.contains(filter);});
   }));
   host.querySelectorAll("[data-feed-open]").forEach(button=>button.addEventListener("click",()=>openPage(button.dataset.feedOpen)));
+}
+
+
+const EVENT_TEXT={
+pl:{intro:"Miejsca, spotkania i ogłoszenia tworzone przez społeczność.",create:"Dodaj kartę",category:"Rodzaj publikacji",event:"Wydarzenie",announcement:"Ogłoszenie",title:"Tytuł",description:"Opis",date:"Data i godzina",location:"Miejsce",submit:"Wyślij do sprawdzenia",editSubmit:"Wyślij ponownie do sprawdzenia",hint:"Każda publikacja jest najpierw sprawdzana przez administratora.",all:"Wszystkie",upcoming:"Nadchodzące",mine:"Moje zgłoszenia",loading:"Ładowanie wydarzeń...",empty:"Nie ma jeszcze opublikowanych kart.",pending:"Oczekuje na sprawdzenie",approved:"Opublikowano",rejected:"Odrzucono",noDate:"Termin nie został podany",noLocation:"Miejsce nie zostało podane",interested:"Interesuje mnie",going:"Pójdę",report:"Zgłoś",edit:"Edytuj",delete:"Usuń",sent:"Karta została wysłana do sprawdzenia.",updated:"Zmieniono kartę i wysłano ją ponownie do sprawdzenia.",error:"Nie udało się zapisać karty.",reason:"Powód odrzucenia",rejectReason:"Podaj krótki powód odrzucenia:",reported:"Zgłoszenie wysłane.",reportPrompt:"Dlaczego zgłaszasz tę kartę?",confirmDelete:"Usunąć tę kartę?",adminTitle:"Oczekujące karty wydarzeń",adminEmpty:"Nie ma kart oczekujących na sprawdzenie.",approve:"Zatwierdź",reject:"Odrzuć",reviewError:"Nie udało się zmienić statusu."},
+en:{intro:"Meetups, events and announcements from the community.",create:"Create a card",category:"Publication type",event:"Event",announcement:"Announcement",title:"Title",description:"Description",date:"Date and time",location:"Location",submit:"Submit for review",editSubmit:"Resubmit for review",hint:"Every submission is reviewed by an administrator first.",all:"All",upcoming:"Upcoming",mine:"My submissions",loading:"Loading events...",empty:"No cards have been published yet.",pending:"Awaiting review",approved:"Published",rejected:"Rejected",noDate:"No date provided",noLocation:"No location provided",interested:"Interested",going:"I'll go",report:"Report",edit:"Edit",delete:"Delete",sent:"Your card was submitted for review.",updated:"Your card was updated and resubmitted for review.",error:"Could not save the card.",reason:"Rejection reason",rejectReason:"Enter a short reason for rejection:",reported:"Report submitted.",reportPrompt:"Why are you reporting this card?",confirmDelete:"Delete this card?",adminTitle:"Event cards awaiting review",adminEmpty:"No cards are waiting for review.",approve:"Approve",reject:"Reject",reviewError:"Could not update the status."},
+ru:{intro:"Встречи, мероприятия и объявления от участников сообщества.",create:"Создать карточку",category:"Тип публикации",event:"Мероприятие",announcement:"Объявление",title:"Заголовок",description:"Описание",date:"Дата и время",location:"Место",submit:"Отправить на проверку",editSubmit:"Повторно отправить на проверку",hint:"Каждая публикация сначала проверяется администратором.",all:"Все",upcoming:"Предстоящие",mine:"Мои заявки",loading:"Загружаем события...",empty:"Пока нет опубликованных карточек.",pending:"Ожидает проверки",approved:"Опубликовано",rejected:"Отклонено",noDate:"Дата не указана",noLocation:"Место не указано",interested:"Интересует",going:"Пойду",report:"Пожаловаться",edit:"Изменить",delete:"Удалить",sent:"Карточка отправлена на проверку.",updated:"Карточка изменена и повторно отправлена на проверку.",error:"Не удалось сохранить карточку.",reason:"Причина отказа",rejectReason:"Укажи короткую причину отказа:",reported:"Жалоба отправлена.",reportPrompt:"Почему ты жалуешься на эту карточку?",confirmDelete:"Удалить эту карточку?",adminTitle:"Карточки мероприятий на проверке",adminEmpty:"Нет карточек, ожидающих проверки.",approve:"Одобрить",reject:"Отклонить",reviewError:"Не удалось изменить статус."},
+uk:{intro:"Зустрічі, події та оголошення від учасників спільноти.",create:"Створити картку",category:"Тип публікації",event:"Подія",announcement:"Оголошення",title:"Заголовок",description:"Опис",date:"Дата й час",location:"Місце",submit:"Надіслати на перевірку",editSubmit:"Повторно надіслати на перевірку",hint:"Кожну публікацію спочатку перевіряє адміністратор.",all:"Усі",upcoming:"Найближчі",mine:"Мої заявки",loading:"Завантажуємо події...",empty:"Поки немає опублікованих карток.",pending:"Очікує перевірки",approved:"Опубліковано",rejected:"Відхилено",noDate:"Дату не вказано",noLocation:"Місце не вказано",interested:"Цікавить",going:"Піду",report:"Поскаржитися",edit:"Змінити",delete:"Видалити",sent:"Картку надіслано на перевірку.",updated:"Картку змінено та повторно надіслано на перевірку.",error:"Не вдалося зберегти картку.",reason:"Причина відмови",rejectReason:"Вкажи коротку причину відмови:",reported:"Скаргу надіслано.",reportPrompt:"Чому ти скаржишся на цю картку?",confirmDelete:"Видалити цю картку?",adminTitle:"Картки подій на перевірці",adminEmpty:"Немає карток, що очікують перевірки.",approve:"Схвалити",reject:"Відхилити",reviewError:"Не вдалося змінити статус."}
+};
+function eventText(key){return EVENT_TEXT[appLanguage]?.[key]||EVENT_TEXT.pl[key]||key;}
+
+async function renderCommunityEventsPage(){
+ const host=$("page-content");host.innerHTML='<div class="events-loading"><span class="feed-spinner"></span><p>'+escapeHTML(eventText("loading"))+'</p></div>';
+ const [eventsResult,profilesResult,responsesResult]=await Promise.all([
+  supabaseClient.from("community_events").select("*").order("created_at",{ascending:false}).limit(80),
+  supabaseClient.from("profiles").select("id,nickname"),
+  supabaseClient.from("community_event_responses").select("event_id,user_id,response")
+ ]);
+ if(eventsResult.error){host.innerHTML='<div class="page-content"><p>'+escapeHTML(eventsResult.error.message||eventText("error"))+'</p></div>';return;}
+ const events=eventsResult.data||[],names=new Map((profilesResult.data||[]).map(p=>[p.id,p.nickname])),responses=responsesResult.data||[],counts=new Map(),mine=new Map();
+ responses.forEach(row=>{if(!counts.has(row.event_id))counts.set(row.event_id,{interested:0,going:0});counts.get(row.event_id)[row.response]=(counts.get(row.event_id)[row.response]||0)+1;if(row.user_id===currentUser.id)mine.set(row.event_id,row.response);});
+ let editingId=null;const locale={pl:"pl-PL",en:"en-GB",ru:"ru-RU",uk:"uk-UA"}[appLanguage]||"pl-PL";
+ const cards=events.map(item=>{
+  const own=item.author_id===currentUser.id,stats=counts.get(item.id)||{interested:0,going:0},date=item.event_at?new Date(item.event_at).toLocaleString(locale,{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):eventText("noDate");
+  const status=item.status!=="approved"?'<span class="event-status '+item.status+'">'+escapeHTML(eventText(item.status))+'</span>':"";
+  const rejection=item.status==="rejected"&&item.moderator_note?'<p class="event-rejection">'+escapeHTML(eventText("reason"))+': '+escapeHTML(item.moderator_note)+'</p>':"";
+  const actions=own&&item.status!=="approved"
+   ?'<div class="event-owner-actions"><button type="button" data-event-edit="'+item.id+'">'+escapeHTML(eventText("edit"))+'</button><button type="button" data-event-delete="'+item.id+'">'+escapeHTML(eventText("delete"))+'</button></div>'
+   :!own&&item.status==="approved"
+    ?'<div class="event-response-actions"><button type="button" class="'+(mine.get(item.id)==="interested"?"selected":"")+'" data-event-response="interested" data-id="'+item.id+'">☆ '+escapeHTML(eventText("interested"))+' <b>'+stats.interested+'</b></button><button type="button" class="'+(mine.get(item.id)==="going"?"selected":"")+'" data-event-response="going" data-id="'+item.id+'">✓ '+escapeHTML(eventText("going"))+' <b>'+stats.going+'</b></button><button type="button" class="event-report-btn" data-event-report="'+item.id+'" data-author="'+item.author_id+'">'+escapeHTML(eventText("report"))+'</button></div>':"";
+  return '<article class="community-event-card" data-event-card data-status="'+item.status+'" data-own="'+own+'" data-event-date="'+(item.event_at||"")+'"><div class="event-card-art '+(item.category==="announcement"?"announcement":"")+'"><span>'+(item.category==="announcement"?"📣":"✦")+'</span><small>'+escapeHTML(eventText(item.category))+'</small></div><div class="event-card-content"><div class="event-card-meta">'+status+'<time>'+escapeHTML(date)+'</time></div><h3>'+escapeHTML(item.title)+'</h3><p class="event-description">'+escapeHTML(item.description)+'</p><div class="event-details"><span>⌖ '+escapeHTML(item.location||eventText("noLocation"))+'</span><span>◉ '+escapeHTML(names.get(item.author_id)||"Uczeń")+'</span></div>'+rejection+actions+'</div></article>';
+ }).join("");
+ host.innerHTML='<section class="events-intro"><div><strong>'+escapeHTML(eventText("intro"))+'</strong><p>'+escapeHTML(eventText("hint"))+'</p></div><span class="events-intro-icon">✦</span></section>'+
+ '<form class="event-submit-form" id="community-event-form"><div class="event-form-heading"><h3>'+escapeHTML(eventText("create"))+'</h3><span>✦</span></div><label>'+escapeHTML(eventText("category"))+'<select id="event-category"><option value="event">'+escapeHTML(eventText("event"))+'</option><option value="announcement">'+escapeHTML(eventText("announcement"))+'</option></select></label><label>'+escapeHTML(eventText("title"))+'<input id="event-title" maxlength="100" minlength="4" required></label><label>'+escapeHTML(eventText("description"))+'<textarea id="event-description" maxlength="2500" minlength="10" rows="4" required></textarea></label><div class="event-form-grid"><label>'+escapeHTML(eventText("date"))+'<input id="event-date" type="datetime-local"></label><label>'+escapeHTML(eventText("location"))+'<input id="event-location" maxlength="160"></label></div><button class="main-btn" type="submit" id="event-submit">'+escapeHTML(eventText("submit"))+'</button><p class="event-form-feedback" id="event-feedback" aria-live="polite"></p></form>'+
+ '<div class="events-toolbar"><button type="button" class="active" data-event-filter="all">'+escapeHTML(eventText("all"))+'</button><button type="button" data-event-filter="upcoming">'+escapeHTML(eventText("upcoming"))+'</button><button type="button" data-event-filter="mine">'+escapeHTML(eventText("mine"))+'</button></div><div class="community-events-list">'+(cards||'<div class="events-empty">✧<p>'+escapeHTML(eventText("empty"))+'</p></div>')+'</div>';
+ const form=host.querySelector("#community-event-form"),category=host.querySelector("#event-category"),dateInput=host.querySelector("#event-date"),submit=host.querySelector("#event-submit");
+ category.addEventListener("change",()=>{dateInput.required=category.value==="event";});dateInput.required=true;
+ form.addEventListener("submit",async e=>{
+  e.preventDefault();const title=host.querySelector("#event-title").value.trim(),description=host.querySelector("#event-description").value.trim();
+  if(title.length<4||description.length<10)return;if(category.value==="event"&&!dateInput.value){host.querySelector("#event-feedback").textContent=eventText("date");return;}
+  const payload={author_id:currentUser.id,category:category.value,title,description,event_at:dateInput.value?new Date(dateInput.value).toISOString():null,location:host.querySelector("#event-location").value.trim(),status:"pending",moderator_note:"",reviewed_by:null,reviewed_at:null};
+  submit.disabled=true;const result=editingId?await supabaseClient.from("community_events").update(payload).eq("id",editingId):await supabaseClient.from("community_events").insert(payload);
+  if(result.error){host.querySelector("#event-feedback").textContent=result.error.message||eventText("error");submit.disabled=false;return;}
+  const wasEditing=Boolean(editingId);editingId=null;await renderCommunityEventsPage();const feedback=$("event-feedback");if(feedback)feedback.textContent=eventText(wasEditing?"updated":"sent");
+ });
+ host.querySelectorAll("[data-event-filter]").forEach(button=>button.addEventListener("click",()=>{
+  const filter=button.dataset.eventFilter;host.querySelectorAll("[data-event-filter]").forEach(b=>b.classList.toggle("active",b===button));
+  host.querySelectorAll("[data-event-card]").forEach(card=>{const future=!card.dataset.eventDate||new Date(card.dataset.eventDate).getTime()>=Date.now();card.hidden=filter==="mine"?card.dataset.own!=="true":filter==="upcoming"?(card.dataset.status!=="approved"||!future):false;});
+ }));
+ host.querySelectorAll("[data-event-edit]").forEach(button=>button.addEventListener("click",()=>{
+  const item=events.find(x=>x.id===button.dataset.eventEdit);if(!item)return;editingId=item.id;category.value=item.category;host.querySelector("#event-title").value=item.title;host.querySelector("#event-description").value=item.description;host.querySelector("#event-location").value=item.location||"";dateInput.value=item.event_at?new Date(item.event_at).toISOString().slice(0,16):"";dateInput.required=category.value==="event";submit.textContent=eventText("editSubmit");host.querySelector("#event-title").focus();
+ }));
+ host.querySelectorAll("[data-event-delete]").forEach(button=>button.addEventListener("click",async()=>{if(!confirm(eventText("confirmDelete")))return;button.disabled=true;const {error}=await supabaseClient.from("community_events").delete().eq("id",button.dataset.eventDelete);if(error){button.disabled=false;alert(error.message);return;}await renderCommunityEventsPage();}));
+ host.querySelectorAll("[data-event-response]").forEach(button=>button.addEventListener("click",async()=>{
+  button.disabled=true;const id=button.dataset.id,response=button.dataset.eventResponse,current=mine.get(id);
+  const result=current===response?await supabaseClient.from("community_event_responses").delete().eq("event_id",id).eq("user_id",currentUser.id):await supabaseClient.from("community_event_responses").upsert({event_id:id,user_id:currentUser.id,response},{onConflict:"event_id,user_id"});
+  if(result.error){button.disabled=false;alert(result.error.message);return;}await renderCommunityEventsPage();
+ }));
+ host.querySelectorAll("[data-event-report]").forEach(button=>button.addEventListener("click",async()=>{
+  const reason=prompt(eventText("reportPrompt"));if(!reason||!reason.trim())return;
+  const {error}=await supabaseClient.from("content_reports").insert({reporter_id:currentUser.id,reported_user_id:button.dataset.author,target_type:"event",target_id:button.dataset.eventReport,reason:reason.trim().slice(0,500)});
+  if(error){alert(error.message);return;}alert(eventText("reported"));
+ }));
+}
+
+async function renderAdminEventQueue(){
+ const host=$("admin-events-list");if(!host)return;host.innerHTML='<p class="muted">'+escapeHTML(eventText("loading"))+'</p>';
+ const {data,error}=await supabaseClient.from("community_events").select("id,author_id,category,title,description,event_at,location,created_at").eq("status","pending").order("created_at",{ascending:true}).limit(100);
+ if(error){host.innerHTML='<p class="muted">'+escapeHTML(error.message)+'</p>';return;}if(!data?.length){host.innerHTML='<p class="muted">'+escapeHTML(eventText("adminEmpty"))+'</p>';return;}
+ const ids=[...new Set(data.map(x=>x.author_id))],profiles=await supabaseClient.from("profiles").select("id,nickname").in("id",ids),names=new Map((profiles.data||[]).map(x=>[x.id,x.nickname]));
+ host.innerHTML=data.map(item=>'<article class="admin-event-card"><div class="event-card-meta"><span class="event-status pending">'+escapeHTML(eventText("pending"))+'</span><time>'+escapeHTML(new Date(item.created_at).toLocaleString())+'</time></div><h3>'+escapeHTML(item.title)+'</h3><p>'+escapeHTML(item.description)+'</p><small>'+escapeHTML(names.get(item.author_id)||"Uczeń")+' · '+escapeHTML(item.location||eventText("noLocation"))+'</small><div class="admin-event-actions"><button type="button" class="admin-action-btn" data-event-review="approve" data-id="'+item.id+'">'+escapeHTML(eventText("approve"))+'</button><button type="button" class="admin-small-btn" data-event-review="reject" data-id="'+item.id+'">'+escapeHTML(eventText("reject"))+'</button></div></article>').join("");
+ host.querySelectorAll("[data-event-review]").forEach(button=>button.addEventListener("click",async()=>{
+  const approved=button.dataset.eventReview==="approve",note=approved?"":prompt(eventText("rejectReason"));if(!approved&&(!note||!note.trim()))return;button.disabled=true;
+  const {error}=await supabaseClient.from("community_events").update({status:approved?"approved":"rejected",moderator_note:approved?"":note.trim().slice(0,500),reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq("id",button.dataset.id);
+  if(error){button.disabled=false;alert(error.message||eventText("reviewError"));return;}await renderAdminEventQueue();
+ }));
 }
 
 // FORUM, SZKOLNY PLANER I PERSONALIZACJA
