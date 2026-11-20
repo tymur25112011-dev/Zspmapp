@@ -3570,3 +3570,9 @@ body::after {
   #app .community-avatar-wrap { flex-basis:82px;width:82px;height:82px;border-radius:24px; }
   #app .community-avatar-fallback { font-size:29px; }
 }
+
+
+/* Role badges: preserve readable Admin / Premium / User labels */
+#app .user-role-badge.admin-role { color:#FFE09A!important;background:rgba(189,133,30,.16);border:1px solid rgba(255,205,102,.38);border-radius:99px;padding:3px 8px;font-size:9px;font-weight:850; }
+#app .user-role-badge.premium-role { color:#8BEAFF!important;background:rgba(36,172,220,.14);border:1px solid rgba(80,211,255,.36);border-radius:99px;padding:3px 8px;font-size:9px;font-weight:850; }
+#app .user-role-badge.user-role { color:#C6D8EF!important;background:rgba(113,151,194,.13);border:1px solid rgba(143,177,215,.26);border-radius:99px;padding:3px 8px;font-size:9px;font-weight:850; }
