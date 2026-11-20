@@ -8,10 +8,10 @@ const APP_LANGS={"pl":{"lang":"Język aplikacji","intro":"Wybierz język całej 
 let appLanguage=(()=>{try{const v=localStorage.getItem(APP_LANG_KEY);return APP_LANGS[v]?v:"pl";}catch(e){return "pl";}})();
 const tr=(key)=>APP_LANGS[appLanguage]?.[key]||APP_LANGS.pl[key]||key;
 const APP_SHELL={
-pl:{home:"Główna",surveys:"Ankiety",profile:"Profil",chat:"Czat",friends:"Znajomi",settings:"Ustawienia",hello:"Cześć,",welcome:"Witamy w społeczności Twojej szkoły.",hero:"Witaj w ZSPM!",heroText:"Poznawaj nowych ludzi, nawiązuj przyjaźnie i integruj się ze społecznością szkolną.",discover:"Odkryj aplikację",profiles:"Ankiety uczniów",profilesDesc:"Poznaj swoją społeczność",myProfile:"Mój profil",myProfileDesc:"Twój profil w społeczności",messages:"Wiadomości",messagesDesc:"Prywatne rozmowy ze znajomymi",friendsTitle:"Znajomi",friendsDesc:"Zaproszenia i znajomi",settingsTitle:"Ustawienia",settingsDesc:"Zarządzaj swoim kontem",ideas:"Wasze Pomysły",ideasDesc:"Propozycje i głosowanie społeczności",forum:"Forum",forumDesc:"Dyskusje i szkolne tematy",timetable:"Plan lekcji",timetableDesc:"Rozkład zajęć dla klas technikum",planner:"Mój plan",plannerDesc:"Zadania i terminy",cosmetics:"Sklep wyglądu",cosmeticsDesc:"Odblokuj nowe ozdoby",ranking:"Ranking",rankingDesc:"Aktywność, wsparcie i polubienia",information:"Informacje",informationDesc:"O projekcie, Premium i zasadach",support:"Wesprzyj twórcę",supportDesc:"Wspieraj rozwój projektu",account:"Konto",logout:"Wyloguj się"},
-en:{home:"Home",surveys:"Surveys",profile:"Profile",chat:"Chat",friends:"Friends",settings:"Settings",hello:"Hello,",welcome:"Welcome to your school community.",hero:"Welcome to ZSPM!",heroText:"Meet new people, make friends and connect with your school community.",discover:"Explore the app",profiles:"Student surveys",profilesDesc:"Meet your community",myProfile:"My profile",myProfileDesc:"Your community profile",messages:"Messages",messagesDesc:"Private conversations with friends",friendsTitle:"Friends",friendsDesc:"Requests and friends",settingsTitle:"Settings",settingsDesc:"Manage your account",ideas:"Your Ideas",ideasDesc:"Community suggestions and voting",forum:"Forum",forumDesc:"Discussions and school topics",timetable:"Timetable",timetableDesc:"Class schedules",planner:"My planner",plannerDesc:"Tasks and deadlines",cosmetics:"Appearance shop",cosmeticsDesc:"Unlock new decorations",ranking:"Ranking",rankingDesc:"Activity, support and likes",information:"Information",informationDesc:"About the project, Premium and rules",support:"Support the creator",supportDesc:"Help the project grow",account:"Account",logout:"Log out"},
-ru:{home:"Главная",surveys:"Анкеты",profile:"Профиль",chat:"Чат",friends:"Друзья",settings:"Настройки",hello:"Привет,",welcome:"Добро пожаловать в школьное сообщество.",hero:"Добро пожаловать в ZSPM!",heroText:"Знакомься с новыми людьми, заводи друзей и общайся со школьным сообществом.",discover:"Открой приложение",profiles:"Анкеты учеников",profilesDesc:"Познакомься с сообществом",myProfile:"Мой профиль",myProfileDesc:"Твой профиль в сообществе",messages:"Сообщения",messagesDesc:"Личные беседы с друзьями",friendsTitle:"Друзья",friendsDesc:"Заявки и друзья",settingsTitle:"Настройки",settingsDesc:"Управление аккаунтом",ideas:"Ваши идеи",ideasDesc:"Предложения и голосование сообщества",forum:"Форум",forumDesc:"Обсуждения и школьные темы",timetable:"Расписание",timetableDesc:"Расписание занятий классов",planner:"Мой план",plannerDesc:"Задачи и сроки",cosmetics:"Магазин оформления",cosmeticsDesc:"Открывай новые украшения",ranking:"Рейтинг",rankingDesc:"Активность, поддержка и лайки",information:"Информация",informationDesc:"О проекте, Premium и правилах",support:"Поддержать автора",supportDesc:"Помоги развитию проекта",account:"Аккаунт",logout:"Выйти"},
-uk:{home:"Головна",surveys:"Анкети",profile:"Профіль",chat:"Чат",friends:"Друзі",settings:"Налаштування",hello:"Привіт,",welcome:"Ласкаво просимо до шкільної спільноти.",hero:"Ласкаво просимо до ZSPM!",heroText:"Знайомся з новими людьми, знаходь друзів та спілкуйся зі шкільною спільнотою.",discover:"Відкрий застосунок",profiles:"Анкети учнів",profilesDesc:"Познайомся зі спільнотою",myProfile:"Мій профіль",myProfileDesc:"Твій профіль у спільноті",messages:"Повідомлення",messagesDesc:"Приватні розмови з друзями",friendsTitle:"Друзі",friendsDesc:"Запити та друзі",settingsTitle:"Налаштування",settingsDesc:"Керуй обліковим записом",ideas:"Ваші ідеї",ideasDesc:"Пропозиції та голосування спільноти",forum:"Форум",forumDesc:"Обговорення та шкільні теми",timetable:"Розклад уроків",timetableDesc:"Розклад занять класів",planner:"Мій план",plannerDesc:"Завдання та терміни",cosmetics:"Крамниця оформлення",cosmeticsDesc:"Відкривай нові прикраси",ranking:"Рейтинг",rankingDesc:"Активність, підтримка та вподобання",information:"Інформація",informationDesc:"Про проєкт, Premium та правила",support:"Підтримати автора",supportDesc:"Допоможи розвитку проєкту",account:"Обліковий запис",logout:"Вийти"}
+pl:{feed:"Aktywność",feedDesc:"Nowe wpisy i pomysły społeczności",home:"Główna",surveys:"Ankiety",profile:"Profil",chat:"Czat",friends:"Znajomi",settings:"Ustawienia",hello:"Cześć,",welcome:"Witamy w społeczności Twojej szkoły.",hero:"Witaj w ZSPM!",heroText:"Poznawaj nowych ludzi, nawiązuj przyjaźnie i integruj się ze społecznością szkolną.",discover:"Odkryj aplikację",profiles:"Ankiety uczniów",profilesDesc:"Poznaj swoją społeczność",myProfile:"Mój profil",myProfileDesc:"Twój profil w społeczności",messages:"Wiadomości",messagesDesc:"Prywatne rozmowy ze znajomymi",friendsTitle:"Znajomi",friendsDesc:"Zaproszenia i znajomi",settingsTitle:"Ustawienia",settingsDesc:"Zarządzaj swoim kontem",ideas:"Wasze Pomysły",ideasDesc:"Propozycje i głosowanie społeczności",forum:"Forum",forumDesc:"Dyskusje i szkolne tematy",timetable:"Plan lekcji",timetableDesc:"Rozkład zajęć dla klas technikum",planner:"Mój plan",plannerDesc:"Zadania i terminy",cosmetics:"Sklep wyglądu",cosmeticsDesc:"Odblokuj nowe ozdoby",ranking:"Ranking",rankingDesc:"Aktywność, wsparcie i polubienia",information:"Informacje",informationDesc:"O projekcie, Premium i zasadach",support:"Wesprzyj twórcę",supportDesc:"Wspieraj rozwój projektu",account:"Konto",logout:"Wyloguj się"},
+en:{feed:"Activity",feedDesc:"New community posts and ideas",home:"Home",surveys:"Surveys",profile:"Profile",chat:"Chat",friends:"Friends",settings:"Settings",hello:"Hello,",welcome:"Welcome to your school community.",hero:"Welcome to ZSPM!",heroText:"Meet new people, make friends and connect with your school community.",discover:"Explore the app",profiles:"Student surveys",profilesDesc:"Meet your community",myProfile:"My profile",myProfileDesc:"Your community profile",messages:"Messages",messagesDesc:"Private conversations with friends",friendsTitle:"Friends",friendsDesc:"Requests and friends",settingsTitle:"Settings",settingsDesc:"Manage your account",ideas:"Your Ideas",ideasDesc:"Community suggestions and voting",forum:"Forum",forumDesc:"Discussions and school topics",timetable:"Timetable",timetableDesc:"Class schedules",planner:"My planner",plannerDesc:"Tasks and deadlines",cosmetics:"Appearance shop",cosmeticsDesc:"Unlock new decorations",ranking:"Ranking",rankingDesc:"Activity, support and likes",information:"Information",informationDesc:"About the project, Premium and rules",support:"Support the creator",supportDesc:"Help the project grow",account:"Account",logout:"Log out"},
+ru:{feed:"Активность",feedDesc:"Новые публикации и идеи сообщества",home:"Главная",surveys:"Анкеты",profile:"Профиль",chat:"Чат",friends:"Друзья",settings:"Настройки",hello:"Привет,",welcome:"Добро пожаловать в школьное сообщество.",hero:"Добро пожаловать в ZSPM!",heroText:"Знакомься с новыми людьми, заводи друзей и общайся со школьным сообществом.",discover:"Открой приложение",profiles:"Анкеты учеников",profilesDesc:"Познакомься с сообществом",myProfile:"Мой профиль",myProfileDesc:"Твой профиль в сообществе",messages:"Сообщения",messagesDesc:"Личные беседы с друзьями",friendsTitle:"Друзья",friendsDesc:"Заявки и друзья",settingsTitle:"Настройки",settingsDesc:"Управление аккаунтом",ideas:"Ваши идеи",ideasDesc:"Предложения и голосование сообщества",forum:"Форум",forumDesc:"Обсуждения и школьные темы",timetable:"Расписание",timetableDesc:"Расписание занятий классов",planner:"Мой план",plannerDesc:"Задачи и сроки",cosmetics:"Магазин оформления",cosmeticsDesc:"Открывай новые украшения",ranking:"Рейтинг",rankingDesc:"Активность, поддержка и лайки",information:"Информация",informationDesc:"О проекте, Premium и правилах",support:"Поддержать автора",supportDesc:"Помоги развитию проекта",account:"Аккаунт",logout:"Выйти"},
+uk:{feed:"Активність",feedDesc:"Нові дописи та ідеї спільноти",home:"Головна",surveys:"Анкети",profile:"Профіль",chat:"Чат",friends:"Друзі",settings:"Налаштування",hello:"Привіт,",welcome:"Ласкаво просимо до шкільної спільноти.",hero:"Ласкаво просимо до ZSPM!",heroText:"Знайомся з новими людьми, знаходь друзів та спілкуйся зі шкільною спільнотою.",discover:"Відкрий застосунок",profiles:"Анкети учнів",profilesDesc:"Познайомся зі спільнотою",myProfile:"Мій профіль",myProfileDesc:"Твій профіль у спільноті",messages:"Повідомлення",messagesDesc:"Приватні розмови з друзями",friendsTitle:"Друзі",friendsDesc:"Запити та друзі",settingsTitle:"Налаштування",settingsDesc:"Керуй обліковим записом",ideas:"Ваші ідеї",ideasDesc:"Пропозиції та голосування спільноти",forum:"Форум",forumDesc:"Обговорення та шкільні теми",timetable:"Розклад уроків",timetableDesc:"Розклад занять класів",planner:"Мій план",plannerDesc:"Завдання та терміни",cosmetics:"Крамниця оформлення",cosmeticsDesc:"Відкривай нові прикраси",ranking:"Рейтинг",rankingDesc:"Активність, підтримка та вподобання",information:"Інформація",informationDesc:"Про проєкт, Premium та правила",support:"Підтримати автора",supportDesc:"Допоможи розвитку проєкту",account:"Обліковий запис",logout:"Вийти"}
 };
 function shellTr(k){return APP_SHELL[appLanguage]?.[k]||APP_SHELL.pl[k]||k;}
 
@@ -290,6 +290,7 @@ if(typeof MutationObserver!=="undefined"&&document.body){
 }
 
 const APP_PAGE_LABELS={
+feed:[["Aktywność społeczności","Community activity","Активность сообщества","Активність спільноти"],["Najnowsze wpisy z forum i pomysłów","The latest forum posts and ideas","Последние публикации форума и идеи","Останні дописи форуму та ідеї"]],
 profiles:[["Ankiety uczniów","Student surveys","Анкеты учеников","Анкети учнів"],["Poznaj społeczność swojej szkoły","Meet your school community","Познакомься со школьным сообществом","Познайомся зі шкільною спільнотою"]],
 "my-profile":[["Mój profil","My profile","Мой профиль","Мій профіль"],["Twój profil w społeczności ZSPM","Your ZSPM community profile","Твой профиль в сообществе ZSPM","Твій профіль у спільноті ZSPM"]],
 chat:[["Wiadomości","Messages","Сообщения","Повідомлення"],["Prywatne rozmowy ze znajomymi","Private conversations with friends","Личные беседы с друзьями","Приватні розмови з друзями"]],
@@ -681,6 +682,8 @@ async function enterApp() {
 // NAWIGACJA
 
 const pages = {
+  feed: { title: "Aktywność społeczności", subtitle: "Najnowsze wpisy z forum i pomysłów", content: "" },
+
   profiles: {
     title: "Ankiety uczniów",
     subtitle: "Poznaj społeczność swojej szkoły",
@@ -1008,6 +1011,8 @@ async function openPage(page, options = {}) {
       } else {
         await renderAdminPage();
       }
+    } else if (page === "feed") {
+      await renderCommunityFeedPage();
     } else if (page === "profiles") {
       $("page-content").innerHTML = '<div class="page-content"><p>Ładowanie profili...</p></div>';
       await loadPublicProfilesFromSupabase();
@@ -3422,6 +3427,49 @@ async function setupRealtimeSubscriptions() {
     .subscribe();
 }
 
+
+// COMMUNITY FEED — aggregates public forum topics and community ideas without a new table.
+const FEED_TEXT = {
+  pl:{intro:"Wszystko, co dzieje się w społeczności.",all:"Wszystko",forum:"Forum",ideas:"Pomysły",refresh:"Odśwież",loading:"Ładowanie aktywności...",empty:"Na razie jest tu spokojnie. Gdy pojawią się nowe wpisy, zobaczysz je tutaj.",error:"Nie udało się pobrać aktywności. Spróbuj ponownie.",topic:"Temat na forum",idea:"Nowy pomysł",openForum:"Otwórz forum",openIdeas:"Zobacz pomysły",student:"Uczeń",noDescription:"Bez dodatkowego opisu"},
+  en:{intro:"Everything happening in the community.",all:"All",forum:"Forum",ideas:"Ideas",refresh:"Refresh",loading:"Loading activity...",empty:"It's quiet here for now. New posts will appear here.",error:"Could not load activity. Please try again.",topic:"Forum topic",idea:"New idea",openForum:"Open forum",openIdeas:"View ideas",student:"Student",noDescription:"No additional description"},
+  ru:{intro:"Всё самое новое в нашем сообществе.",all:"Всё",forum:"Форум",ideas:"Идеи",refresh:"Обновить",loading:"Загружаем активность...",empty:"Пока здесь тихо. Новые публикации появятся здесь.",error:"Не удалось загрузить активность. Попробуйте ещё раз.",topic:"Тема на форуме",idea:"Новая идея",openForum:"Открыть форум",openIdeas:"Посмотреть идеи",student:"Ученик",noDescription:"Без дополнительного описания"},
+  uk:{intro:"Усе найновіше в нашій спільноті.",all:"Усе",forum:"Форум",ideas:"Ідеї",refresh:"Оновити",loading:"Завантажуємо активність...",empty:"Поки тут тихо. Нові дописи з'являться тут.",error:"Не вдалося завантажити активність. Спробуйте ще раз.",topic:"Тема на форумі",idea:"Нова ідея",openForum:"Відкрити форум",openIdeas:"Переглянути ідеї",student:"Учень",noDescription:"Без додаткового опису"}
+};
+function feedText(key){return FEED_TEXT[appLanguage]?.[key]||FEED_TEXT.pl[key]||key;}
+
+async function renderCommunityFeedPage(){
+  const host=$("page-content");
+  host.innerHTML='<div class="feed-loading"><span class="feed-spinner"></span><p>'+escapeHTML(feedText("loading"))+'</p></div>';
+  const [postsResult,ideasResult,profilesResult]=await Promise.all([
+    supabaseClient.from("community_forum_posts").select("id,author_id,category,title,body,created_at").order("created_at",{ascending:false}).limit(30),
+    supabaseClient.from("community_ideas").select("id,author_id,title,description,created_at").order("created_at",{ascending:false}).limit(30),
+    supabaseClient.from("public_profiles").select("id,nickname")
+  ]);
+  if(postsResult.error&&ideasResult.error){
+    host.innerHTML='<div class="page-content feed-error"><p>'+escapeHTML(feedText("error"))+'</p><button type="button" class="secondary-btn" id="feed-retry">'+escapeHTML(feedText("refresh"))+'</button></div>';
+    host.querySelector("#feed-retry")?.addEventListener("click",renderCommunityFeedPage);
+    return;
+  }
+  const names=new Map((profilesResult.data||[]).map(p=>[p.id,p.nickname]));
+  const items=[
+    ...(postsResult.data||[]).filter(item=>!isBlocked(item.author_id)).map(item=>({...item,kind:"forum",preview:item.body||"",label:feedText("topic")})),
+    ...(ideasResult.data||[]).filter(item=>!isBlocked(item.author_id)).map(item=>({...item,kind:"ideas",preview:item.description||"",label:feedText("idea")}))
+  ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,50);
+  const locale={pl:"pl-PL",en:"en-GB",ru:"ru-RU",uk:"uk-UA"}[appLanguage]||"pl-PL";
+  const cards=items.map(item=>{
+    const destination=item.kind==="forum"?"forum":"ideas";
+    const preview=String(item.preview||"").trim();
+    return '<article class="feed-card"><div class="feed-card-top"><span class="feed-type '+item.kind+'">'+escapeHTML(item.label)+'</span><time datetime="'+escapeHTML(item.created_at)+'">'+escapeHTML(new Date(item.created_at).toLocaleString(locale,{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}))+'</time></div><h3>'+escapeHTML(item.title)+'</h3><p class="feed-preview">'+escapeHTML(preview||feedText("noDescription"))+'</p><div class="feed-card-bottom"><span class="feed-author"><span class="feed-author-dot">'+escapeHTML((names.get(item.author_id)||feedText("student")).trim().slice(0,1).toUpperCase())+'</span>'+escapeHTML(names.get(item.author_id)||feedText("student"))+'</span><button type="button" class="feed-open" data-feed-open="'+destination+'">'+escapeHTML(destination==="forum"?feedText("openForum"):feedText("openIdeas"))+' <span aria-hidden="true">→</span></button></div></article>';
+  }).join("");
+  host.innerHTML='<section class="feed-intro"><div class="feed-orb" aria-hidden="true">✦</div><div><strong>'+escapeHTML(feedText("intro"))+'</strong><p>'+items.length+' '+(appLanguage==="en"?"recent posts":appLanguage==="ru"?"свежих публикаций":appLanguage==="uk"?"свіжих дописів":"najnowszych wpisów")+'</p></div><button type="button" class="feed-refresh" id="feed-refresh" aria-label="'+escapeHTML(feedText("refresh"))+'" title="'+escapeHTML(feedText("refresh"))+'">↻</button></section><div class="feed-toolbar" role="group" aria-label="Feed filters"><button type="button" class="feed-filter active" data-feed-filter="all">'+escapeHTML(feedText("all"))+'</button><button type="button" class="feed-filter" data-feed-filter="forum">'+escapeHTML(feedText("forum"))+'</button><button type="button" class="feed-filter" data-feed-filter="ideas">'+escapeHTML(feedText("ideas"))+'</button></div><div class="feed-list">'+(cards||'<div class="feed-empty"><span>✧</span><strong>'+escapeHTML(feedText("empty"))+'</strong></div>')+'</div>';
+  host.querySelector("#feed-refresh")?.addEventListener("click",renderCommunityFeedPage);
+  host.querySelectorAll("[data-feed-filter]").forEach(button=>button.addEventListener("click",()=>{
+    const filter=button.dataset.feedFilter;
+    host.querySelectorAll("[data-feed-filter]").forEach(node=>node.classList.toggle("active",node===button));
+    host.querySelectorAll(".feed-card").forEach(card=>{card.hidden=filter!=="all"&&!card.querySelector(".feed-type")?.classList.contains(filter);});
+  }));
+  host.querySelectorAll("[data-feed-open]").forEach(button=>button.addEventListener("click",()=>openPage(button.dataset.feedOpen)));
+}
 
 // FORUM, SZKOLNY PLANER I PERSONALIZACJA
 
