@@ -3544,3 +3544,29 @@ body::after {
   #app .global-chat-messages { max-height:calc(100dvh - 320px);padding:8px; }
   #app .global-message { max-width:97%; }
 }
+
+
+/* Profile avatar markup uses the community-avatar-* classes */
+#app .community-avatar-wrap {
+  position:relative;display:grid;place-items:center;
+  flex:0 0 104px;width:104px;height:104px;overflow:hidden;
+  border:3px solid rgba(120,190,255,.72);border-radius:30px;
+  background:linear-gradient(145deg,#174b7d,#0b1d34);
+  box-shadow:0 8px 24px rgba(0,0,0,.3),0 0 24px rgba(8,123,255,.2);
+}
+#app .community-avatar-img,
+#app .community-avatar-fallback {
+  display:grid;width:100%;height:100%;place-items:center;
+  object-fit:cover;border-radius:inherit;
+}
+#app .community-avatar-fallback { color:#D9EEFF;font-size:36px;font-weight:850; }
+#app .community-avatar-ring { position:absolute;inset:0;border:1px solid rgba(255,255,255,.16);border-radius:inherit;pointer-events:none; }
+#app .community-profile-actions .friend-btn,
+#app .community-profile-actions button {
+  min-height:40px;padding:0 14px;border:1px solid rgba(82,164,239,.3);
+  border-radius:12px;background:rgba(17,66,110,.55);color:#D9EEFF;font-size:11px;font-weight:750;
+}
+@media(max-width:600px) {
+  #app .community-avatar-wrap { flex-basis:82px;width:82px;height:82px;border-radius:24px; }
+  #app .community-avatar-fallback { font-size:29px; }
+}
