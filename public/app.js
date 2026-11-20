@@ -2448,7 +2448,7 @@ function communityProfileHTML(profile, roleBadge, own) {
   const name = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ");
   const interests = Array.isArray(profile?.interests) ? profile.interests : [];
   const achievements = communityAchievements(profile, roleBadge);
-  const accountRole = roleBadge === "admin" ? "admin" : roleBadge === "premium" ? "premium" : "user";
+  const accountRole = roleBadge === "admin" ? "Admin" : roleBadge === "premium" ? "Premium" : "User";
   const joined = profile?.created_at ? new Date(profile.created_at).toLocaleDateString("pl-PL",{month:"long",year:"numeric"}) : "Niedawno";
   const profileId = profile?.user_id || profile?.id || "";
   const statusMode = ["busy","dnd","invisible"].includes(profile?.status_mode) ? profile.status_mode : "online";
