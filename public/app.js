@@ -1297,6 +1297,7 @@ async function openPage(page, options = {}) {
 
   if (page === "home") {
     home.classList.remove("hidden");
+    renderHomeOverview().catch(error=>console.warn("Home overview load failed:",error));
     other.classList.add("hidden");
   } else {
     const selected = pages[page];
@@ -3631,6 +3632,22 @@ async function renderUpdatesPage() {
     .eq("user_id",currentUser.id).eq("type","app_update").is("read_at",null);
   if (readError) console.error("Update notifications read error:", readError);
   await loadNotifications();
+}
+
+async function renderHomeOverview() {
+ const host=document.getElementById("home-recent-updates");
+ const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=Number.isFinite(v)?v.toLocaleString("pl-PL"):"—";};
+ if(!supabaseClient)return;
+ const [u,p,pl,m,g,gm]=await Promise.all([
+  supabaseClient.from("community_updates").select("id,version,title,details,published_at").order("published_at",{ascending:false}).limit(3),
+  supabaseClient.from("public_profiles").select("id",{count:"exact",head:true}),
+  supabaseClient.from("community_polls").select("id",{count:"exact",head:true}),
+  supabaseClient.from("messages").select("id",{count:"exact",head:true}),
+  supabaseClient.from("global_chat_messages").select("id",{count:"exact",head:true}),
+  supabaseClient.from("community_group_messages").select("id",{count:"exact",head:true})
+ ]);
+ if(host){if(u.error)host.innerHTML='<div class="home-overview-empty">Nie udało się pobrać aktualizacji.</div>';else if(!(u.data||[]).length)host.innerHTML='<div class="home-overview-empty">Nowości pojawią się tutaj po publikacji.</div>';else host.innerHTML=u.data.map((x,i)=>{const d=x.published_at?new Date(x.published_at).toLocaleDateString("pl-PL",{day:"2-digit",month:"short",year:"numeric"}):"";const detail=Array.isArray(x.details)?x.details[0]:"";return '<button type="button" class="home-update-item" data-page="updates"><span class="home-update-icon">'+(i===0?"✦":"↗")+'</span><span class="home-update-copy"><span class="home-update-meta"><i>Nowość</i><time>'+escapeHTML(d)+'</time></span><strong>'+escapeHTML(x.title||("Wersja "+(x.version||"")))+'</strong><small>'+escapeHTML(String(detail||("Wersja "+(x.version||"")+" — zobacz szczegóły aktualizacji.")))+'</small></span><span class="home-update-arrow">›</span></button>';}).join("");}
+ set("home-stat-users",p.error?NaN:(p.count??NaN));set("home-stat-polls",pl.error?NaN:(pl.count??NaN));const ms=[m,g,gm];set("home-stat-messages",ms.every(x=>!x.error&&Number.isFinite(x.count))?ms.reduce((a,x)=>a+x.count,0):NaN);
 }
 
 async function loadNotifications() {
