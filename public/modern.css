@@ -4178,3 +4178,105 @@ button.community-search-result{width:100%}
  #app .community-group-chat-head {flex-wrap:wrap}
  #app .community-group-messages {min-height:220px}
 }
+
+
+/* Match groups and polls to the active app theme */
+#app #page-content .community-feature-hero,
+#app #page-content .community-feature-panel,
+#app #page-content .community-poll-card,
+#app #page-content .community-group-card,
+#app #page-content .community-group-chat-head,
+#app #page-content .community-group-messages,
+#app #page-content .community-feature-dialog {
+  background:var(--zspm-panel) !important;
+  color:var(--zspm-text) !important;
+  border-color:var(--zspm-border) !important;
+  box-shadow:var(--zspm-shadow);
+}
+#app #page-content .community-feature-hero {
+  background:var(--zspm-panel) !important;
+}
+#app #page-content .community-feature-hero h2,
+#app #page-content .community-feature-hero h3,
+#app #page-content .community-feature-panel h2,
+#app #page-content .community-feature-panel h3,
+#app #page-content .community-poll-card h3,
+#app #page-content .community-group-card strong,
+#app #page-content .community-feature-dialog h3,
+#app #page-content .community-feature-dialog label,
+#app #page-content .community-icon-label,
+#app #page-content .group-friends-list strong {
+  color:var(--zspm-text) !important;
+}
+#app #page-content .community-feature-hero p,
+#app #page-content .community-group-copy small,
+#app #page-content .community-group-chat-head small,
+#app #page-content .community-poll-top,
+#app #page-content .community-group-description,
+#app #page-content .community-poll-footer>span,
+#app #page-content .community-poll-option small,
+#app #page-content .community-empty-state,
+#app #page-content .feature-feedback {
+  color:var(--zspm-muted) !important;
+}
+#app #page-content .community-group-card,
+#app #page-content .community-poll-option,
+#app #page-content .community-group-message,
+#app #page-content .group-friends-list,
+#app #page-content .group-friend-choice,
+#app #page-content .community-icon-picker,
+#app #page-content .community-icon-choice,
+#app #page-content .community-feature-section-head span,
+#app #page-content .community-empty-state {
+  background:var(--zspm-panel-2) !important;
+  border-color:var(--zspm-border) !important;
+  color:var(--zspm-text) !important;
+}
+#app #page-content .community-group-avatar,
+#app #page-content .community-icon-choice.is-selected,
+#app #page-content .community-poll-option.selected {
+  background:var(--zspm-blue-soft) !important;
+  border-color:var(--zspm-blue) !important;
+  color:var(--zspm-text) !important;
+  box-shadow:none;
+}
+#app #page-content .community-group-message.mine {
+  background:var(--zspm-blue-soft) !important;
+  border-color:var(--zspm-blue) !important;
+  color:var(--zspm-text) !important;
+}
+#app #page-content .community-poll-bar {
+  background:var(--zspm-border) !important;
+}
+#app #page-content .community-poll-bar i {
+  background:var(--zspm-blue) !important;
+}
+#app #page-content .community-feature-form input,
+#app #page-content .community-feature-form select,
+#app #page-content .community-feature-form textarea,
+#app #page-content .community-group-composer input {
+  background:var(--zspm-input) !important;
+  border-color:var(--zspm-border) !important;
+  color:var(--zspm-text) !important;
+}
+#app #page-content .community-feature-form input::placeholder,
+#app #page-content .community-feature-form textarea::placeholder,
+#app #page-content .community-group-composer input::placeholder {
+  color:var(--zspm-muted) !important;
+}
+#app #page-content .community-create-cta,
+#app #page-content .community-create-submit,
+#app #page-content .community-poll-footer .main-btn {
+  background:var(--zspm-blue-2) !important;
+  border-color:var(--zspm-blue-2) !important;
+  color:#fff !important;
+}
+#app #page-content .community-feature-dialog-close {
+  background:var(--zspm-panel-2) !important;
+  border-color:var(--zspm-border) !important;
+  color:var(--zspm-muted) !important;
+}
+#app #page-content .community-group-card:hover,
+#app #page-content .community-poll-card:hover {
+  border-color:var(--zspm-blue) !important;
+}
