@@ -1032,16 +1032,18 @@ async function renderAdminPage() {
       '<button type="button" class="admin-small-btn" data-donation-remove="' + row.user_id + '">Usuń z rankingu</button></div>';
   }).join("");
   const messageReportIds = (reportsResult.data || []).filter(r => r.target_type === "message").map(r => r.target_id);
-  const [privateReported, globalReported] = await Promise.all([
+  const groupReportIds = (reportsResult.data || []).filter(r => r.target_type === "group_message").map(r => r.target_id);
+  const [privateReported, globalReported, groupReported] = await Promise.all([
     messageReportIds.length ? supabaseClient.from("messages").select("id,content").in("id",messageReportIds) : Promise.resolve({data:[]}),
-    messageReportIds.length ? supabaseClient.from("global_chat_messages").select("id,content").in("id",messageReportIds) : Promise.resolve({data:[]})
+    messageReportIds.length ? supabaseClient.from("global_chat_messages").select("id,content").in("id",messageReportIds) : Promise.resolve({data:[]}),
+    groupReportIds.length ? supabaseClient.from("community_group_messages").select("id,content").in("id",groupReportIds) : Promise.resolve({data:[]})
   ]);
-  const reportedText = new Map([...(privateReported.data || []), ...(globalReported.data || [])].map(m => [m.id,m.content]));
+  const reportedText = new Map([...(privateReported.data || []), ...(globalReported.data || []), ...(groupReported.data || [])].map(m => [m.id,m.content]));
   const reportsHtml = (reportsResult.data || []).map(report =>
     '<div class="admin-report"><strong>' + escapeHTML(nameById.get(report.reported_user_id) || "Nieznany użytkownik") +
-    '</strong><small>' + escapeHTML(report.target_type === "message" ? "Zgłoszona wiadomość" : report.target_type === "event" ? "Zgłoszone wydarzenie" : report.target_type === "forum_post" ? "Zgłoszony wpis forum" : "Zgłoszony profil") +
+    '</strong><small>' + escapeHTML(report.target_type === "message" ? "Zgłoszona wiadomość" : report.target_type === "group_message" ? "Zgłoszona wiadomość grupowa" : report.target_type === "event" ? "Zgłoszone wydarzenie" : report.target_type === "forum_post" ? "Zgłoszony wpis forum" : "Zgłoszony profil") +
     ' · ' + escapeHTML(new Date(report.created_at).toLocaleString("pl-PL")) + '</small>' +
-    (report.target_type === "message" ? '<blockquote class="admin-reported-content">' + escapeHTML(reportedText.get(report.target_id) || "Wiadomość została usunięta.") + '</blockquote>' : '') +
+    ((report.target_type === "message" || report.target_type === "group_message") ? '<blockquote class="admin-reported-content">' + escapeHTML(reportedText.get(report.target_id) || "Wiadomość została usunięta.") + '</blockquote>' : '') +
     '<p>' + escapeHTML(report.reason || "Brak dodatkowego opisu.") + '</p></div>'
   ).join("");
 
@@ -1165,6 +1167,7 @@ let currentAppPage = "home";
 async function openPage(page, options = {}) {
   if (isBanned) return;
   if (page !== "home" && !pages[page]) return;
+  if(page!=="groups" && communityGroupChannel){await supabaseClient.removeChannel(communityGroupChannel);communityGroupChannel=null;}
   if (!options.fromBack && page !== currentAppPage) appPageHistory.push(currentAppPage);
   currentAppPage = page;
   const backButton = $("app-back-button");
