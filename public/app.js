@@ -350,6 +350,7 @@ if(typeof MutationObserver!=="undefined"&&document.body){
 
 const APP_PAGE_LABELS={
 search:[["Wyszukiwarka społeczności","Community search","Поиск по сообществу","Пошук спільноти"],["Znajdź osoby, tematy na forum i pomysły","Find people, forum topics and ideas","Найди людей, темы форума и идеи","Знайди людей, теми форуму та ідеї"]],
+updates:[["Updates","Updates","Обновления","Оновлення"],["Historia zmian i nowości w aplikacji","App release notes and new features","История изменений и новых функций приложения","Історія змін і нових функцій застосунку"]],
 feed:[["Aktywność społeczności","Community activity","Активность сообщества","Активність спільноти"],["Najnowsze wpisy z forum i pomysłów","The latest forum posts and ideas","Последние публикации форума и идеи","Останні дописи форуму та ідеї"]],
 events:[["Wydarzenia","Events","События","Події"],["Karty wydarzeń i ogłoszenia społeczności","Community event cards and announcements","Карточки мероприятий и объявления сообщества","Картки подій та оголошення спільноти"]],
 groups:[["Grupowe czaty","Group chats","Групповые чаты","Групові чати"],["Rozmowy ze znajomymi","Conversations with friends","Беседы с друзьями","Розмови з друзями"]],
@@ -762,7 +763,7 @@ async function renderCommunityGroupsPage() {
   if(groupsResult.error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować grup.</p></div>';return;}
   const friends=(friendsDataCache.friends||[]).filter(p=>!isBlocked(p.id));
   const friendChoices=friends.map(p=>'<label class="group-friend-choice"><input type="checkbox" name="group-friend" value="'+escapeHTML(p.id)+'"><span>'+escapeHTML(p.nickname||"Uczeń")+'</span></label>').join("");
-  const cards=(groupsResult.data||[]).map(g=>'<button type="button" class="community-group-card" data-open-group="'+g.id+'"><span class="community-group-avatar">'+escapeHTML(g.avatar_emoji||"👥")+'</span><span class="community-group-copy"><strong>'+escapeHTML(g.name)+'</strong><small>'+escapeHTML(g.description||"Grupa znajomych")+'</small></span><span class="community-group-arrow">›</span></button>').join("");
+  const cards=(groupsResult.data||[]).map(g=>{const unread=unreadNotificationCount("group_message",g.id);return '<button type="button" class="community-group-card" data-open-group="'+g.id+'"><span class="community-group-avatar">'+escapeHTML(g.avatar_emoji||"👥")+'</span><span class="community-group-copy"><strong>'+escapeHTML(g.name)+'</strong><small>'+escapeHTML(g.description||"Grupa znajomych")+'</small></span>'+(unread?'<span class="menu-unread-badge is-visible">'+(unread>99?"99+":unread)+'</span>':'')+'<span class="community-group-arrow">›</span></button>';}).join("");
   host.innerHTML='<section class="community-feature-hero community-feature-hero-action"><div><span class="community-feature-kicker">ZSPM COMMUNITY</span><h2>Grupowe czaty</h2><p>Twórz rozmowy ze znajomymi. Do grup możesz zapraszać tylko zaakceptowanych znajomych.</p></div><button type="button" class="community-create-cta" id="community-group-create-open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Utwórz grupę</button></section><div class="community-feature-modal" id="community-group-modal" hidden><div class="community-feature-modal-backdrop" data-group-modal-close></div><section class="community-feature-dialog" role="dialog" aria-modal="true" aria-labelledby="community-group-dialog-title"><header class="community-feature-dialog-head"><div><span class="community-feature-kicker">NOWA ROZMOWA</span><h3 id="community-group-dialog-title">Utwórz grupę</h3></div><button type="button" class="community-feature-dialog-close" data-group-modal-close aria-label="Zamknij">×</button></header><form id="community-group-form" class="community-feature-form"><label>Nazwa grupy<input id="community-group-name" maxlength="60" minlength="2" required placeholder="Np. Ekipa z klasy"></label><label>Krótki opis<input id="community-group-description" maxlength="240" placeholder="O czym jest grupa?"></label><div class="community-icon-field"><span class="community-icon-label">Ikona grupy</span><input type="hidden" id="community-group-emoji" value="👥"><div class="community-icon-picker" role="group" aria-label="Wybierz ikonę grupy"><button type="button" class="community-icon-choice is-selected" data-group-icon="👥" aria-pressed="true">👥</button><button type="button" class="community-icon-choice" data-group-icon="🎓" aria-pressed="false">🎓</button><button type="button" class="community-icon-choice" data-group-icon="🎮" aria-pressed="false">🎮</button><button type="button" class="community-icon-choice" data-group-icon="📚" aria-pressed="false">📚</button><button type="button" class="community-icon-choice" data-group-icon="⚽" aria-pressed="false">⚽</button><button type="button" class="community-icon-choice" data-group-icon="🎨" aria-pressed="false">🎨</button><button type="button" class="community-icon-choice" data-group-icon="🎵" aria-pressed="false">🎵</button><button type="button" class="community-icon-choice" data-group-icon="🚀" aria-pressed="false">🚀</button><button type="button" class="community-icon-choice" data-group-icon="🌟" aria-pressed="false">🌟</button><button type="button" class="community-icon-choice" data-group-icon="💬" aria-pressed="false">💬</button><button type="button" class="community-icon-choice" data-group-icon="🧩" aria-pressed="false">🧩</button><button type="button" class="community-icon-choice" data-group-icon="🔥" aria-pressed="false">🔥</button></div></div><div class="group-friends-list"><strong>Dodaj znajomych</strong>'+(friendChoices||'<small>Nie masz jeszcze znajomych do zaproszenia.</small>')+'</div><button class="community-create-submit" type="submit">Utwórz grupę</button><p id="community-group-feedback" class="feature-feedback" aria-live="polite"></p></form></section></div><section class="community-feature-panel community-list-panel"><div class="community-feature-section-head"><h3>Twoje grupy</h3><span>'+groupsResult.data.length+'</span></div><div class="community-groups-list">'+(cards||'<div class="community-empty-state"><span>👥</span><strong>Nie należysz jeszcze do żadnej grupy</strong><small>Utwórz pierwszą grupę powyżej.</small></div>')+'</div></section>';
   const groupModal=host.querySelector("#community-group-modal");
   const closeGroupModal=()=>{groupModal.hidden=true;document.removeEventListener("keydown",groupModalEscape);};
@@ -796,6 +797,8 @@ async function openCommunityGroupChat(groupId, fromRealtime=false) {
     supabaseClient.from("community_group_messages").select("id,group_id,sender_id,content,created_at").eq("group_id",groupId).order("created_at",{ascending:true}).limit(150)
   ]);
   if(membersResult.error||messagesResult.error){host.innerHTML='<div class="page-content"><p>Nie udało się otworzyć czatu grupowego.</p></div>';return;}
+  await supabaseClient.from("notifications").update({read_at:new Date().toISOString()}).eq("user_id",currentUser.id).eq("type","group_message").eq("related_id",groupId).is("read_at",null);
+  await loadNotifications();
   const members=membersResult.data||[];
   await loadProfilesByIds(members.map(m=>m.user_id));
   const names=new Map(members.map(m=>{const p=getProfileById(m.user_id);return [m.user_id,p?.nickname||"Uczeń"];}));
@@ -916,6 +919,7 @@ async function renderCommunityAnnouncementsPage(){await renderCommunityEventsPag
 
 const pages = {
   feed: { title: "Aktywność społeczności", subtitle: "Najnowsze wpisy z forum i pomysłów", content: "" },
+  updates: { title: "Updates", subtitle: "Historia zmian i nowości w aplikacji", content: "" },
   events: { title: "Wydarzenia", subtitle: "Karty wydarzeń i ogłoszenia społeczności", content: "" },
   announcements: { title: "Ogłoszenia", subtitle: "Informacje i ogłoszenia społeczności", content: "" },
   groups: { title: "Grupowe czaty", subtitle: "Rozmowy ze znajomymi", content: "" },
@@ -1258,6 +1262,8 @@ async function openPage(page, options = {}) {
       } else {
         await renderAdminPage();
       }
+    } else if (page === "updates") {
+      await renderUpdatesPage();
     } else if (page === "events") {
       await renderCommunityEventsPage();
     } else if (page === "announcements") {
@@ -3093,6 +3099,7 @@ async function renderChatList() {
           <div class="conv-nick">${escapeHTML(profile.nickname)}${profile.isAdmin ? '<span class="user-role-badge admin-role">ADMIN</span>' : profile.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : ""}</div>
           <div class="conv-last">${escapeHTML(preview)}</div>
         </div>
+        ${unreadNotificationCount("message",conv.id) ? '<span class="menu-unread-badge is-visible">'+unreadNotificationCount("message",conv.id)+'</span>' : ""}
       </button>
     `;
   }).join("");
@@ -3547,6 +3554,19 @@ function bindComposer(conversationId) {
   });
 }
 
+async function renderUpdatesPage() {
+  const releases = [{date:"20.11.2026",version:"Nowości społeczności",title:"Updates, powiadomienia i liczniki wiadomości",details:[
+    "Dodano zakładkę Updates z historią zmian aplikacji.",
+    "Dodano powiadomienia o nowych ankietach, głosach i wiadomościach grupowych.",
+    "Dodano liczniki nieprzeczytanych wiadomości na kartach czatów w menu głównym.",
+    "Usprawniono odświeżanie liczników i obsługę powiadomień."
+  ]}];
+  await supabaseClient.from("notifications").update({read_at:new Date().toISOString()}).eq("user_id",currentUser.id).eq("type","app_update").is("read_at",null);
+  await loadNotifications();
+  const cards = releases.map(release => '<article class="updates-release-card"><div class="updates-release-meta"><span>'+escapeHTML(release.date)+'</span><span>'+escapeHTML(release.version)+'</span></div><h3>'+escapeHTML(release.title)+'</h3><ul>'+release.details.map(item=>'<li>'+escapeHTML(item)+'</li>').join("")+'</ul></article>').join("");
+  $("page-content").innerHTML = '<section class="updates-hero"><span class="updates-kicker">ZSPM COMMUNITY</span><h2>Updates</h2><p>Tutaj znajdziesz historię nowych funkcji, poprawek i zmian w aplikacji.</p></section><div class="updates-release-list">'+cards+'</div><p class="updates-footnote">Historia jest aktualizowana przy kolejnych wydaniach aplikacji.</p>';
+}
+
 async function loadNotifications() {
   if (!currentUser?.id) return [];
   const { data, error } = await supabaseClient.from("notifications")
@@ -3560,7 +3580,22 @@ async function loadNotifications() {
   }
   notificationsCache = data || [];
   updateNotifBadge();
+  updateHomeUnreadBadges();
   return notificationsCache;
+}
+
+function unreadNotificationCount(type, relatedId) {
+  return notificationsCache.filter(item => !item.read_at && item.type === type && (!relatedId || item.related_id === relatedId)).length;
+}
+
+function updateHomeUnreadBadges() {
+  const counts = {chat:unreadNotificationCount("message"),groups:unreadNotificationCount("group_message"),updates:unreadNotificationCount("app_update")};
+  document.querySelectorAll("[data-unread-page]").forEach(badge => {
+    const count = counts[badge.dataset.unreadPage] || 0;
+    badge.textContent = count > 99 ? "99+" : String(count);
+    badge.classList.toggle("is-visible",count>0);
+    badge.setAttribute("aria-label",count ? count+" nieprzeczytanych" : "Brak nieprzeczytanych");
+  });
 }
 
 function updateNotifBadge() {
@@ -3619,8 +3654,17 @@ async function renderNotificationsPage() {
       if (notification.type === "message" && notification.related_id) {
         await openPage("chat");
         await openChat(notification.related_id);
+      } else if (notification.type === "group_message" && notification.related_id) {
+        await openPage("groups");
+        await openCommunityGroupChat(notification.related_id);
+      } else if (notification.type === "new_poll" || notification.type === "poll_vote") {
+        await openPage("polls");
+      } else if (notification.type === "app_update") {
+        await openPage("updates");
       } else if (notification.type === "friend_request" || notification.type === "friend_accepted") {
         await openPage("friends");
+      } else if (notification.type === "event" || notification.type === "announcement") {
+        await openPage(notification.type === "event" ? "events" : "announcements");
       } else {
         await openPage("profiles");
       }
