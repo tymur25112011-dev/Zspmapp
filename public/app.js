@@ -3555,7 +3555,12 @@ function bindComposer(conversationId) {
 }
 
 async function renderUpdatesPage() {
-  const releases = [{date:"20.11.2026",version:"Nowości społeczności",title:"Updates, powiadomienia i liczniki wiadomości",details:[
+  const releases = [{date:"20.11.2026",version:"Stabilność i moderacja",title:"Poprawki bezpieczeństwa i zgłoszeń",details:[
+    "Naprawiono zapisywanie zgłoszeń wiadomości w czatach grupowych.",
+    "Naprawiono warunek dostępu moderatorów do zgłoszonych wiadomości grupowych.",
+    "Usprawniono polityki bezpieczeństwa RLS w czatach grupowych.",
+    "Dodano licznik nieprzeczytanych powiadomień o ankietach i głosach."
+  ]},{date:"20.11.2026",version:"Nowości społeczności",title:"Updates, powiadomienia i liczniki wiadomości",details:[
     "Dodano zakładkę Updates z historią zmian aplikacji.",
     "Dodano powiadomienia o nowych ankietach, głosach i wiadomościach grupowych.",
     "Dodano liczniki nieprzeczytanych wiadomości na kartach czatów w menu głównym.",
@@ -3573,7 +3578,7 @@ async function loadNotifications() {
     .select("id,type,title,body,related_user_id,related_id,read_at,created_at")
     .eq("user_id", currentUser.id)
     .order("created_at", { ascending: false })
-    .limit(60);
+    .limit(200);
   if (error) {
     console.error("Notifications load error:", error);
     return notificationsCache;
@@ -3589,7 +3594,7 @@ function unreadNotificationCount(type, relatedId) {
 }
 
 function updateHomeUnreadBadges() {
-  const counts = {chat:unreadNotificationCount("message"),groups:unreadNotificationCount("group_message"),updates:unreadNotificationCount("app_update")};
+  const counts = {chat:unreadNotificationCount("message"),groups:unreadNotificationCount("group_message"),polls:unreadNotificationCount("new_poll")+unreadNotificationCount("poll_vote"),updates:unreadNotificationCount("app_update")};
   document.querySelectorAll("[data-unread-page]").forEach(badge => {
     const count = counts[badge.dataset.unreadPage] || 0;
     badge.textContent = count > 99 ? "99+" : String(count);
