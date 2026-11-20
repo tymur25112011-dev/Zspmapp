@@ -290,6 +290,7 @@ if(typeof MutationObserver!=="undefined"&&document.body){
 }
 
 const APP_PAGE_LABELS={
+search:[["Wyszukiwarka społeczności","Community search","Поиск по сообществу","Пошук спільноти"],["Znajdź osoby, tematy na forum i pomysły","Find people, forum topics and ideas","Найди людей, темы форума и идеи","Знайди людей, теми форуму та ідеї"]],
 feed:[["Aktywność społeczności","Community activity","Активность сообщества","Активність спільноти"],["Najnowsze wpisy z forum i pomysłów","The latest forum posts and ideas","Последние публикации форума и идеи","Останні дописи форуму та ідеї"]],
 profiles:[["Ankiety uczniów","Student surveys","Анкеты учеников","Анкети учнів"],["Poznaj społeczność swojej szkoły","Meet your school community","Познакомься со школьным сообществом","Познайомся зі шкільною спільнотою"]],
 "my-profile":[["Mój profil","My profile","Мой профиль","Мій профіль"],["Twój profil w społeczności ZSPM","Your ZSPM community profile","Твой профиль в сообществе ZSPM","Твій профіль у спільноті ZSPM"]],
@@ -684,6 +685,7 @@ async function enterApp() {
 
 const pages = {
   feed: { title: "Aktywność społeczności", subtitle: "Najnowsze wpisy z forum i pomysłów", content: "" },
+  search: { title: "Wyszukiwarka", subtitle: "Szukaj osób, tematów na forum i pomysłów", content: "" },
 
   profiles: {
     title: "Ankiety uczniów",
@@ -1014,6 +1016,8 @@ async function openPage(page, options = {}) {
       }
     } else if (page === "feed") {
       await renderCommunityFeedPage();
+    } else if (page === "search") {
+      renderCommunitySearchPage();
     } else if (page === "profiles") {
       $("page-content").innerHTML = '<div class="page-content"><p>Ładowanie profili...</p></div>';
       await loadPublicProfilesFromSupabase();
@@ -1073,6 +1077,64 @@ function escapeHTML(value) {
 }
 
 
+
+
+// COMMUNITY SEARCH — searches public community profiles, forum posts and ideas.
+const SEARCH_TEXT = {
+  pl:{placeholder:"Wpisz nazwę osoby, temat lub słowo kluczowe...",button:"Szukaj",hint:"Wpisz co najmniej 2 znaki. Przeszukujemy publiczne profile, forum i pomysły.",loading:"Szukamy...",people:"Osoby",forum:"Forum",ideas:"Pomysły",empty:"Brak wyników. Spróbuj innego hasła.",error:"Nie udało się wykonać wyszukiwania. Spróbuj ponownie.",openProfile:"Otwórz profil",openSection:"Otwórz sekcję",min:"Wpisz co najmniej 2 znaki."},
+  en:{placeholder:"Search a person, topic or keyword...",button:"Search",hint:"Enter at least 2 characters. We search public profiles, the forum and ideas.",loading:"Searching...",people:"People",forum:"Forum",ideas:"Ideas",empty:"No results. Try another search.",error:"Search failed. Please try again.",openProfile:"Open profile",openSection:"Open section",min:"Enter at least 2 characters."},
+  ru:{placeholder:"Имя пользователя, тема или ключевое слово...",button:"Найти",hint:"Введите минимум 2 символа. Поиск по публичным профилям, форуму и идеям.",loading:"Ищем...",people:"Люди",forum:"Форум",ideas:"Идеи",empty:"Ничего не найдено. Попробуйте другой запрос.",error:"Не удалось выполнить поиск. Попробуйте ещё раз.",openProfile:"Открыть профиль",openSection:"Открыть раздел",min:"Введите минимум 2 символа."},
+  uk:{placeholder:"Ім’я користувача, тема або ключове слово...",button:"Знайти",hint:"Введіть щонайменше 2 символи. Пошук у публічних профілях, форумі та ідеях.",loading:"Шукаємо...",people:"Люди",forum:"Форум",ideas:"Ідеї",empty:"Нічого не знайдено. Спробуйте інший запит.",error:"Не вдалося виконати пошук. Спробуйте ще раз.",openProfile:"Відкрити профіль",openSection:"Відкрити розділ",min:"Введіть щонайменше 2 символи."}
+};
+function searchText(key){return SEARCH_TEXT[appLanguage]?.[key]||SEARCH_TEXT.pl[key]||key;}
+
+function renderCommunitySearchPage(){
+  const host=$("page-content");
+  host.innerHTML='<section class="community-search-panel"><form id="community-search-form" class="community-search-form"><label class="community-search-field"><span aria-hidden="true">⌕</span><input id="community-search-query" type="search" maxlength="80" autocomplete="off" placeholder="'+escapeHTML(searchText("placeholder"))+'" aria-label="'+escapeHTML(searchText("placeholder"))+'"></label><button class="main-btn" type="submit">'+escapeHTML(searchText("button"))+'</button></form><p class="community-search-hint">'+escapeHTML(searchText("hint"))+'</p><div id="community-search-results" aria-live="polite"></div></section>';
+  const form=host.querySelector("#community-search-form");
+  const input=host.querySelector("#community-search-query");
+  const results=host.querySelector("#community-search-results");
+  form.addEventListener("submit",async event=>{
+    event.preventDefault();
+    const query=input.value.trim().replace(/[%_]/g," ").slice(0,80);
+    if(query.length<2){results.innerHTML='<p class="community-search-message">'+escapeHTML(searchText("min"))+'</p>';return;}
+    const button=form.querySelector('button[type="submit"]');
+    button.disabled=true;
+    results.innerHTML='<p class="community-search-message">'+escapeHTML(searchText("loading"))+'</p>';
+    try{
+      const pattern="%"+query+"%";
+      const [peopleResult,forumResult,ideasResult]=await Promise.all([
+        supabaseClient.from("community_profiles").select("user_id,nickname,bio,class_name,avatar_path,avatar_decoration,banner_theme").ilike("nickname",pattern).limit(12),
+        supabaseClient.from("community_forum_posts").select("id,author_id,title,body,created_at").or("title.ilike."+pattern+",body.ilike."+pattern).order("created_at",{ascending:false}).limit(12),
+        supabaseClient.from("community_ideas").select("id,author_id,title,description,created_at").or("title.ilike."+pattern+",description.ilike."+pattern).order("created_at",{ascending:false}).limit(12)
+      ]);
+      const error=peopleResult.error||forumResult.error||ideasResult.error;
+      if(error)throw error;
+      const people=(peopleResult.data||[]).filter(p=>p.user_id!==currentUser.id&&!isBlocked(p.user_id));
+      const forum=(forumResult.data||[]).filter(p=>!isBlocked(p.author_id));
+      const ideas=(ideasResult.data||[]).filter(p=>!isBlocked(p.author_id));
+      const authorIds=[...new Set([...forum,...ideas].map(x=>x.author_id).filter(Boolean))];
+      let authors=new Map();
+      if(authorIds.length){
+        const authorResult=await supabaseClient.from("community_profiles").select("user_id,nickname").in("user_id",authorIds);
+        if(authorResult.error)throw authorResult.error;
+        authors=new Map((authorResult.data||[]).map(x=>[x.user_id,x.nickname]));
+      }
+      const section=(title,items,kind)=>items.length?'<section class="community-search-group"><h3>'+escapeHTML(title)+' <span>'+items.length+'</span></h3><div class="community-search-list">'+items.map(item=>{
+        if(kind==="people")return '<button type="button" class="community-search-result community-search-person" data-search-user="'+escapeHTML(item.user_id)+'"><span class="community-search-avatar">'+escapeHTML((item.nickname||"U").slice(0,1).toUpperCase())+'</span><span class="community-search-copy"><strong>'+escapeHTML(item.nickname||"Uczeń")+'</strong><small>'+escapeHTML(item.class_name||"")+'</small></span><span class="community-search-arrow">›</span></button>';
+        const excerpt=kind==="forum"?(item.body||""):(item.description||"");
+        return '<article class="community-search-result"><span class="community-search-kind">'+escapeHTML(kind==="forum"?searchText("forum"):searchText("ideas"))+'</span><div class="community-search-copy"><strong>'+escapeHTML(item.title)+'</strong><small>'+escapeHTML(authors.get(item.author_id)||"")+'</small><p>'+escapeHTML(excerpt.slice(0,150))+'</p></div><button type="button" class="community-search-open" data-search-page="'+(kind==="forum"?"forum":"ideas")+'">'+escapeHTML(searchText("openSection"))+' ›</button></article>';
+      }).join("")+'</div></section>':'';
+      const markup=section(searchText("people"),people,"people")+section(searchText("forum"),forum,"forum")+section(searchText("ideas"),ideas,"ideas");
+      results.innerHTML=markup||'<p class="community-search-message">'+escapeHTML(searchText("empty"))+'</p>';
+      results.querySelectorAll("[data-search-user]").forEach(el=>el.addEventListener("click",()=>openCommunityProfile(el.dataset.searchUser)));
+      results.querySelectorAll("[data-search-page]").forEach(el=>el.addEventListener("click",()=>openPage(el.dataset.searchPage)));
+    }catch(error){
+      console.error("Community search error:",error);
+      results.innerHTML='<p class="community-search-message">'+escapeHTML(searchText("error"))+'</p>';
+    }finally{button.disabled=false;}
+  });
+}
 
 // COMMUNITY IDEAS, RANKING AND INFORMATION
 
