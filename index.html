@@ -895,7 +895,7 @@ button { cursor: pointer; }
 
 .community-public-note{font-size:11px;line-height:1.5;color:#93aac7;background:rgba(33,90,148,.13);border:1px solid rgba(102,165,231,.17);padding:10px 12px;border-radius:10px;margin:0 0 12px}
 </style>
-<link rel="stylesheet" href="public/modern.css?v=66">
+<link rel="stylesheet" href="public/modern.css?v=67">
   <meta property="og:image" content="https://bolt.new/static/og_default.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
@@ -909,7 +909,7 @@ button { cursor: pointer; }
 <div id="auth" class="container">
 
   <div class="logo">
-    <div class="auth-brand-mark" aria-hidden="true"><img src="./public/icons/zspm-community-mark.svg" alt=""></div>
+    <div class="auth-brand-mark" aria-hidden="true"><img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" alt=""></div>
     <h1 class="auth-brand-title"><span>ZSPM</span> Community</h1>
     <p>Twoja społeczność szkolna</p>
   </div>
@@ -1030,7 +1030,7 @@ button { cursor: pointer; }
 
       <div class="topbar">
         <div class="small-logo brand-lockup" aria-label="ZSPM Community">
-          <img class="brand-emblem" src="./public/icons/zspm-community-mark.svg" alt="">
+          <img class="brand-emblem" src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" alt="">
           <span class="brand-wordmark"><strong>ZSPM</strong><span>COMMUNITY</span></span>
         </div>
 
@@ -1064,9 +1064,7 @@ button { cursor: pointer; }
           <p>Poznaj społeczność, rozmawiaj, dziel się pomysłami i bądź na bieżąco z życiem szkoły.</p>
           <span class="home-hero-signature"><i></i> Zespół Szkół Poligraficzno-Medialnych · Kraków</span>
         </div>
-        <div class="home-hero-symbol" aria-hidden="true">
-          <svg viewBox="0 0 120 120" fill="none"><path d="M60 8 101 23v31c0 27-16 47-41 58C35 101 19 81 19 54V23L60 8Z" stroke="currentColor" stroke-width="1.5"/><path d="M39 75c7-4 10-12 9-21l-8-8 15 2 6-13 7 14 15 2-12 8 1 15-12-8-13 9Z" fill="currentColor" opacity=".9"/><path d="M28 91h64" stroke="currentColor" stroke-opacity=".45" stroke-width="1.5"/></svg>
-        </div>
+        <div class="home-hero-symbol" aria-hidden="true"><img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" alt=""></div>
       </section><h3 class="section-title" data-i18n="discover">Odkryj aplikację</h3>
 
       <div class="menu-grid">
@@ -1191,35 +1189,36 @@ button { cursor: pointer; }
   </div>
 </div>
 
-  <nav class="bottom-nav">
-
-
-
-    <button class="nav-item active" data-page="home">
-      <span><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg></span><span data-i18n="home">Główna</span>
-    </button>
-
-    <button class="nav-item" data-page="profiles">
-      <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M16 3.5a4 4 0 0 1 0 7"/></svg></span><span data-i18n="surveys">Ankiety</span>
-    </button>
-
-    <button class="nav-item" data-page="my-profile">
-      <span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><span data-i18n="profile">Profil</span>
-    </button>
-
-    <button class="nav-item" data-page="chat">
-      <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9 9 0 0 1-4-.9L3 21l1.9-4.5A8.5 8.5 0 1 1 21 11.5Z"/></svg></span><span data-i18n="chat">Czat</span>
-    </button>
-
-    <button class="nav-item" data-page="friends">
-      <span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 11.5a3.5 3.5 0 1 0 0-7"/></svg></span><span data-i18n="friends">Znajomi</span>
-    </button>
-
-    <button class="nav-item" data-page="settings">
-      <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 13.5v-3l-2-.7-.8-1.4.7-2-2.6-1.5-1.5 1.4h-1.6L9.7 4.9 7 6.4l.7 2-.8 1.4-2 .7v3l2 .7.8 1.4-.7 2 2.6 1.5 1.5-1.4h1.6l1.5 1.4 2.6-1.5-.7-2 .8-1.4Z"/></svg></span><span data-i18n="settings">Ustawienia</span>
-    </button>
-
-  </nav>
+  <div class="more-nav-menu hidden" id="more-nav-menu" role="menu" aria-label="Więcej sekcji">
+  <div class="more-nav-heading">Odkryj więcej</div>
+  <div class="more-nav-grid">
+    <button type="button" class="more-nav-link" data-page="profiles" role="menuitem"><span class="more-nav-icon">⌕</span><span>Poznaj ludzi</span></button>
+    <button type="button" class="more-nav-link" data-page="my-profile" role="menuitem"><span class="more-nav-icon">◉</span><span>Profil</span></button>
+    <button type="button" class="more-nav-link" data-page="friends" role="menuitem"><span class="more-nav-icon">♧</span><span>Znajomi</span></button>
+    <button type="button" class="more-nav-link" data-page="forum" role="menuitem"><span class="more-nav-icon">▤</span><span>Forum</span></button>
+    <button type="button" class="more-nav-link" data-page="polls" role="menuitem"><span class="more-nav-icon">◫</span><span>Ankiety</span></button>
+    <button type="button" class="more-nav-link" data-page="updates" role="menuitem"><span class="more-nav-icon">↗</span><span>Aktualizacje</span></button>
+    <button type="button" class="more-nav-link" data-page="settings" role="menuitem"><span class="more-nav-icon">⚙</span><span>Ustawienia</span></button>
+    <button type="button" class="more-nav-link" id="more-admin-link" data-page="admin" role="menuitem" hidden><span class="more-nav-icon">⬡</span><span>Panel administratora</span></button>
+  </div>
+</div>
+<nav class="bottom-nav" aria-label="Główna nawigacja">
+  <button type="button" class="nav-item active" data-page="home" aria-label="Strona główna">
+    <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg></span><span>Główna</span>
+  </button>
+  <button type="button" class="nav-item" data-page="chat" aria-label="Czaty">
+    <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-9 8.5 9 9 0 0 1-4-.9L3 21l1.9-4.5A8.5 8.5 0 1 1 21 11.5Z"/></svg></span><span>Czaty</span>
+  </button>
+  <button type="button" class="nav-item" data-page="groups" aria-label="Grupy">
+    <span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 11.5a3.5 3.5 0 1 0 0-7M17 15h1a4 4 0 0 1 4 4v1"/></svg></span><span>Grupy</span>
+  </button>
+  <button type="button" class="nav-item" data-page="events" aria-label="Wydarzenia">
+    <span><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h3M8 17h7"/></svg></span><span>Wydarzenia</span>
+  </button>
+  <button type="button" class="nav-item nav-more-toggle" id="more-nav-toggle" aria-expanded="false" aria-controls="more-nav-menu">
+    <span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></span><span>Więcej</span>
+  </button>
+</nav>
 
 </div>
 
@@ -1227,7 +1226,7 @@ button { cursor: pointer; }
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="./public/supabase-config.js"></script>
 <script defer src="./public/support-config.js?v=2"></script>
-<script defer src="./public/app.js?v=75"></script>
+<script defer src="./public/app.js?v=76"></script>
 
 <script>
 if ("serviceWorker" in navigator) {
