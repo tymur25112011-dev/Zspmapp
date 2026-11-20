@@ -3300,7 +3300,7 @@ async function renderChatList() {
       <button type="button" class="chat-search-clear" aria-label="Wyczyść wyszukiwanie" hidden>×</button>
     </div>
     <div class="telegram-list-heading"><strong>Ostatnie rozmowy</strong><span>${conversationsCache.length}</span></div>
-    <div class="conv-list telegram-conv-list" id="private-conversation-list">${items || '<div class="telegram-empty-state"><span>✉</span><strong>Nie masz jeszcze rozmów</strong><small>Добавь друга, чтобы начать общение.</small></div>'}</div>
+    <div class="conv-list telegram-conv-list" id="private-conversation-list">${items || '<div class="telegram-empty-state"><span>✉</span><strong>Nie masz jeszcze rozmów</strong><small>Dodaj znajomego, aby rozpocząć rozmowę.</small></div>'}</div>
   `;
   $("open-global-chat").addEventListener("click", () => openGlobalChat());
   $("page-content").querySelectorAll("[data-conv]").forEach(button => {
@@ -3549,7 +3549,7 @@ function renderMessages(messages) {
   }).join("");
   container.innerHTML = pinnedMessagesHTML(activePrivatePins, "data-action") + (timeline
     ? timeline
-    : '<div class="telegram-message-empty"><span>✦</span><strong>To początek Waszej rozmowy</strong><small>Напишите первое сообщение.</small></div>');
+    : '<div class="telegram-message-empty"><span>✦</span><strong>To początek Waszej rozmowy</strong><small>Napisz pierwszą wiadomość.</small></div>');
   messages.forEach(message => {
     const element = container.querySelector('.bubble-text[data-msg-id="' + CSS.escape(message.id) + '"]');
     if (element) element.textContent = message.content;
