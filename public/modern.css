@@ -5471,3 +5471,78 @@ body {
   content:none !important;
   display:none !important;
 }
+
+
+/* Home hero typography polish + six-item floating navigation island. */
+:root[data-theme] #app .hero.home-hero .home-hero-copy {
+  max-width: min(690px, 100%);
+}
+:root[data-theme] #app .hero.home-hero .home-hero-kicker {
+  display:inline-block;
+  margin-bottom:10px;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:9px;
+  line-height:1.4;
+  font-weight:800;
+  letter-spacing:.19em;
+  text-transform:uppercase;
+  color:#8CCBFF;
+}
+:root[data-theme] #app .hero.home-hero h3 {
+  margin:0 0 11px;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:clamp(27px,5.2vw,38px);
+  line-height:1.08;
+  font-weight:850;
+  letter-spacing:-.045em;
+  text-wrap:balance;
+  color:#F7FAFF;
+  text-shadow:0 2px 18px rgba(0,0,0,.28);
+}
+:root[data-theme] #app .hero.home-hero p {
+  max-width:490px;
+  margin:0 0 15px;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:clamp(12px,2.7vw,14px);
+  line-height:1.65;
+  font-weight:450;
+  letter-spacing:-.012em;
+  color:#D0DDF0;
+}
+:root[data-theme] #app .hero.home-hero .home-hero-signature {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:9px;
+  line-height:1.45;
+  font-weight:600;
+  letter-spacing:.015em;
+  color:#A9BED9;
+}
+:root[data-theme] #app .bottom-nav {
+  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+  width:min(calc(100% - 14px),480px) !important;
+  max-width:480px !important;
+  gap:1px !important;
+  padding-left:5px !important;
+  padding-right:5px !important;
+}
+:root[data-theme] #app .bottom-nav .nav-item {
+  font-size:clamp(8px,2.25vw,10px) !important;
+  letter-spacing:-.22px !important;
+}
+:root[data-theme] #app .bottom-nav .nav-item>span:last-child {
+  font-size:inherit !important;
+  padding-left:0 !important;
+  padding-right:0 !important;
+}
+@media(max-width:380px) {
+  :root[data-theme] #app .bottom-nav {
+    width:calc(100% - 10px) !important;
+  }
+  :root[data-theme] #app .bottom-nav .nav-item {
+    font-size:7.5px !important;
+    letter-spacing:-.3px !important;
+  }
+}
