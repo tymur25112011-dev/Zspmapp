@@ -3721,7 +3721,9 @@ async function openChat(conversationId) {
       table: "messages",
       filter: "conversation_id=eq." + conversationId
     }, async () => {
+      if (activeConversationId !== conversationId) return;
       const fresh = await loadConversationMessages(conversationId);
+      if (activeConversationId !== conversationId) return;
       renderMessages(fresh);
       await loadNotifications();
     })
@@ -3743,8 +3745,11 @@ async function openChat(conversationId) {
       filter: "conversation_id=eq." + conversationId
     }, async () => {
       if (activeConversationId !== conversationId) return;
-      activePrivatePins = await loadCommunityChatPins("private", conversationId);
+      const pins = await loadCommunityChatPins("private", conversationId);
+      if (activeConversationId !== conversationId) return;
+      activePrivatePins = pins;
       const fresh = await loadConversationMessages(conversationId);
+      if (activeConversationId !== conversationId) return;
       renderMessages(fresh);
     })
     .subscribe();
