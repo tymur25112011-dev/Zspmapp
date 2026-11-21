@@ -5780,3 +5780,25 @@ body {
   background: linear-gradient(145deg,rgba(9,29,52,.92),rgba(7,18,34,.88)) !important;
   border-color: rgba(77,166,255,.38);
 }
+
+
+/* Official gryf crest — consistent ZSPM blue-glass treatment everywhere. */
+#app img[src*="337741"],
+#auth img[src*="337741"],
+#launch-splash img[src*="337741"] {
+  display:block;
+  object-fit:contain;
+  padding:6px;
+  border:1px solid rgba(76,205,255,.62);
+  border-radius:22px;
+  background:linear-gradient(145deg,rgba(11,55,83,.94),rgba(17,35,65,.96));
+  mix-blend-mode:screen;
+  filter:invert(1) sepia(1) saturate(4.2) hue-rotate(164deg) brightness(1.12)
+    drop-shadow(0 0 11px rgba(65,205,255,.5));
+  box-shadow:0 0 20px rgba(28,174,255,.24),0 8px 26px rgba(0,0,0,.22);
+}
+#launch-splash img[src*="337741"] {
+  padding:9px;
+  border-radius:27px;
+  box-shadow:0 0 0 1px rgba(105,181,255,.4),0 0 42px rgba(31,132,255,.34);
+}
