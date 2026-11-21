@@ -356,6 +356,7 @@ events:[["Wydarzenia","Events","События","Події"],["Karty wydarzeń 
 groups:[["Grupowe czaty","Group chats","Групповые чаты","Групові чати"],["Rozmowy ze znajomymi","Conversations with friends","Беседы с друзьями","Розмови з друзями"]],
 polls:[["Ankiety społeczności","Community polls","Опросы сообщества","Опитування спільноти"],["Twórz ankiety i głosuj","Create polls and vote","Создавай опросы и голосуй","Створюй опитування та голосуй"]],
 announcements:[["Ogłoszenia","Announcements","Объявления","Оголошення"],["Ważne informacje społeczności","Important community updates","Важная информация сообщества","Важлива інформація спільноти"]],
+"bug-report":[["Zgłoś błąd","Report a bug","Сообщить об ошибке","Повідомити про помилку"],["Opisz problem i skontaktuj się z administracją","Describe a problem and contact the administrators","Опиши проблему и свяжись с администрацией","Опиши проблему та зв’яжися з адміністрацією"]],
 favorites:[["Ulubione","Saved","Избранное","Обране"],["Zapisane treści","Saved content","Сохранённые материалы","Збережені матеріали"]],
 quests:[["Codzienne zadania","Daily quests","Ежедневные задания","Щоденні завдання"],["Zdobywaj XP za aktywność","Earn XP for activity","Получай XP за активность","Отримуй XP за активність"]],
 profiles:[["Znajomości","Meet people","Знакомства","Знайомства"],["Odkrywaj profile, poznawaj osoby o podobnych zainteresowaniach i wysyłaj zaproszenia","Discover profiles, meet people with similar interests and send friend requests","Открывай профили, находи людей с похожими интересами и отправляй заявки в друзья","Переглядай профілі, знаходь людей зі схожими інтересами та надсилай запити в друзі"]],
@@ -1062,6 +1063,8 @@ const pages = {
     content: ""
   },
 
+  "bug-report": { title: "Zgłoś błąd", subtitle: "Przekaż administracji informację o problemie", content: "" },
+
   ideas: {
     title: "Wasze Pomysły",
     subtitle: "Podziel się pomysłem i zagłosuj na propozycje innych",
@@ -1457,6 +1460,8 @@ async function openPage(page, options = {}) {
       await renderRankingPage();
     } else if (page === "information") {
       renderInformationPage();
+    } else if (page === "bug-report") {
+      renderBugReportPage();
     } else {
       $("page-content").innerHTML = selected.content;
     }
@@ -1469,7 +1474,7 @@ async function openPage(page, options = {}) {
     else button.removeAttribute("aria-current");
   });
   const moreButton = $("more-nav-toggle");
-  const morePages = ["profiles","my-profile","friends","forum","polls","updates","settings","admin"];
+  const morePages = ["profiles","my-profile","friends","forum","polls","updates","settings","admin","bug-report"];
   const isMorePage = morePages.includes(page);
   if (moreButton) {
     moreButton.classList.toggle("active", isMorePage);
@@ -1654,14 +1659,30 @@ async function renderRankingPage() {
 
 function renderInformationPage() {
   $("page-content").innerHTML = '<div class="information-list">' +
-    '<section class="information-card"><div class="information-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="7" r="3"/><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M10 9.5 6.5 15.5M14 9.5l3.5 6M7.5 18h9"/></svg></div><h3>Czym jest ZSPM Community?</h3><p>To niezależna społeczność internetowa, która umożliwia użytkownikom tworzenie profili, poznawanie innych osób, rozmowy, dzielenie się pomysłami i wspieranie rozwoju projektu.</p></section>' +
-    '<section class="information-card"><div class="information-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/></svg></div><h3>Jak zdobyć status PREMIUM?</h3><p>Status PREMIUM jest specjalnym wyróżnieniem w aplikacji. Może zostać przyznany przez administratora. Jeśli chcesz dowiedzieć się więcej o dostępności i zasadach jego przyznawania, skontaktuj się z administratorem.</p></section>' +
-    '<section class="information-card"><div class="information-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h11v16H5V7l3-3Z"/><path d="M8 4v4H5M9 12h7M9 16h7"/></svg></div><h3>Zasady społeczności</h3><p>Szanuj innych użytkowników, nie publikuj cudzych danych prywatnych, nie nękaj innych i nie wysyłaj spamu. Zgłaszaj treści naruszające zasady.</p></section>' +
-    '<section class="information-card"><div class="information-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10.3 4.3-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-2.7l-8-14a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg></div><h3>Ważne zastrzeżenie</h3><p>ZSPM Community jest projektem niezależnym, nieoficjalnym i nie jest w żaden sposób powiązany ze szkołą Poligraficzno-Medialną nr 20 w Krakowie ani przez nią sponsorowany, zatwierdzony czy prowadzony. Nazwa szkoły służy wyłącznie do określenia społeczności, do której kierowany jest projekt.</p></section>' +
-    '<section class="information-card"><div class="information-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg></div><h3>Prywatność i bezpieczeństwo</h3><p>Nie udostępniaj haseł, kodów logowania ani prywatnych danych. Korzystaj z funkcji blokowania i zgłaszania, jeśli ktoś zachowuje się niewłaściwie.</p></section>' +
-    '<p class="information-footnote">ZSPM Community · Niezależny projekt społecznościowy</p></div>';
+    '<section class="information-card"><div class="information-icon">✦</div><h3>Czym jest ZSPM Community?</h3><p>ZSPM Community to niezależna społeczność internetowa dla uczniów. Możesz tworzyć profil, poznawać innych, rozmawiać, publikować na forum, dzielić się pomysłami i śledzić ogłoszenia oraz wydarzenia.</p></section>' +
+    '<section class="information-card"><div class="information-icon">◈</div><h3>Co znajdziesz w aplikacji?</h3><p>Profile i znajomości, prywatne oraz grupowe czaty, Forum, Aktywność, Pomysły, Ogłoszenia, Wydarzenia, ankiety, ranking, zadania i historię aktualizacji.</p></section>' +
+    '<section class="information-card"><div class="information-icon">★</div><h3>Role użytkowników</h3><p>Każde konto ma status USER. Status PREMIUM jest specjalnym wyróżnieniem, a ADMIN oznacza osobę odpowiedzialną za moderację i rozwój społeczności. Statusy są nadawane zgodnie z uprawnieniami administracji.</p></section>' +
+    '<section class="information-card"><div class="information-icon">⌁</div><h3>Kontakt z pomocą techniczną</h3><p>Masz pytanie albo potrzebujesz pomocy? Napisz do zespołu wsparcia: <a class="information-support-link" href="mailto:zspmcommunity.support@gmail.com">zspmcommunity.support@gmail.com</a>.</p></section>' +
+    '<section class="information-card"><div class="information-icon">✓</div><h3>Zasady społeczności i bezpieczeństwo</h3><p>Szanuj innych użytkowników, nie publikuj cudzych danych prywatnych, nie nękaj innych i nie wysyłaj spamu. Nie udostępniaj haseł ani kodów logowania. Podejrzane treści zgłaszaj administracji.</p></section>' +
+    '<section class="information-card"><div class="information-icon">ⓘ</div><h3>Ważne zastrzeżenie</h3><p>ZSPM Community jest niezależnym, nieoficjalnym projektem. Nie jest powiązany ze szkołą Poligraficzno-Medialną nr 20 w Krakowie ani przez nią sponsorowany, zatwierdzony czy prowadzony.</p></section>' +
+    '<p class="information-footnote">ZSPM Community · Niezależny projekt społecznościowy · Pomoc techniczna: zspmcommunity.support@gmail.com</p></div>';
 }
 
+function renderBugReportPage() {
+  const host=$("page-content");
+  host.innerHTML='<section class="bug-report-page"><div class="bug-report-hero"><span class="community-feature-kicker">ZSPM COMMUNITY · SUPPORT</span><h2>Zgłoś błąd</h2><p>Opisz problem, który zauważyłeś. Zgłoszenie zostanie przygotowane w Twojej aplikacji pocztowej do wysłania administracji.</p></div><form id="bug-report-form" class="bug-report-form"><label>Temat<input name="subject" maxlength="100" required placeholder="Np. Nie działa przycisk w czacie"></label><label>Opis problemu<textarea name="description" maxlength="2500" minlength="10" required rows="6" placeholder="Opisz, co się stało i jakie kroki do tego doprowadziły..."></textarea></label><label>Gdzie występuje problem?<select name="area"><option>Strona główna</option><option>Forum / Aktywność</option><option>Grupy i czaty</option><option>Poznaj ludzi / profile</option><option>Ranking</option><option>Inny dział</option></select></label><button class="main-btn" type="submit">Przygotuj zgłoszenie e-mail</button><p class="bug-report-note">Nie wpisuj tutaj haseł, kodów logowania ani prywatnych danych innych osób. Po kliknięciu otworzy się program pocztowy — sprawdź treść i naciśnij „Wyślij”.</p></form><p class="bug-report-contact">Kontakt: <a href="mailto:zspmcommunity.support@gmail.com">zspmcommunity.support@gmail.com</a></p></section>';
+  host.querySelector("#bug-report-form")?.addEventListener("submit",event=>{
+    event.preventDefault();
+    const form=event.currentTarget;
+    const subject=form.elements.subject.value.trim();
+    const description=form.elements.description.value.trim();
+    const area=form.elements.area.value;
+    if(subject.length<4||description.length<10)return;
+    const body=["Zgłoszenie błędu ZSPM Community","","Użytkownik: "+(currentUser?.name||"Niepodany"),"Dział: "+area,"","Opis:",description].join("\\n");
+    const mailto="mailto:zspmcommunity.support@gmail.com?subject="+encodeURIComponent("[Zgłoszenie błędu] "+subject)+"&body="+encodeURIComponent(body);
+    window.location.href=mailto;
+  });
+}
 // PROFILE UCZNIÓW
 
 const DEFAULT_PRIVACY = {
