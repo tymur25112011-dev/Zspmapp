@@ -272,6 +272,31 @@
     .screenshot-card figcaption{padding:10px 5px 4px;color:#a9bfd9;font-size:11px;text-align:center}
     @media(max-width:650px){.screenshot-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.screenshot-gallery{margin-top:52px}}
 
+  
+    /* Cinematic screenshot carousel with a frosted-glass caption fade. */
+    .app-carousel{max-width:780px;margin:0 auto}
+    .carousel-viewport{position:relative;overflow:hidden;min-height:280px;border:1px solid rgba(137,180,231,.2);border-radius:26px;background:#050b14;box-shadow:0 28px 75px rgba(0,0,0,.34),0 0 50px rgba(45,125,220,.1);touch-action:pan-y}
+    .carousel-slide{position:absolute;inset:0;margin:0;opacity:0;visibility:hidden;transform:scale(1.025);transition:opacity .75s ease,transform 1.2s ease,visibility .75s}
+    .carousel-slide.is-active{position:relative;opacity:1;visibility:visible;transform:scale(1)}
+    .carousel-slide img{display:block;width:100%;height:clamp(420px,66vw,690px);object-fit:contain;object-position:center top;background:#050b14}
+    .carousel-slide figcaption{position:absolute;z-index:2;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:5px;padding:76px clamp(20px,4vw,38px) 25px;color:#fff;background:linear-gradient(180deg,transparent 0%,rgba(4,10,20,.38) 20%,rgba(4,10,20,.83) 52%,rgba(4,10,20,.94) 100%);backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0)}
+    .carousel-slide figcaption:before{content:"";position:absolute;inset:25px 0 0;z-index:-1;background:rgba(7,16,31,.16);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);mask-image:linear-gradient(to bottom,transparent,black 38%);-webkit-mask-image:linear-gradient(to bottom,transparent,black 38%)}
+    .carousel-slide figcaption span{color:#ffd45f;font-size:10px;font-weight:850;letter-spacing:2px}
+    .carousel-slide figcaption b{font-size:clamp(19px,3vw,26px);letter-spacing:-.5px}
+    .carousel-slide figcaption small{max-width:500px;color:#d3dfef;font-size:12px;line-height:1.6}
+    .carousel-arrow{position:absolute;z-index:4;top:50%;display:grid;place-items:center;width:43px;height:43px;border:1px solid rgba(255,255,255,.28);border-radius:50%;background:rgba(7,17,31,.48);color:#fff;font-size:30px;line-height:1;cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:background .2s,transform .2s}
+    .carousel-arrow:hover{background:rgba(33,103,184,.78);transform:scale(1.06)}
+    .carousel-prev{left:15px}.carousel-next{right:15px}
+    .carousel-controls{display:flex;flex-direction:column;align-items:center;gap:12px;padding:19px 8px 0}
+    .carousel-dots{display:flex;justify-content:center;gap:9px}
+    .carousel-dot{width:8px;height:8px;padding:0;border:0;border-radius:99px;background:#536984;cursor:pointer;transition:width .25s,background .25s}
+    .carousel-dot.is-active{width:27px;background:#ffd45f}
+    .carousel-hint{color:#8298b5;font-size:10px;letter-spacing:.3px}
+    .contact-email{color:#ffd45f!important;font-weight:800;text-decoration:none;border-bottom:1px solid rgba(255,212,95,.45)}
+    .contact-email:hover{color:#ffe69a!important;border-color:#ffe69a}
+    @media(max-width:560px){.carousel-viewport{border-radius:20px}.carousel-slide img{height:min(128vw,590px)}.carousel-slide figcaption{padding:62px 18px 19px}.carousel-arrow{width:37px;height:37px;font-size:26px}.carousel-prev{left:9px}.carousel-next{right:9px}.carousel-dots{gap:7px}}
+    @media(prefers-reduced-motion:reduce){.carousel-slide,.carousel-arrow,.carousel-dot{transition:none!important}.carousel-slide{transform:none}}
+
   </style>
 </head>
 <body>
@@ -323,15 +348,24 @@
         <article class="feature"><span class="ico">🆓</span><div><b>Bez APK</b><p>Instalacja bez pobierania instalatora i bez sklepu z aplikacjami.</p></div></article>
       </section>
 
-      <section class="screenshot-gallery" aria-label="Zrzuty ekranu aplikacji">
-        <div class="section-heading"><span class="section-kicker">ZOBACZ APLIKACJĘ</span><h2>Tak wygląda <span>ZSPM Community.</span></h2><p>Prawdziwe zrzuty ekranu z aplikacji — bez przykładowych makiet interfejsu.</p></div>
-        <div class="screenshot-grid">
-          <figure class="screenshot-card"><img src="./photos/Screenshot_20261121-184135.Chrome.png" alt="Zrzut ekranu 3 z ZSPM Community" loading="lazy" decoding="async"><figcaption>Widok aplikacji 3</figcaption></figure>
-          <figure class="screenshot-card"><img src="./photos/Screenshot_20261121-184147.Chrome.png" alt="Zrzut ekranu 4 z ZSPM Community" loading="lazy" decoding="async"><figcaption>Widok aplikacji 4</figcaption></figure>
-          <figure class="screenshot-card"><img src="./photos/Screenshot_20261121-184211.Chrome.png" alt="Zrzut ekranu 5 z ZSPM Community" loading="lazy" decoding="async"><figcaption>Widok aplikacji 5</figcaption></figure>
-          <figure class="screenshot-card"><img src="./photos/Screenshot_20261121-184237.Chrome.png" alt="Zrzut ekranu 6 z ZSPM Community" loading="lazy" decoding="async"><figcaption>Widok aplikacji 6</figcaption></figure>
-          <figure class="screenshot-card"><img src="./photos/Screenshot_20261121-184249.Chrome.png" alt="Zrzut ekranu 7 z ZSPM Community" loading="lazy" decoding="async"><figcaption>Widok aplikacji 7</figcaption></figure>
-          <figure class="screenshot-card"><img src="./photos/Screenshot_20261121-184313.Chrome.png" alt="Zrzut ekranu 8 z ZSPM Community" loading="lazy" decoding="async"><figcaption>Widok aplikacji 8</figcaption></figure>
+      <section class="screenshot-gallery" aria-label="Jak wygląda aplikacja">
+        <div class="section-heading"><span class="section-kicker">ZOBACZ APLIKACJĘ</span><h2>Jak wygląda <span>aplikacja?</span></h2><p>Poznaj prawdziwe widoki ZSPM Community. Ekrany zmieniają się automatycznie — możesz też przełączać je samodzielnie.</p></div>
+        <div class="app-carousel" id="appCarousel" aria-roledescription="karuzela" aria-label="Podgląd ekranów aplikacji">
+          <div class="carousel-viewport">
+            <figure class="carousel-slide is-active" aria-hidden="false"><img src="./photos/Screenshot_20261121-184052.Chrome.png" alt="Ekran aplikacji ZSPM Community — widok 1" loading="lazy" decoding="async"><figcaption><span>01 / 08</span><b>Odkryj społeczność</b><small>Wszystko, co ważne dla szkolnej społeczności, w jednym miejscu.</small></figcaption></figure>
+            <figure class="carousel-slide" aria-hidden="true"><img src="./photos/Screenshot_20261121-184117.Chrome.png" alt="Ekran aplikacji ZSPM Community — widok 2" loading="lazy" decoding="async"><figcaption><span>02 / 08</span><b>Twój profil</b><small>Pokaż innym swoje zainteresowania i poznawaj uczniów.</small></figcaption></figure>
+            <figure class="carousel-slide" aria-hidden="true"><img src="./photos/Screenshot_20261121-184135.Chrome.png" alt="Ekran aplikacji ZSPM Community — widok 3" loading="lazy" decoding="async"><figcaption><span>03 / 08</span><b>Znajdź swoją społeczność</b><small>Przeglądaj profile i odkrywaj nowe znajomości.</small></figcaption></figure>
+            <figure class="carousel-slide" aria-hidden="true"><img src="./photos/Screenshot_20261121-184147.Chrome.png" alt="Ekran aplikacji ZSPM Community — widok 4" loading="lazy" decoding="async"><figcaption><span>04 / 08</span><b>Rozmawiaj</b><small>Kontaktuj się z innymi użytkownikami w aplikacji.</small></figcaption></figure>
+            <figure class="carousel-slide" aria-hidden="true"><img src="./photos/Screenshot_20261121-184211.Chrome.png" alt="Ekran aplikacji ZSPM Community — widok 5" loading="lazy" decoding="async"><figcaption><span>05 / 08</span><b>Bądź na bieżąco</b><small>Sprawdzaj, co dzieje się w szkolnej społeczności.</small></figcaption></figure>
+            <figure class="carousel-slide" aria-hidden="true"><img src="./photos/Screenshot_20261121-184237.Chrome.png" alt="Ekran aplikacji ZSPM Community — widok 6" loading="lazy" decoding="async"><figcaption><span>06 / 08</span><b>Dziel się pomysłami</b><small>Dodawaj inspiracje i angażuj innych.</small></figcaption></figure>
+            <figure class="carousel-slide" aria-hidden="true"><img src="./photos/Screenshot_20261121-184249.Chrome.png" alt="Ekran aplikacji ZSPM Community — widok 7" loading="lazy" decoding="async"><figcaption><span>07 / 08</span><b>Twórz razem</b><small>Współtwórz aktywną i przyjazną społeczność.</small></figcaption></figure>
+            <figure class="carousel-slide" aria-hidden="true"><img src="./photos/Screenshot_20261121-184313.Chrome.png" alt="Ekran aplikacji ZSPM Community — widok 8" loading="lazy" decoding="async"><figcaption><span>08 / 08</span><b>Odkrywaj możliwości</b><small>Wygodny dostęp do szkolnych funkcji w jednym miejscu.</small></figcaption></figure>
+            <button class="carousel-arrow carousel-prev" type="button" aria-label="Poprzedni ekran">‹</button>
+            <button class="carousel-arrow carousel-next" type="button" aria-label="Następny ekran">›</button>
+          </div>
+          <div class="carousel-controls"><div class="carousel-dots" role="group" aria-label="Wybierz ekran">
+            <button class="carousel-dot is-active" type="button" aria-label="Ekran 1" aria-current="true"></button><button class="carousel-dot" type="button" aria-label="Ekran 2"></button><button class="carousel-dot" type="button" aria-label="Ekran 3"></button><button class="carousel-dot" type="button" aria-label="Ekran 4"></button><button class="carousel-dot" type="button" aria-label="Ekran 5"></button><button class="carousel-dot" type="button" aria-label="Ekran 6"></button><button class="carousel-dot" type="button" aria-label="Ekran 7"></button><button class="carousel-dot" type="button" aria-label="Ekran 8"></button>
+          </div><span class="carousel-hint">Automatyczna prezentacja · co 4 sekundy</span></div>
         </div>
       </section>
       <section class="steps" id="manualSteps" hidden>
@@ -415,7 +449,7 @@
         <details class="faq-item"><summary>Gdzie znajdę zasady prywatności i bezpieczeństwa?</summary><p>W dokumentach: <a href="./polityka-prywatnosci.html">Polityka prywatności</a> oraz <a href="./polityka-bezpieczenstwa.html">Polityka bezpieczeństwa</a>.</p></details>
       </section>
     </main>
-    <footer>ZSPM Community · Nieoficjalny projekt społecznościowy · <a href="./nota-prawna.html">Nota prawna</a> · <a href="./polityka-prywatnosci.html">Prywatność</a> · <a href="./polityka-bezpieczenstwa.html">Bezpieczeństwo</a></footer>
+    <footer>ZSPM Community · Nieoficjalny projekt społecznościowy · Kontakt: <a class="contact-email" href="mailto:tymur25112011@gmail.com">tymur25112011@gmail.com</a><br><a href="./nota-prawna.html">Nota prawna</a> · <a href="./polityka-prywatnosci.html">Prywatność</a> · <a href="./polityka-bezpieczenstwa.html">Bezpieczeństwo</a></footer>
   </div>
 
   <div class="install-overlay" id="installOverlay" hidden>
@@ -436,6 +470,55 @@
     </section>
   </div>
   <script>
+
+    // Screenshot carousel: automatic rotation, arrows, dots and swipe.
+    (() => {
+      const root = document.getElementById("appCarousel");
+      if (!root) return;
+      const slides = [...root.querySelectorAll(".carousel-slide")];
+      const dots = [...root.querySelectorAll(".carousel-dot")];
+      const previous = root.querySelector(".carousel-prev");
+      const next = root.querySelector(".carousel-next");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let current = 0;
+      let rotation = null;
+      let touchStartX = 0;
+      const show = (index) => {
+        current = (index + slides.length) % slides.length;
+        slides.forEach((slide, i) => {
+          const active = i === current;
+          slide.classList.toggle("is-active", active);
+          slide.setAttribute("aria-hidden", String(!active));
+        });
+        dots.forEach((dot, i) => {
+          const active = i === current;
+          dot.classList.toggle("is-active", active);
+          if (active) dot.setAttribute("aria-current", "true");
+          else dot.removeAttribute("aria-current");
+        });
+      };
+      const stop = () => { if (rotation) window.clearInterval(rotation); rotation = null; };
+      const start = () => {
+        stop();
+        if (!reducedMotion && !document.hidden) rotation = window.setInterval(() => show(current + 1), 4000);
+      };
+      previous.addEventListener("click", () => { show(current - 1); start(); });
+      next.addEventListener("click", () => { show(current + 1); start(); });
+      dots.forEach((dot, i) => dot.addEventListener("click", () => { show(i); start(); }));
+      root.addEventListener("mouseenter", stop);
+      root.addEventListener("mouseleave", start);
+      root.addEventListener("focusin", stop);
+      root.addEventListener("focusout", event => { if (!root.contains(event.relatedTarget)) start(); });
+      root.addEventListener("touchstart", event => { touchStartX = event.changedTouches[0].clientX; }, {passive:true});
+      root.addEventListener("touchend", event => {
+        const delta = event.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(delta) > 45) { show(current + (delta < 0 ? 1 : -1)); start(); }
+      }, {passive:true});
+      document.addEventListener("visibilitychange", () => document.hidden ? stop() : start());
+      show(0);
+      start();
+    })();
+
     let installPrompt = null;
     const installBtn = document.getElementById("installBtn");
     const installHint = document.getElementById("installHint");
