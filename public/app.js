@@ -420,6 +420,17 @@ function getAppUser(user) {
   };
 }
 
+const WALLPAPER_OPTIONS = ["aurora","ocean","midnight","sunset","emerald","rose","graphite"];
+const WALLPAPER_BACKGROUNDS = {
+  aurora: "radial-gradient(ellipse at 12% 8%, rgba(124,92,231,.30), transparent 42%), radial-gradient(ellipse at 88% 22%, rgba(65,145,230,.25), transparent 44%), linear-gradient(145deg,#090d20,#172447 55%,#0b1021)",
+  ocean: "radial-gradient(ellipse at 10% 12%, rgba(15,153,187,.34), transparent 44%), radial-gradient(ellipse at 90% 82%, rgba(41,203,174,.25), transparent 46%), linear-gradient(145deg,#061626,#0b304a 55%,#071b2c)",
+  midnight: "radial-gradient(ellipse at 20% 10%, rgba(68,91,195,.32), transparent 44%), linear-gradient(145deg,#050918,#101a3a 58%,#070b1b)",
+  sunset: "radial-gradient(ellipse at 12% 15%, rgba(206,93,140,.34), transparent 44%), radial-gradient(ellipse at 86% 22%, rgba(237,153,93,.22), transparent 45%), linear-gradient(145deg,#1d102c,#38203f 55%,#1a1026)",
+  emerald: "radial-gradient(ellipse at 10% 10%, rgba(27,151,120,.32), transparent 44%), radial-gradient(ellipse at 88% 24%, rgba(27,126,154,.25), transparent 45%), linear-gradient(145deg,#061a20,#103a3b 55%,#081b24)",
+  rose: "radial-gradient(ellipse at 10% 10%, rgba(181,97,168,.32), transparent 44%), radial-gradient(ellipse at 88% 22%, rgba(226,133,167,.22), transparent 45%), linear-gradient(145deg,#1b102b,#38203e 55%,#1c1028)",
+  graphite: "radial-gradient(ellipse at 15% 10%, rgba(132,150,177,.22), transparent 44%), radial-gradient(ellipse at 88% 78%, rgba(76,100,139,.18), transparent 45%), linear-gradient(145deg,#090e19,#202b3d 55%,#0a101b)"
+};
+
 function applyTheme(theme) {
   const allowedThemes = ["system", "dark", "liquid-glass"];
   const selectedTheme = allowedThemes.includes(theme) ? theme : "system";
@@ -427,15 +438,29 @@ function applyTheme(theme) {
   const themeColor = selectedTheme === "liquid-glass" ? "#dcecff" : selectedTheme === "dark" ? "#101010" : "#080f1d";
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   if (themeMeta) themeMeta.setAttribute("content", themeColor);
+  if (selectedTheme === "dark" || selectedTheme === "liquid-glass") {
+    const surface = selectedTheme === "dark" ? "#101010" : "#edf3fb";
+    document.documentElement.style.setProperty("background", surface, "important");
+    if (document.body) document.body.style.setProperty("background", surface, "important");
+  } else {
+    applyWallpaper(localStorage.getItem(WALLPAPER_KEY) || "aurora");
+  }
   try {
     localStorage.setItem(THEME_KEY, selectedTheme);
   } catch (error) {}
 }
 
-const WALLPAPER_OPTIONS = ["aurora","ocean","midnight","sunset","emerald","rose","graphite"];
 function applyWallpaper(wallpaper) {
   const selected = WALLPAPER_OPTIONS.includes(wallpaper) ? wallpaper : "aurora";
   document.documentElement.dataset.wallpaper = selected;
+  if ((document.documentElement.dataset.theme || "system") === "system") {
+    const background = WALLPAPER_BACKGROUNDS[selected];
+    document.documentElement.style.setProperty("background", background, "important");
+    if (document.body) {
+      document.body.style.setProperty("background", background, "important");
+      document.body.style.setProperty("background-attachment", "scroll", "important");
+    }
+  }
   try { localStorage.setItem(WALLPAPER_KEY, selected); } catch (error) {}
 }
 
