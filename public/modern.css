@@ -7264,23 +7264,27 @@ body::after {
 }
 
 
-/* Home performance: keep the glass appearance while reducing repeated layout and blur work on phones. */
+/* Home performance: defer off-screen cards and keep glass effects inexpensive while scrolling. */
 #home-page .menu-item,
 #home-page .home-update-item,
 #home-page .home-stats-card {
   contain: layout style;
 }
 @media (max-width: 760px) and (hover: none) {
-  :root:not([data-theme="light"]) #home-page .menu-item {
-    -webkit-backdrop-filter: blur(9px) saturate(140%) !important;
-    backdrop-filter: blur(9px) saturate(140%) !important;
+  #app #home-page .menu-grid > .menu-item {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 120px;
   }
-  :root:not([data-theme="light"]) #home-page .home-hero {
-    -webkit-backdrop-filter: blur(14px) saturate(145%) !important;
-    backdrop-filter: blur(14px) saturate(145%) !important;
+  :root:not([data-theme="light"]) #app #home-page .menu-item {
+    -webkit-backdrop-filter: blur(2px) saturate(108%) !important;
+    backdrop-filter: blur(2px) saturate(108%) !important;
   }
-  :root:not([data-theme="light"]) #home-page .menu-icon {
-    -webkit-backdrop-filter: blur(7px) !important;
-    backdrop-filter: blur(7px) !important;
+  :root:not([data-theme="light"]) #app #home-page .home-hero {
+    -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+    backdrop-filter: blur(8px) saturate(120%) !important;
+  }
+  :root:not([data-theme="light"]) #app #home-page .menu-icon {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 }
