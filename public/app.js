@@ -4142,6 +4142,7 @@ async function setupRealtimeSubscriptions() {
     })
     .on("postgres_changes", { event: "*", schema: "public", table: "community_events" }, () => {
       if (currentAppPage === "events") renderCommunityEventsPage();
+      if (currentAppPage === "feed") renderCommunityFeedPage();
       if (currentAppPage === "admin" && isAdmin) renderAdminPage();
     })
     .subscribe(status => {
@@ -4154,19 +4155,20 @@ async function setupRealtimeSubscriptions() {
 
 // COMMUNITY FEED — aggregates public forum topics and community ideas without a new table.
 const FEED_TEXT = {
-  pl:{intro:"Wszystko, co dzieje się w społeczności.",all:"Wszystko",forum:"Forum",ideas:"Pomysły",refresh:"Odśwież",loading:"Ładowanie aktywności...",empty:"Na razie jest tu spokojnie. Gdy pojawią się nowe wpisy, zobaczysz je tutaj.",error:"Nie udało się pobrać aktywności. Spróbuj ponownie.",topic:"Temat na forum",idea:"Nowy pomysł",openForum:"Otwórz forum",openIdeas:"Zobacz pomysły",student:"Uczeń",noDescription:"Bez dodatkowego opisu"},
-  en:{intro:"Everything happening in the community.",all:"All",forum:"Forum",ideas:"Ideas",refresh:"Refresh",loading:"Loading activity...",empty:"It's quiet here for now. New posts will appear here.",error:"Could not load activity. Please try again.",topic:"Forum topic",idea:"New idea",openForum:"Open forum",openIdeas:"View ideas",student:"Student",noDescription:"No additional description"},
-  ru:{intro:"Всё самое новое в нашем сообществе.",all:"Всё",forum:"Форум",ideas:"Идеи",refresh:"Обновить",loading:"Загружаем активность...",empty:"Пока здесь тихо. Новые публикации появятся здесь.",error:"Не удалось загрузить активность. Попробуйте ещё раз.",topic:"Тема на форуме",idea:"Новая идея",openForum:"Открыть форум",openIdeas:"Посмотреть идеи",student:"Ученик",noDescription:"Без дополнительного описания"},
-  uk:{intro:"Усе найновіше в нашій спільноті.",all:"Усе",forum:"Форум",ideas:"Ідеї",refresh:"Оновити",loading:"Завантажуємо активність...",empty:"Поки тут тихо. Нові дописи з'являться тут.",error:"Не вдалося завантажити активність. Спробуйте ще раз.",topic:"Тема на форумі",idea:"Нова ідея",openForum:"Відкрити форум",openIdeas:"Переглянути ідеї",student:"Учень",noDescription:"Без додаткового опису"}
+  pl:{intro:"Wszystko, co dzieje się w społeczności.",all:"Wszystko",forum:"Forum",ideas:"Pomysły",refresh:"Odśwież",loading:"Ładowanie aktywności...",empty:"Na razie jest tu spokojnie. Gdy pojawią się nowe wpisy, zobaczysz je tutaj.",error:"Nie udało się pobrać aktywności. Spróbuj ponownie.",topic:"Temat na forum",idea:"Nowy pomysł",announcement:"Ogłoszenie",event:"Wydarzenie",openForum:"Otwórz forum",openIdeas:"Zobacz pomysły",student:"Uczeń",noDescription:"Bez dodatkowego opisu"},
+  en:{intro:"Everything happening in the community.",all:"All",forum:"Forum",ideas:"Ideas",refresh:"Refresh",loading:"Loading activity...",empty:"It's quiet here for now. New posts will appear here.",error:"Could not load activity. Please try again.",topic:"Forum topic",idea:"New idea",announcement:"Announcement",event:"Event",openForum:"Open forum",openIdeas:"View ideas",student:"Student",noDescription:"No additional description"},
+  ru:{intro:"Всё самое новое в нашем сообществе.",all:"Всё",forum:"Форум",ideas:"Идеи",refresh:"Обновить",loading:"Загружаем активность...",empty:"Пока здесь тихо. Новые публикации появятся здесь.",error:"Не удалось загрузить активность. Попробуйте ещё раз.",topic:"Тема на форуме",idea:"Новая идея",announcement:"Объявление",event:"Событие",openForum:"Открыть форум",openIdeas:"Посмотреть идеи",student:"Ученик",noDescription:"Без дополнительного описания"},
+  uk:{intro:"Усе найновіше в нашій спільноті.",all:"Усе",forum:"Форум",ideas:"Ідеї",refresh:"Оновити",loading:"Завантажуємо активність...",empty:"Поки тут тихо. Нові дописи з'являться тут.",error:"Не вдалося завантажити активність. Спробуйте ще раз.",topic:"Тема на форумі",idea:"Нова ідея",announcement:"Оголошення",event:"Подія",openForum:"Відкрити форум",openIdeas:"Переглянути ідеї",student:"Учень",noDescription:"Без додаткового опису"}
 };
 function feedText(key){return FEED_TEXT[appLanguage]?.[key]||FEED_TEXT.pl[key]||key;}
 
 async function renderCommunityFeedPage(){
   const host=$("page-content");
   host.innerHTML='<div class="feed-loading"><span class="feed-spinner"></span><p>'+escapeHTML(feedText("loading"))+'</p></div>';
-  const [postsResult,ideasResult,profilesResult]=await Promise.all([
+  const [postsResult,ideasResult,eventsResult,profilesResult]=await Promise.all([
     supabaseClient.from("community_forum_posts").select("id,author_id,category,title,body,created_at").order("created_at",{ascending:false}).limit(30),
     supabaseClient.from("community_ideas").select("id,author_id,title,description,created_at").order("created_at",{ascending:false}).limit(30),
+    supabaseClient.from("community_events").select("id,author_id,category,title,description,event_at,location,created_at").eq("status","approved").order("created_at",{ascending:false}).limit(30),
     supabaseClient.from("public_profiles").select("id,nickname")
   ]);
   if(postsResult.error&&ideasResult.error){
@@ -4177,16 +4179,17 @@ async function renderCommunityFeedPage(){
   const names=new Map((profilesResult.data||[]).map(p=>[p.id,p.nickname]));
   const items=[
     ...(postsResult.data||[]).filter(item=>!isBlocked(item.author_id)).map(item=>({...item,kind:"forum",preview:item.body||"",label:feedText("topic")})),
-    ...(ideasResult.data||[]).filter(item=>!isBlocked(item.author_id)).map(item=>({...item,kind:"ideas",preview:item.description||"",label:feedText("idea")}))
-  ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,50);
+    ...(ideasResult.data||[]).filter(item=>!isBlocked(item.author_id)).map(item=>({...item,kind:"ideas",preview:item.description||"",label:feedText("idea")})),
+    ...(eventsResult.data||[]).filter(item=>!isBlocked(item.author_id)).map(item=>({...item,kind:item.category==="announcement"?"announcement":"event",preview:item.description||"",label:feedText(item.category==="announcement"?"announcement":"event")}))
+  ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,60);
   await loadProfilesByIds(items.map(item=>item.author_id));
   const locale={pl:"pl-PL",en:"en-GB",ru:"ru-RU",uk:"uk-UA"}[appLanguage]||"pl-PL";
   const cards=items.map(item=>{
-    const destination=item.kind==="forum"?"forum":"ideas";
+    const destination=item.kind==="forum"?"forum":item.kind==="ideas"?"ideas":"events";
     const preview=String(item.preview||"").trim();
-    return '<article class="feed-card"><div class="feed-card-top"><span class="feed-type '+item.kind+'">'+escapeHTML(item.label)+'</span><time datetime="'+escapeHTML(item.created_at)+'">'+escapeHTML(new Date(item.created_at).toLocaleString(locale,{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}))+'</time></div><h3>'+escapeHTML(item.title)+'</h3><button type="button" class="community-save-button" data-favorite-type="'+(item.kind==="forum"?"forum_post":"idea")+'" data-favorite-id="'+item.id+'">☆ Zapisz</button><p class="feed-preview">'+escapeHTML(preview||feedText("noDescription"))+'</p><div class="feed-card-bottom"><span class="feed-author">'+communityAuthorHTML(item.author_id,names.get(item.author_id)||feedText("student"))+'</span><button type="button" class="feed-open" data-feed-open="'+destination+'">'+escapeHTML(destination==="forum"?feedText("openForum"):feedText("openIdeas"))+' <span aria-hidden="true">→</span></button></div></article>';
+    return '<article class="feed-card"><div class="feed-card-top"><span class="feed-type '+item.kind+'">'+escapeHTML(item.label)+'</span><time datetime="'+escapeHTML(item.created_at)+'">'+escapeHTML(new Date(item.created_at).toLocaleString(locale,{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}))+'</time></div><h3>'+escapeHTML(item.title)+'</h3><button type="button" class="community-save-button" data-favorite-type="'+(item.kind==="forum"?"forum_post":item.kind==="ideas"?"idea":"event")+'" data-favorite-id="'+item.id+'">☆ Zapisz</button><p class="feed-preview">'+escapeHTML(preview||feedText("noDescription"))+'</p><div class="feed-card-bottom"><span class="feed-author">'+communityAuthorHTML(item.author_id,names.get(item.author_id)||feedText("student"))+'</span><button type="button" class="feed-open" data-feed-open="'+destination+'">'+escapeHTML(destination==="forum"?feedText("openForum"):feedText("openIdeas"))+' <span aria-hidden="true">→</span></button></div></article>';
   }).join("");
-  host.innerHTML='<section class="feed-intro"><div class="feed-orb" aria-hidden="true">✦</div><div><strong>'+escapeHTML(feedText("intro"))+'</strong><p>'+items.length+' '+(appLanguage==="en"?"recent posts":appLanguage==="ru"?"свежих публикаций":appLanguage==="uk"?"свіжих дописів":"najnowszych wpisów")+'</p></div><button type="button" class="feed-refresh" id="feed-refresh" aria-label="'+escapeHTML(feedText("refresh"))+'" title="'+escapeHTML(feedText("refresh"))+'">↻</button></section><div class="feed-toolbar" role="group" aria-label="Feed filters"><button type="button" class="feed-filter active" data-feed-filter="all">'+escapeHTML(feedText("all"))+'</button><button type="button" class="feed-filter" data-feed-filter="forum">'+escapeHTML(feedText("forum"))+'</button><button type="button" class="feed-filter" data-feed-filter="ideas">'+escapeHTML(feedText("ideas"))+'</button></div><div class="feed-list">'+(cards||'<div class="feed-empty"><span>✧</span><strong>'+escapeHTML(feedText("empty"))+'</strong></div>')+'</div>';
+  host.innerHTML='<section class="feed-intro"><div class="feed-orb" aria-hidden="true">✦</div><div><strong>'+escapeHTML(feedText("intro"))+'</strong><p>'+items.length+' '+(appLanguage==="en"?"recent posts":appLanguage==="ru"?"свежих публикаций":appLanguage==="uk"?"свіжих дописів":"najnowszych wpisów")+'</p></div><button type="button" class="feed-refresh" id="feed-refresh" aria-label="'+escapeHTML(feedText("refresh"))+'" title="'+escapeHTML(feedText("refresh"))+'">↻</button></section><div class="feed-toolbar" role="group" aria-label="Feed filters"><button type="button" class="feed-filter active" data-feed-filter="all">'+escapeHTML(feedText("all"))+'</button><button type="button" class="feed-filter" data-feed-filter="forum">'+escapeHTML(feedText("forum"))+'</button><button type="button" class="feed-filter" data-feed-filter="ideas">'+escapeHTML(feedText("ideas"))+'</button><button type="button" class="feed-filter" data-feed-filter="announcement">'+escapeHTML(feedText("announcement"))+'</button><button type="button" class="feed-filter" data-feed-filter="event">'+escapeHTML(feedText("event"))+'</button></div><div class="feed-list">'+(cards||'<div class="feed-empty"><span>✧</span><strong>'+escapeHTML(feedText("empty"))+'</strong></div>')+'</div>';
    host.querySelector("#feed-refresh")?.addEventListener("click",renderCommunityFeedPage);
   host.querySelectorAll("[data-feed-filter]").forEach(button=>button.addEventListener("click",()=>{
     const filter=button.dataset.feedFilter;
