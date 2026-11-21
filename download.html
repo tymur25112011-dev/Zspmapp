@@ -13,7 +13,7 @@
     :root{color-scheme:dark;--bg:#08111f;--panel:#101e32;--line:rgba(126,177,255,.2);--text:#f2f7ff;--muted:#9db1ca;--blue:#4d9dff;--blue2:#246bd6}
     *{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;min-height:100vh;padding:24px;color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 50% -10%,rgba(54,123,220,.27),transparent 38rem),linear-gradient(160deg,#08111f,#0c1729 60%,#080f1b)}
     .wrap{width:min(100%,760px);margin:0 auto}.top{display:flex;align-items:center;gap:12px;padding:12px 0 34px}.top img{width:42px;height:42px;border-radius:13px}.brand{font-weight:750;letter-spacing:.1px}.brand small{display:block;color:var(--muted);font-size:11px;font-weight:500;margin-top:3px}
-    main{text-align:center;padding:clamp(24px,7vw,66px) 0 34px}.app-icon{width:104px;height:104px;border-radius:27px;box-shadow:0 18px 48px rgba(30,105,210,.3);margin-bottom:24px}
+    main{text-align:center;padding:clamp(24px,7vw,66px) 0 34px}.app-icon{width:104px;height:104px;border-radius:27px;box-shadow:0 18px 48px rgba(30,105,210,.3);margin-bottom:24px;animation:downloadLogoFloat 3.2s ease-in-out infinite}
     .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:99px;color:#b9d7ff;background:rgba(42,104,183,.12);font-size:12px;font-weight:650}
     h1{font-size:clamp(32px,7vw,54px);line-height:1.06;letter-spacing:-1.8px;margin:19px 0 14px}h1 span{color:#78b7ff}
     .lead{max-width:560px;margin:0 auto;color:var(--muted);font-size:15px;line-height:1.7}
@@ -24,7 +24,7 @@
     .steps{margin:18px 0 0;padding:19px 21px;border:1px solid var(--line);border-radius:17px;background:rgba(16,30,50,.55);text-align:left}.steps h2{font-size:15px;margin:0 0 10px}.steps p{font-size:12px;line-height:1.65;color:var(--muted);margin:6px 0}
     footer{text-align:center;color:#7187a2;font-size:11px;padding:28px 0 12px}
     @media(max-width:560px){body{padding:17px}.features{grid-template-columns:1fr}.feature{display:flex;gap:13px;align-items:flex-start}.feature b{margin:1px 0 4px}.feature .ico{min-width:25px}main{padding-top:28px}.app-icon{width:90px;height:90px}}
-    @media(prefers-reduced-motion:no-preference){.primary{transition:transform .18s,filter .18s}.primary:active{transform:scale(.98)}}
+    @keyframes downloadLogoFloat{0%,100%{transform:translateY(0);box-shadow:0 18px 48px rgba(30,105,210,.3)}50%{transform:translateY(-7px);box-shadow:0 25px 58px rgba(30,105,210,.42)}}\n    @media(prefers-reduced-motion:reduce){.app-icon{animation:none}}\n    @media(prefers-reduced-motion:no-preference){.primary{transition:transform .18s,filter .18s}.primary:active{transform:scale(.98)}}
   
     .showcase{position:relative;isolation:isolate;overflow:hidden;min-height:430px;margin:2px calc(50% - 50vw) 28px;padding:36px max(24px,calc((100vw - 980px)/2)) 0;background:radial-gradient(ellipse at 50% 100%,rgba(37,99,235,.22),transparent 48%),linear-gradient(145deg,#050914 0%,#0a1425 55%,#07101d 100%);border-top:1px solid rgba(133,180,255,.1);border-bottom:1px solid rgba(133,180,255,.12)}
     .showcase:before,.showcase:after{content:"";position:absolute;z-index:-1;border:1px solid rgba(96,165,250,.12);border-radius:50%;width:420px;height:420px;pointer-events:none}
