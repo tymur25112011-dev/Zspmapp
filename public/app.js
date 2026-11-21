@@ -4617,26 +4617,26 @@ document.querySelectorAll("[data-page]").forEach(button => {
     openPage(button.dataset.page);
   });
 });
-const moreNavToggle = $("more-nav-toggle");
 const moreNavMenu = $("more-nav-menu");
-if (moreNavToggle && moreNavMenu) {
+const moreNavToggles = [$("more-nav-toggle"), $("top-more-nav-toggle")].filter(Boolean);
+if (moreNavMenu && moreNavToggles.length) {
   const closeMoreNavMenu = () => {
     moreNavMenu.classList.add("hidden");
-    moreNavToggle.setAttribute("aria-expanded", "false");
+    moreNavToggles.forEach(toggle => toggle.setAttribute("aria-expanded", "false"));
     document.body.classList.remove("drawer-open");
   };
-  moreNavToggle.addEventListener("click", event => {
+  moreNavToggles.forEach(toggle => toggle.addEventListener("click", event => {
     event.stopPropagation();
     const opening = moreNavMenu.classList.contains("hidden");
     moreNavMenu.classList.toggle("hidden", !opening);
     document.body.classList.toggle("drawer-open", opening);
-    moreNavToggle.setAttribute("aria-expanded", String(opening));
-  });
+    moreNavToggles.forEach(item => item.setAttribute("aria-expanded", String(opening)));
+  }));
   moreNavMenu.addEventListener("click", event => {
     if (event.target.closest("[data-page]") || event.target.closest("[data-menu-close]")) closeMoreNavMenu();
   });
   document.addEventListener("click", event => {
-    if (!event.target.closest("#more-nav-menu") && !event.target.closest("#more-nav-toggle")) closeMoreNavMenu();
+    if (!event.target.closest("#more-nav-menu") && !moreNavToggles.some(toggle => toggle.contains(event.target))) closeMoreNavMenu();
   });
   document.addEventListener("keydown", event => {
     if (event.key === "Escape") closeMoreNavMenu();
