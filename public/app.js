@@ -778,6 +778,7 @@ async function enterApp() {
 
 /* ZSPM COMMUNITY: group chats, polls, favorites and daily quests */
 let communityGroupChannel = null;
+let communityGroupListChannel = null;
 
 async function removeRealtimeChannels(channels) {
   if (!supabaseClient) return;
@@ -807,20 +808,22 @@ async function cleanupChatRealtime() {
 }
 
 async function cleanupGroupRealtime() {
-  const channel = communityGroupChannel;
+  const channels = [communityGroupChannel, communityGroupListChannel];
   communityGroupChannel = null;
-  await removeRealtimeChannels([channel]);
+  communityGroupListChannel = null;
+  await removeRealtimeChannels(channels);
 }
 
 async function cleanupAllRealtimeChannels() {
   const channels = [
-    activeChatChannel, chatListChannel, globalChatChannel, communityGroupChannel,
+    activeChatChannel, chatListChannel, globalChatChannel, communityGroupChannel, communityGroupListChannel,
     notificationsChannel, friendsChannel, feedChannel, socialChannel, presenceChannel
   ];
   activeChatChannel = null;
   chatListChannel = null;
   globalChatChannel = null;
   communityGroupChannel = null;
+  communityGroupListChannel = null;
   notificationsChannel = null;
   friendsChannel = null;
   feedChannel = null;
@@ -841,17 +844,56 @@ async function cleanupAllRealtimeChannels() {
 async function renderCommunityGroupsPage() {
   const host=$("page-content");
   if(communityGroupChannel){await supabaseClient.removeChannel(communityGroupChannel);communityGroupChannel=null;}
+  if(communityGroupListChannel){await supabaseClient.removeChannel(communityGroupListChannel);communityGroupListChannel=null;}
   await loadFriendsData();
   await loadBlockedUsers();
-  const membership=await supabaseClient.from("community_group_members").select("group_id,role").eq("user_id",currentUser.id);
-  if(membership.error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować grup.</p></div>';return;}
-  const ids=(membership.data||[]).map(x=>x.group_id);
-  const groupsResult=ids.length?await supabaseClient.from("community_group_chats").select("id,name,description,avatar_emoji,created_by,updated_at").in("id",ids).order("updated_at",{ascending:false}):{data:[],error:null};
-  if(groupsResult.error){host.innerHTML='<div class="page-content"><p>Nie udało się załadować grup.</p></div>';return;}
-  const friends=(friendsDataCache.friends||[]).filter(p=>!isBlocked(p.id));
-  const friendChoices=friends.map(p=>'<label class="group-friend-choice"><input type="checkbox" name="group-friend" value="'+escapeHTML(p.id)+'"><span>'+escapeHTML(p.nickname||"Uczeń")+'</span></label>').join("");
-  const cards=(groupsResult.data||[]).map(g=>{const unread=unreadNotificationCount("group_message",g.id);return '<button type="button" class="community-group-card" data-open-group="'+g.id+'"><span class="community-group-avatar">'+escapeHTML(g.avatar_emoji||"👥")+'</span><span class="community-group-copy"><strong>'+escapeHTML(g.name)+'</strong><small>'+escapeHTML(g.description||"Grupa znajomych")+'</small></span>'+(unread?'<span class="menu-unread-badge is-visible">'+(unread>99?"99+":unread)+'</span>':'')+'<span class="community-group-arrow">›</span></button>';}).join("");
-  host.innerHTML='<section class="community-feature-hero community-feature-hero-action"><div><span class="community-feature-kicker">ZSPM COMMUNITY</span><h2>Grupowe czaty</h2><p>Twórz rozmowy ze znajomymi. Do grup możesz zapraszać tylko zaakceptowanych znajomych.</p></div><button type="button" class="community-create-cta" id="community-group-create-open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Utwórz grupę</button></section><div class="community-feature-modal" id="community-group-modal" hidden><div class="community-feature-modal-backdrop" data-group-modal-close></div><section class="community-feature-dialog" role="dialog" aria-modal="true" aria-labelledby="community-group-dialog-title"><header class="community-feature-dialog-head"><div><span class="community-feature-kicker">NOWA ROZMOWA</span><h3 id="community-group-dialog-title">Utwórz grupę</h3></div><button type="button" class="community-feature-dialog-close" data-group-modal-close aria-label="Zamknij">×</button></header><form id="community-group-form" class="community-feature-form"><label>Nazwa grupy<input id="community-group-name" maxlength="60" minlength="2" required placeholder="Np. Ekipa z klasy"></label><label>Krótki opis<input id="community-group-description" maxlength="240" placeholder="O czym jest grupa?"></label><div class="community-icon-field"><span class="community-icon-label">Ikona grupy</span><input type="hidden" id="community-group-emoji" value="👥"><div class="community-icon-picker" role="group" aria-label="Wybierz ikonę grupy"><button type="button" class="community-icon-choice is-selected" data-group-icon="👥" aria-pressed="true">👥</button><button type="button" class="community-icon-choice" data-group-icon="🎓" aria-pressed="false">🎓</button><button type="button" class="community-icon-choice" data-group-icon="🎮" aria-pressed="false">🎮</button><button type="button" class="community-icon-choice" data-group-icon="📚" aria-pressed="false">📚</button><button type="button" class="community-icon-choice" data-group-icon="⚽" aria-pressed="false">⚽</button><button type="button" class="community-icon-choice" data-group-icon="🎨" aria-pressed="false">🎨</button><button type="button" class="community-icon-choice" data-group-icon="🎵" aria-pressed="false">🎵</button><button type="button" class="community-icon-choice" data-group-icon="🚀" aria-pressed="false">🚀</button><button type="button" class="community-icon-choice" data-group-icon="🌟" aria-pressed="false">🌟</button><button type="button" class="community-icon-choice" data-group-icon="💬" aria-pressed="false">💬</button><button type="button" class="community-icon-choice" data-group-icon="🧩" aria-pressed="false">🧩</button><button type="button" class="community-icon-choice" data-group-icon="🔥" aria-pressed="false">🔥</button></div></div><div class="group-friends-list"><strong>Dodaj znajomych</strong>'+(friendChoices||'<small>Nie masz jeszcze znajomych do zaproszenia.</small>')+'</div><button class="community-create-submit" type="submit">Utwórz grupę</button><p id="community-group-feedback" class="feature-feedback" aria-live="polite"></p></form></section></div><section class="community-feature-panel community-list-panel"><div class="community-feature-section-head"><h3>Twoje grupy</h3><span>'+groupsResult.data.length+'</span></div><div class="community-groups-list">'+(cards||'<div class="community-empty-state"><span>👥</span><strong>Nie należysz jeszcze do żadnej grupy</strong><small>Utwórz pierwszą grupę powyżej.</small></div>')+'</div></section>';
+  const [membership,groupsResult,requestsResult]=await Promise.all([
+    supabaseClient.from("community_group_members").select("group_id,role").eq("user_id",currentUser.id),
+    supabaseClient.from("community_group_chats").select("id,name,description,avatar_emoji,created_by,updated_at").order("updated_at",{ascending:false}),
+    supabaseClient.from("community_group_join_requests").select("id,group_id,user_id,status,created_at").order("created_at",{ascending:false}).limit(200)
+  ]);
+  if(membership.error||groupsResult.error||requestsResult.error){
+    console.error("Group directory load error:",membership.error||groupsResult.error||requestsResult.error);
+    host.innerHTML='<div class="page-content"><p>Nie udało się załadować listy grup. Spróbuj ponownie.</p><button type="button" class="secondary-btn" id="group-directory-retry">Odśwież</button></div>';
+    host.querySelector("#group-directory-retry")?.addEventListener("click",renderCommunityGroupsPage);
+    return;
+  }
+  const groups=groupsResult.data||[];
+  const memberIds=new Set((membership.data||[]).map(row=>row.group_id));
+  const requests=requestsResult.data||[];
+  const groupById=new Map(groups.map(group=>[group.id,group]));
+  const myPending=new Set(requests.filter(row=>row.user_id===currentUser.id&&row.status==="pending").map(row=>row.group_id));
+  const ownerGroupIds=new Set(groups.filter(group=>group.created_by===currentUser.id).map(group=>group.id));
+  const ownerRequests=requests.filter(row=>row.status==="pending"&&(isAdmin||ownerGroupIds.has(row.group_id)));
+  await loadProfilesByIds(ownerRequests.map(row=>row.user_id));
+  const friends=(friendsDataCache.friends||[]).filter(profile=>!isBlocked(profile.id));
+  const friendChoices=friends.map(profile=>'<label class="group-friend-choice"><input type="checkbox" name="group-friend" value="'+escapeHTML(profile.id)+'"><span>'+escapeHTML(profile.nickname||"Uczeń")+'</span></label>').join("");
+  const groupCard=group=>{
+    const isMember=memberIds.has(group.id);
+    const action=isMember
+      ? '<button type="button" class="group-card-action" data-open-group="'+escapeHTML(group.id)+'">Otwórz czat</button>'
+      : group.created_by===currentUser.id
+        ? '<span class="group-card-status">Właściciel</span>'
+        : myPending.has(group.id)
+          ? '<button type="button" class="group-card-action is-pending" disabled>Wniosek wysłany</button>'
+          : '<button type="button" class="group-card-action" data-group-request="'+escapeHTML(group.id)+'">Poproś o dołączenie</button>';
+    return '<article class="community-group-card"><span class="community-group-avatar">'+escapeHTML(group.avatar_emoji||"👥")+'</span><span class="community-group-copy"><strong>'+escapeHTML(group.name)+'</strong><small>'+escapeHTML(group.description||"Grupa społeczności")+'</small></span>'+action+'</article>';
+  };
+  const myGroups=groups.filter(group=>memberIds.has(group.id));
+  const discoverGroups=groups.filter(group=>!memberIds.has(group.id)&&group.created_by!==currentUser.id);
+  const myGroupsHTML=myGroups.map(group=>groupCard(group)).join("");
+  const discoverHTML=discoverGroups.map(group=>groupCard(group)).join("");
+  const requestCards=ownerRequests.map(request=>{
+    const profile=getProfileById(request.user_id);
+    const group=groupById.get(request.group_id);
+    if(!group)return "";
+    return '<article class="group-join-request"><div class="group-join-request-copy"><strong>'+escapeHTML(profile?.nickname||"Uczeń")+'</strong><small>Prosi o dołączenie do: '+escapeHTML(group.name)+'</small></div><div class="group-join-request-actions"><button type="button" data-group-request-review="accept" data-request-id="'+escapeHTML(request.id)+'">Akceptuj</button><button type="button" data-group-request-review="reject" data-request-id="'+escapeHTML(request.id)+'">Odrzuć</button></div></article>';
+  }).join("");
+  host.innerHTML='<section class="community-feature-hero community-feature-hero-action"><div><span class="community-feature-kicker">ZSPM COMMUNITY</span><h2>Grupy</h2><p>Przeglądaj grupy społeczności, dołączaj przez wysłanie prośby i twórz własne rozmowy ze znajomymi.</p></div><button type="button" class="community-create-cta" id="community-group-create-open">＋ Utwórz grupę</button></section>'+
+    '<section class="community-feature-panel community-list-panel"><div class="community-feature-section-head"><h3>Twoje grupy</h3><span>'+myGroups.length+'</span></div><div class="community-groups-list">'+(myGroupsHTML||'<div class="community-empty-state"><span>👥</span><strong>Nie należysz jeszcze do żadnej grupy</strong><small>Możesz znaleźć grupę poniżej lub utworzyć własną.</small></div>')+'</div></section>'+
+    '<section class="community-feature-panel community-list-panel community-groups-discovery"><div class="community-feature-section-head"><h3>Wszystkie grupy</h3><span>'+groups.length+'</span></div><div class="community-groups-list">'+(discoverHTML||'<div class="community-empty-state"><strong>Na razie nie ma innych grup</strong><small>Nowe grupy pojawią się tutaj automatycznie.</small></div>')+'</div></section>'+
+    (ownerRequests.length?'<section class="community-feature-panel group-requests-panel"><div class="community-feature-section-head"><h3>Prośby o dołączenie</h3><span>'+ownerRequests.length+'</span></div><div class="group-join-requests">'+requestCards+'</div></section>':"")+
+    '<div class="community-feature-modal" id="community-group-modal" hidden><div class="community-feature-modal-backdrop" data-group-modal-close></div><section class="community-feature-dialog" role="dialog" aria-modal="true" aria-labelledby="community-group-dialog-title"><header class="community-feature-dialog-head"><div><span class="community-feature-kicker">NOWA ROZMOWA</span><h3 id="community-group-dialog-title">Utwórz grupę</h3></div><button type="button" class="community-feature-dialog-close" data-group-modal-close aria-label="Zamknij">×</button></header><form id="community-group-form" class="community-feature-form"><label>Nazwa grupy<input id="community-group-name" maxlength="60" minlength="2" required placeholder="Np. Ekipa z klasy"></label><label>Krótki opis<input id="community-group-description" maxlength="240" placeholder="O czym jest grupa?"></label><div class="community-icon-field"><span class="community-icon-label">Ikona grupy</span><input type="hidden" id="community-group-emoji" value="👥"><div class="community-icon-picker" role="group" aria-label="Wybierz ikonę grupy"><button type="button" class="community-icon-choice is-selected" data-group-icon="👥" aria-pressed="true">👥</button><button type="button" class="community-icon-choice" data-group-icon="🎓" aria-pressed="false">🎓</button><button type="button" class="community-icon-choice" data-group-icon="🎮" aria-pressed="false">🎮</button><button type="button" class="community-icon-choice" data-group-icon="📚" aria-pressed="false">📚</button><button type="button" class="community-icon-choice" data-group-icon="⚽" aria-pressed="false">⚽</button><button type="button" class="community-icon-choice" data-group-icon="🎨" aria-pressed="false">🎨</button><button type="button" class="community-icon-choice" data-group-icon="🎵" aria-pressed="false">🎵</button><button type="button" class="community-icon-choice" data-group-icon="🚀" aria-pressed="false">🚀</button><button type="button" class="community-icon-choice" data-group-icon="🌟" aria-pressed="false">🌟</button><button type="button" class="community-icon-choice" data-group-icon="💬" aria-pressed="false">💬</button><button type="button" class="community-icon-choice" data-group-icon="🧩" aria-pressed="false">🧩</button><button type="button" class="community-icon-choice" data-group-icon="🔥" aria-pressed="false">🔥</button></div></div><div class="group-friends-list"><strong>Dodaj znajomych</strong>'+(friendChoices||'<small>Nie masz jeszcze znajomych do zaproszenia.</small>')+'</div><button class="community-create-submit" type="submit">Utwórz grupę</button><p id="community-group-feedback" class="feature-feedback" aria-live="polite"></p></form></section></div>';
   const groupModal=host.querySelector("#community-group-modal");
   const closeGroupModal=()=>{groupModal.hidden=true;document.removeEventListener("keydown",groupModalEscape);};
   const groupModalEscape=e=>{if(e.key==="Escape")closeGroupModal();};
@@ -871,10 +913,29 @@ async function renderCommunityGroupsPage() {
     closeGroupModal();
     await openCommunityGroupChat(groupId);
   });
-  host.querySelectorAll("[data-open-group]").forEach(b=>b.addEventListener("click",()=>openCommunityGroupChat(b.dataset.openGroup)));
+  host.querySelectorAll("[data-open-group]").forEach(button=>button.addEventListener("click",()=>openCommunityGroupChat(button.dataset.openGroup)));
+  host.querySelectorAll("[data-group-request]").forEach(button=>button.addEventListener("click",async()=>{
+    button.disabled=true;
+    const {error}=await supabaseClient.from("community_group_join_requests").insert({group_id:button.dataset.groupRequest,user_id:currentUser.id});
+    if(error){button.disabled=false;alert(error.code==="23505"?"Prośba o dołączenie została już wysłana.":"Nie udało się wysłać prośby. Spróbuj ponownie.");return;}
+    await renderCommunityGroupsPage();
+  }));
+  host.querySelectorAll("[data-group-request-review]").forEach(button=>button.addEventListener("click",async()=>{
+    const accept=button.dataset.groupRequestReview==="accept";
+    button.disabled=true;
+    const {error}=await supabaseClient.rpc("respond_community_group_join_request",{p_request_id:button.dataset.requestId,p_accept:accept});
+    if(error){button.disabled=false;alert("Nie udało się przetworzyć prośby. Odśwież listę i spróbuj ponownie.");return;}
+    await renderCommunityGroupsPage();
+  }));
+  const refreshDirectory=()=>{if(currentAppPage==="groups"&&host.querySelector(".community-groups-discovery"))renderCommunityGroupsPage();};
+  communityGroupListChannel=supabaseClient.channel("community-group-directory-"+currentUser.id)
+    .on("postgres_changes",{event:"*",schema:"public",table:"community_group_chats"},refreshDirectory)
+    .on("postgres_changes",{event:"*",schema:"public",table:"community_group_join_requests"},refreshDirectory)
+    .on("postgres_changes",{event:"*",schema:"public",table:"community_group_members"},refreshDirectory)
+    .subscribe();
 }
-
 async function openCommunityGroupChat(groupId, fromRealtime=false) {
+  if(communityGroupListChannel){await supabaseClient.removeChannel(communityGroupListChannel);communityGroupListChannel=null;}
   const host=$("page-content");
   const groupResult=await supabaseClient.from("community_group_chats").select("id,name,description,avatar_emoji,created_by").eq("id",groupId).single();
   if(groupResult.error||!groupResult.data){await renderCommunityGroupsPage();return;}
