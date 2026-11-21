@@ -297,7 +297,10 @@
     @media(max-width:560px){.carousel-viewport{border-radius:20px}.carousel-slide img{height:min(128vw,590px)}.carousel-slide figcaption{padding:62px 18px 19px}.carousel-arrow{width:37px;height:37px;font-size:26px}.carousel-prev{left:9px}.carousel-next{right:9px}.carousel-dots{gap:7px}}
     @media(prefers-reduced-motion:reduce){.carousel-slide,.carousel-arrow,.carousel-dot{transition:none!important}.carousel-slide{transform:none}}
 
-  </style>
+  
+    body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.7;background:radial-gradient(ellipse at 24% 38%,rgba(91,105,255,.12),transparent 30rem),radial-gradient(ellipse at 78% 72%,rgba(30,190,220,.10),transparent 32rem),repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 1px,transparent 1px 68px)}
+    .wrap{position:relative;z-index:1}
+</style>
 </head>
 <body>
   <div class="wrap">
