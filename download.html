@@ -86,6 +86,26 @@
       filter:none !important;mix-blend-mode:normal !important;background:transparent !important;
       padding:0 !important;border:0 !important;object-fit:contain;
     }
+
+    .install-overlay{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:rgba(2,8,18,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:installFade .2s ease}
+    .install-overlay[hidden]{display:none}
+    .install-dialog{position:relative;width:min(100%,390px);padding:30px 24px 22px;text-align:center;border:1px solid rgba(111,177,255,.32);border-radius:28px;background:radial-gradient(ellipse at 50% 0,rgba(34,120,220,.25),transparent 55%),linear-gradient(155deg,#132943,#0a1628 72%);box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 42px rgba(24,116,224,.16);animation:installRise .28s cubic-bezier(.2,.8,.2,1)}
+    .install-close{position:absolute;top:13px;right:14px;width:34px;height:34px;border:1px solid rgba(150,190,235,.18);border-radius:11px;background:rgba(255,255,255,.06);color:#c9dcf5;font-size:23px;line-height:1;cursor:pointer}
+    .install-dialog-icon{width:88px;height:88px;margin:0 auto 15px;padding:5px;border:1px solid rgba(107,180,255,.4);border-radius:25px;background:linear-gradient(145deg,rgba(31,105,181,.3),rgba(5,17,32,.8));box-shadow:0 12px 32px rgba(0,105,255,.2)}
+    .install-dialog-icon img{width:100%;height:100%;object-fit:contain}
+    .install-dialog-tag{font-size:10px;letter-spacing:2.5px;font-weight:850;color:#76baff}
+    .install-dialog h2{margin:10px 0 9px;font-size:25px;letter-spacing:-.7px;color:#f4f8ff}
+    .install-dialog-copy{max-width:300px;margin:0 auto;color:#a9bdd7;font-size:13px;line-height:1.65}
+    .install-benefits{display:grid;gap:11px;margin:22px 0;padding:16px;border:1px solid rgba(117,169,230,.15);border-radius:17px;background:rgba(3,13,26,.38);text-align:left}
+    .install-benefits span{display:flex;gap:10px;align-items:center;color:#dceaff;font-size:12px}
+    .install-benefits b{color:#67b2ff;font-size:16px}
+    .install-confirm{width:100%;justify-content:center;box-shadow:0 12px 30px rgba(26,111,221,.28)}
+    .install-confirm span{font-size:18px;margin-left:4px}
+    .install-later{margin:13px auto 0;border:0;background:none;color:#90a8c6;font-size:12px;padding:8px 14px;cursor:pointer}
+    .install-dialog-note{margin:12px 0 0;color:#7189a8;font-size:10px;line-height:1.5}
+    @keyframes installFade{from{opacity:0}to{opacity:1}}
+    @keyframes installRise{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @media(prefers-reduced-motion:reduce){.install-overlay,.install-dialog{animation:none}}
 </style>
 </head>
 <body>
@@ -156,12 +176,54 @@
     </main>
     <footer>ZSPM Community · Nieoficjalny projekt społecznościowy</footer>
   </div>
+
+  <div class="install-overlay" id="installOverlay" hidden>
+    <section class="install-dialog" role="dialog" aria-modal="true" aria-labelledby="installTitle">
+      <button class="install-close" id="installClose" type="button" aria-label="Zamknij">×</button>
+      <div class="install-dialog-icon"><img src="./public/zspm-community-icon.svg" alt=""></div>
+      <div class="install-dialog-tag">ZSPM COMMUNITY</div>
+      <h2 id="installTitle">Zainstaluj aplikację</h2>
+      <p class="install-dialog-copy">Dodaj swoją szkolną społeczność do ekranu głównego i otwieraj ją jednym dotknięciem.</p>
+      <div class="install-benefits">
+        <span><b>✦</b> Szybki dostęp z ekranu głównego</span>
+        <span><b>✦</b> Osobne okno aplikacji</span>
+        <span><b>✦</b> Bez pobierania pliku APK</span>
+      </div>
+      <button class="btn primary install-confirm" id="installConfirm" type="button">Zainstaluj teraz <span>→</span></button>
+      <button class="install-later" id="installLater" type="button">Może później</button>
+      <p class="install-dialog-note" id="installDialogNote">Kolejny krok potwierdzisz w oknie systemowym przeglądarki.</p>
+    </section>
+  </div>
   <script>
     let installPrompt = null;
     const installBtn = document.getElementById("installBtn");
     const installHint = document.getElementById("installHint");
     const manualSteps = document.getElementById("manualSteps");
+    const installOverlay = document.getElementById("installOverlay");
+    const installClose = document.getElementById("installClose");
+    const installLater = document.getElementById("installLater");
+    const installConfirm = document.getElementById("installConfirm");
+    const installDialogNote = document.getElementById("installDialogNote");
     const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+    function openInstallDialog() {
+      installOverlay.hidden = false;
+      document.body.style.overflow = "hidden";
+      installClose.focus();
+    }
+    function closeInstallDialog() {
+      installOverlay.hidden = true;
+      document.body.style.overflow = "";
+      installBtn.focus();
+    }
+    installClose.addEventListener("click", closeInstallDialog);
+    installLater.addEventListener("click", closeInstallDialog);
+    installOverlay.addEventListener("click", event => {
+      if (event.target === installOverlay) closeInstallDialog();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !installOverlay.hidden) closeInstallDialog();
+    });
 
     if (isStandalone) {
       installBtn.textContent = "✓  Aplikacja jest zainstalowana";
@@ -179,22 +241,40 @@
       installHint.textContent = "Gotowe do instalacji na tym urządzeniu.";
     });
 
-    installBtn.addEventListener("click", async () => {
+    installBtn.addEventListener("click", () => {
+      if (isStandalone) return;
+      installDialogNote.textContent = installPrompt
+        ? "Następnie potwierdzisz instalację w oknie systemowym przeglądarki."
+        : "Jeśli instalacja nie uruchomi się automatycznie, pokażemy krótką instrukcję.";
+      openInstallDialog();
+    });
+
+    installConfirm.addEventListener("click", async () => {
       if (isStandalone) return;
       if (!installPrompt) {
-        installHint.textContent = "Jeśli okno instalacji się nie pojawiło, użyj menu przeglądarki i wybierz „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”.";
+        installDialogNote.textContent = "Otwórz menu przeglądarki i wybierz „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”.";
         manualSteps.hidden = false;
+        installHint.textContent = "Wybierz opcję instalacji z menu przeglądarki.";
+        installConfirm.textContent = "Rozumiem";
+        installConfirm.onclick = closeInstallDialog;
         return;
       }
+      installConfirm.disabled = true;
+      installConfirm.textContent = "Otwieramy instalację…";
       installPrompt.prompt();
       const choice = await installPrompt.userChoice;
       installPrompt = null;
+      installConfirm.disabled = false;
+      installConfirm.textContent = "Zainstaluj teraz →";
       if (choice.outcome === "accepted") {
         installHint.textContent = "Instalacja rozpoczęta. Ikona aplikacji pojawi się na ekranie głównym.";
         installBtn.textContent = "✓  Dziękujemy!";
+        installDialogNote.textContent = "Świetnie! Dokończ potwierdzenie w przeglądarce.";
       } else {
-        installHint.textContent = "Instalacja nie została zakończona. Możesz spróbować ponownie z menu przeglądarki.";
+        installHint.textContent = "Instalacja nie została zakończona. Możesz spróbować ponownie.";
+        installDialogNote.textContent = "Możesz spróbować ponownie lub zamknąć to okno.";
       }
+      closeInstallDialog();
     });
 
     window.addEventListener("appinstalled", () => {
