@@ -1879,19 +1879,25 @@ async function loadProfileSocialData(profileIds) {
 
   const comments = commentsResult.data || [];
   const authorIds = [...new Set(comments.map(item => item.author_id).filter(Boolean))];
-  await loadProfilesByIds(authorIds);
-  let authorMap = new Map();
-  if (authorIds.length) {
-    const { data, error } = await supabaseClient.from("public_profiles")
-      .select("id,nickname")
-      .in("id", authorIds);
-    if (error) console.error("Comment authors load error:", error);
-    (data || []).forEach(item => authorMap.set(item.id, item.nickname));
-  }
+  const authorProfiles = await loadProfilesByIds(authorIds);
+  const authorMap = new Map(authorProfiles.map(profile => [profile.id, profile.nickname]));
+
+  const likesByProfile = new Map();
+  (likesResult.data || []).forEach(item => {
+    const rows = likesByProfile.get(item.profile_id) || [];
+    rows.push(item);
+    likesByProfile.set(item.profile_id, rows);
+  });
+  const commentsByProfile = new Map();
+  comments.forEach(item => {
+    const rows = commentsByProfile.get(item.profile_id) || [];
+    rows.push(item);
+    commentsByProfile.set(item.profile_id, rows);
+  });
 
   ids.forEach(id => {
-    const likes = (likesResult.data || []).filter(item => item.profile_id === id);
-    const profileComments = comments.filter(item => item.profile_id === id);
+    const likes = likesByProfile.get(id) || [];
+    const profileComments = commentsByProfile.get(id) || [];
     profileSocialCache[id] = {
       liked: likes.some(item => item.user_id === currentUser?.id),
       likes: likes.length,
