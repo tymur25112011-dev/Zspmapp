@@ -5757,3 +5757,26 @@ body {
 #app .brand-emblem{
   background:rgba(9,22,42,.72);
 }
+
+
+/* Official school gryf: remove its white canvas visually and tint it to the app's blue palette. */
+#launch-splash .launch-inner > img,
+#auth .auth-brand-mark img,
+#app .brand-emblem,
+#app .home-hero-symbol img {
+  background: transparent !important;
+  mix-blend-mode: screen !important;
+  filter: invert(1) sepia(1) saturate(3.4) hue-rotate(166deg) brightness(1.08)
+    drop-shadow(0 0 12px rgba(77,166,255,.42)) !important;
+}
+#launch-splash .launch-inner > img {
+  border-radius: 16px;
+  padding: 4px;
+  background: rgba(8,24,44,.72) !important;
+}
+#auth .auth-brand-mark,
+#app .brand-emblem,
+#app .home-hero-symbol {
+  background: linear-gradient(145deg,rgba(9,29,52,.92),rgba(7,18,34,.88)) !important;
+  border-color: rgba(77,166,255,.38);
+}
