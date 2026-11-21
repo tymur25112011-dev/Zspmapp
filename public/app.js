@@ -918,7 +918,8 @@ async function renderCommunityGroupsPage() {
     button.disabled=true;
     const {error}=await supabaseClient.from("community_group_join_requests").insert({group_id:button.dataset.groupRequest,user_id:currentUser.id});
     if(error){button.disabled=false;alert(error.code==="23505"?"Prośba o dołączenie została już wysłana.":"Nie udało się wysłać prośby. Spróbuj ponownie.");return;}
-    await renderCommunityGroupsPage();
+    button.textContent="Wniosek wysłany";
+    button.classList.add("is-pending");
   }));
   host.querySelectorAll("[data-group-request-review]").forEach(button=>button.addEventListener("click",async()=>{
     const accept=button.dataset.groupRequestReview==="accept";
@@ -927,7 +928,7 @@ async function renderCommunityGroupsPage() {
     if(error){button.disabled=false;alert("Nie udało się przetworzyć prośby. Odśwież listę i spróbuj ponownie.");return;}
     await renderCommunityGroupsPage();
   }));
-  const refreshDirectory=()=>{if(currentAppPage==="groups"&&host.querySelector(".community-groups-discovery"))renderCommunityGroupsPage();};
+  const refreshDirectory=()=>{const modal=host.querySelector("#community-group-modal");if(modal&&!modal.hidden)return;if(currentAppPage==="groups"&&host.querySelector(".community-groups-discovery"))renderCommunityGroupsPage();};
   communityGroupListChannel=supabaseClient.channel("community-group-directory-"+currentUser.id)
     .on("postgres_changes",{event:"*",schema:"public",table:"community_group_chats"},refreshDirectory)
     .on("postgres_changes",{event:"*",schema:"public",table:"community_group_join_requests"},refreshDirectory)
