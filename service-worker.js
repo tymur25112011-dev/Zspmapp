@@ -8,7 +8,7 @@ const APP_SHELL = [
   "./public/support-config.js?v=2",
   "./public/supabase-config.js",
   "./manifest.webmanifest",
-  "./public/icons/zspm-community-mark.svg"
+  
 ];
 
 self.addEventListener("install", event => {
