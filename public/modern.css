@@ -6593,3 +6593,65 @@ html,body{background-color:#090d20!important}
 body{background:radial-gradient(ellipse 70% 48% at 8% 5%,rgba(105,92,245,.34),transparent 72%),radial-gradient(ellipse 58% 52% at 96% 18%,rgba(42,151,235,.28),transparent 72%),radial-gradient(ellipse 68% 56% at 52% 100%,rgba(194,91,204,.20),transparent 74%),linear-gradient(145deg,#090d20 0%,#111b3a 42%,#11112b 72%,#090d20 100%)!important;background-attachment:fixed!important;background-size:150% 150%!important}
 body::after{opacity:.85!important;background:radial-gradient(ellipse 32rem 24rem at 12% 18%,rgba(119,106,255,.22),transparent 72%),radial-gradient(ellipse 28rem 32rem at 90% 34%,rgba(67,177,255,.18),transparent 72%),radial-gradient(ellipse 34rem 26rem at 54% 92%,rgba(226,112,208,.13),transparent 72%)!important;filter:blur(18px)}
 @media(prefers-reduced-motion:reduce){body{animation:none!important}#app .profile-social button.social-like,#app .community-poll-footer [data-poll-vote]{transition:none!important}}
+
+
+/* Visible iOS-inspired aurora wallpaper: keep the artwork above the body background and below the app. */
+html,body{min-height:100%;background:#080d1c!important}
+body{position:relative!important;isolation:isolate!important;background:#080d1c!important;overflow-x:hidden}
+body::before{
+  content:""!important;display:block!important;position:fixed!important;inset:-14vh -12vw!important;
+  z-index:0!important;pointer-events:none!important;opacity:1!important;
+  background:
+    radial-gradient(ellipse 48% 58% at 14% 20%,rgba(92,89,255,.92) 0%,rgba(92,89,255,.46) 28%,transparent 70%),
+    radial-gradient(ellipse 50% 58% at 87% 18%,rgba(0,190,255,.76) 0%,rgba(0,190,255,.28) 32%,transparent 72%),
+    radial-gradient(ellipse 56% 52% at 76% 82%,rgba(255,83,177,.70) 0%,rgba(255,83,177,.24) 34%,transparent 72%),
+    radial-gradient(ellipse 46% 50% at 20% 88%,rgba(104,91,230,.72) 0%,rgba(104,91,230,.24) 36%,transparent 74%),
+    linear-gradient(145deg,#101b46 0%,#101b38 34%,#161332 68%,#090d20 100%)!important;
+  filter:blur(34px) saturate(1.32)!important;transform:translateZ(0)!important;
+}
+body::after{
+  content:""!important;display:block!important;position:fixed!important;inset:0!important;
+  z-index:0!important;pointer-events:none!important;opacity:.62!important;
+  background:radial-gradient(ellipse at 50% 48%,transparent 22%,rgba(5,8,22,.22) 100%)!important;
+  filter:none!important;animation:none!important;
+}
+#app.container,#auth.container,#app #other-page,#app #home-page,#app #page-content{
+  position:relative!important;z-index:1!important;background:transparent!important;
+}
+/* Role badges in both forum replies and profile comments. */
+#app #page-content .forum-comment .community-author-row .user-role-badge,
+#app #page-content .profile-comment .community-author-row .user-role-badge{
+  font-size:7px!important;line-height:1!important;padding:2px 4px!important;
+  min-height:0!important;height:auto!important;letter-spacing:.025em!important;
+  border-radius:999px!important;margin-left:3px!important;
+}
+#app #page-content .forum-comment .community-author-row,
+#app #page-content .profile-comment .community-author-row{gap:4px!important;min-height:20px!important}
+#app #page-content .forum-comment .community-author-name,
+#app #page-content .profile-comment .community-author-name{font-size:11px!important;line-height:1.15!important}
+/* Social-style profile likes: prominent heart, clear count, filled state. */
+#app #page-content .profile-card .profile-social .profile-social-actions button.social-like{
+  min-height:40px!important;padding:8px 15px!important;gap:8px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  border-radius:999px!important;font-size:13px!important;font-weight:750!important;
+  color:#e9edf8!important;background:rgba(255,255,255,.10)!important;
+  border:1px solid rgba(255,255,255,.20)!important;box-shadow:0 5px 18px rgba(0,0,0,.12)!important;
+}
+#app #page-content .profile-card .profile-social .profile-social-actions button.social-like svg{
+  width:19px!important;height:19px!important;fill:none!important;stroke:currentColor!important;stroke-width:2.1!important;
+}
+#app #page-content .profile-card .profile-social .profile-social-actions button.social-like.liked{
+  color:#ff456d!important;background:rgba(255,69,109,.17)!important;
+  border:1px solid rgba(255,105,137,.52)!important;box-shadow:0 5px 18px rgba(255,69,109,.12)!important;
+}
+#app #page-content .profile-card .profile-social .profile-social-actions button.social-like.liked svg{
+  fill:currentColor!important;stroke:currentColor!important;
+}
+#app #page-content .profile-card .profile-social .profile-social-actions button.social-like:active{transform:scale(.94)!important}
+#app #page-content .profile-card .profile-social .profile-social-actions .profile-comment-count{
+  font-size:12px!important;color:rgba(226,233,247,.72)!important;
+}
+@media(max-width:760px){
+ body::before{inset:-9vh -24vw!important;filter:blur(28px) saturate(1.3)!important}
+ body::after{opacity:.52!important}
+}
