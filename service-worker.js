@@ -1,4 +1,4 @@
-const CACHE_NAME = "zspm-community-shell-v126";
+const CACHE_NAME = "zspm-community-shell-v127";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -11,7 +11,7 @@ const APP_SHELL = [
   "./public/icons/icon.svg",
   "./public/icons/icon-192.svg",
   "./public/icons/icon-512.svg",
-  "./public/icons/community-logo.svg",
+  "./public/icons/zspm-community-mark.svg",
   "./public/icons/zspm-community-mark.svg"
 ];
 
