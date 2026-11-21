@@ -1067,7 +1067,7 @@ async function renderCommunityAnnouncementsPage(){await renderCommunityEventsPag
 // NAWIGACJA
 
 const pages = {
-  feed: { title: "Aktywność społeczności", subtitle: "Najnowsze wpisy z forum i pomysłów", content: "" },
+  feed: { title: "Forum Aktywności", subtitle: "Najnowsze wpisy, pomysły, ogłoszenia i wydarzenia społeczności", content: "" },
   updates: { title: "Updates", subtitle: "Historia zmian i nowości w aplikacji", content: "" },
   events: { title: "Wydarzenia", subtitle: "Karty wydarzeń i ogłoszenia społeczności", content: "" },
   announcements: { title: "Ogłoszenia", subtitle: "Informacje i ogłoszenia społeczności", content: "" },
@@ -1964,7 +1964,7 @@ async function loadProfileSocialData(profileIds) {
     supabaseClient.from("profile_comments")
       .select("id,profile_id,author_id,content,created_at")
       .in("profile_id", ids)
-      .order("created_at", { ascending: true })
+      .order("created_at", { ascending: false })
   ]);
 
   if (likesResult.error) console.error("Profile likes load error:", likesResult.error);
@@ -2013,9 +2013,9 @@ function profileSocialHTML(profile) {
   const comments = Array.isArray(item.comments) ? item.comments : [];
   const own = profile.id === currentUser?.id;
   const renderComment = comment => '<div class="profile-comment">' + communityAuthorHTML(comment.author_id,comment.author || "Uczeń") + '<span>' + escapeHTML(comment.text || "") + '</span></div>';
-  const olderComments = comments.slice(0,Math.max(0,comments.length-2));
-  const latestComments = comments.slice(-2);
-  const commentsHTML = olderComments.map(comment => '<div class="profile-comment profile-comment-extra">' + communityAuthorHTML(comment.author_id,comment.author || "Uczeń") + '<span>' + escapeHTML(comment.text || "") + '</span></div>').join("") + latestComments.map(renderComment).join("");
+  const latestComments = comments.slice(0,2);
+  const olderComments = comments.slice(2);
+  const commentsHTML = olderComments.map(comment => '<div class="profile-comment profile-comment-extra" hidden>' + communityAuthorHTML(comment.author_id,comment.author || "Uczeń") + '<span>' + escapeHTML(comment.text || "") + '</span></div>').join("") + latestComments.map(renderComment).join("");
   const commentsToggle = comments.length > 2 ? '<button type="button" class="profile-comments-toggle" data-action="toggle-comments" aria-expanded="false">Więcej</button>' : "";
   return '<div class="profile-social">' +
     '<div class="profile-social-actions">' +
@@ -4187,6 +4187,14 @@ async function renderCommunityFeedPage(){
     return '<article class="feed-card"><div class="feed-card-top"><span class="feed-type '+item.kind+'">'+escapeHTML(item.label)+'</span><time datetime="'+escapeHTML(item.created_at)+'">'+escapeHTML(new Date(item.created_at).toLocaleString(locale,{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}))+'</time></div><h3>'+escapeHTML(item.title)+'</h3><button type="button" class="community-save-button" data-favorite-type="'+(item.kind==="forum"?"forum_post":"idea")+'" data-favorite-id="'+item.id+'">☆ Zapisz</button><p class="feed-preview">'+escapeHTML(preview||feedText("noDescription"))+'</p><div class="feed-card-bottom"><span class="feed-author">'+communityAuthorHTML(item.author_id,names.get(item.author_id)||feedText("student"))+'</span><button type="button" class="feed-open" data-feed-open="'+destination+'">'+escapeHTML(destination==="forum"?feedText("openForum"):feedText("openIdeas"))+' <span aria-hidden="true">→</span></button></div></article>';
   }).join("");
   host.innerHTML='<section class="feed-intro"><div class="feed-orb" aria-hidden="true">✦</div><div><strong>'+escapeHTML(feedText("intro"))+'</strong><p>'+items.length+' '+(appLanguage==="en"?"recent posts":appLanguage==="ru"?"свежих публикаций":appLanguage==="uk"?"свіжих дописів":"najnowszych wpisów")+'</p></div><button type="button" class="feed-refresh" id="feed-refresh" aria-label="'+escapeHTML(feedText("refresh"))+'" title="'+escapeHTML(feedText("refresh"))+'">↻</button></section><div class="feed-toolbar" role="group" aria-label="Feed filters"><button type="button" class="feed-filter active" data-feed-filter="all">'+escapeHTML(feedText("all"))+'</button><button type="button" class="feed-filter" data-feed-filter="forum">'+escapeHTML(feedText("forum"))+'</button><button type="button" class="feed-filter" data-feed-filter="ideas">'+escapeHTML(feedText("ideas"))+'</button></div><div class="feed-list">'+(cards||'<div class="feed-empty"><span>✧</span><strong>'+escapeHTML(feedText("empty"))+'</strong></div>')+'</div>';
+  const sectionNav='<nav class="community-hub-nav" aria-label="Sekcje społeczności">'+
+    '<button type="button" data-community-section="forum">Forum</button>'+
+    '<button type="button" class="active" data-community-section="feed" aria-current="page">Aktywność</button>'+
+    '<button type="button" data-community-section="ideas">Pomysły</button>'+
+    '<button type="button" data-community-section="announcements">Ogłoszenia</button>'+
+    '<button type="button" data-community-section="events">Wydarzenia</button></nav>';
+  host.querySelector(".feed-intro")?.insertAdjacentHTML("beforebegin",sectionNav);
+  host.querySelectorAll("[data-community-section]").forEach(button=>button.addEventListener("click",()=>openPage(button.dataset.communitySection)));
   host.querySelector("#feed-refresh")?.addEventListener("click",renderCommunityFeedPage);
   host.querySelectorAll("[data-feed-filter]").forEach(button=>button.addEventListener("click",()=>{
     const filter=button.dataset.feedFilter;
@@ -4276,14 +4284,6 @@ async function renderCommunityForumPage() {
   return '<article class="feature-card forum-post-card community-designed-card style-'+style+'">'+communityCardCover(style,"forum")+'<div class="community-designed-content"><div class="feature-card-top"><span class="feature-tag">'+escapeHTML(FORUM_CATEGORIES[post.category]||"Ogólne")+'</span><div class="forum-author-meta">'+communityAuthorHTML(post.author_id,names.get(post.author_id)||"Uczeń")+'<small>'+escapeHTML(new Date(post.created_at).toLocaleDateString("pl-PL"))+'</small></div></div><h3>'+escapeHTML(post.title)+'</h3><button type="button" class="community-save-button" data-favorite-type="forum_post" data-favorite-id="'+post.id+'">☆ Zapisz</button><p class="feature-body">'+escapeHTML(post.body)+'</p>'+(own||isAdmin?'<button type="button" class="text-action" data-forum-delete="'+post.id+'">Usuń temat</button>':"")+(!own&&!isAdmin?'<button type="button" class="text-action" data-forum-report="'+post.id+'" data-author="'+post.author_id+'">Zgłoś temat</button>':"")+'<div class="forum-comments"><strong>Komentarze ('+postComments.length+')</strong>'+(postComments.map(c=>'<div class="forum-comment">'+communityAuthorHTML(c.author_id,names.get(c.author_id)||"Uczeń")+'<p>'+escapeHTML(c.body)+'</p>'+(c.author_id===currentUser.id||isAdmin?'<button type="button" class="text-action" data-forum-comment-delete="'+c.id+'">Usuń</button>':"")+'</div>').join("")||'<small>Jeszcze nikt nie skomentował.</small>')+(post.is_locked?'<p class="muted">Dyskusja zamknięta.</p>':'<form class="forum-comment-form" data-forum-comment-form="'+post.id+'"><input maxlength="2000" required placeholder="Dodaj komentarz"><button type="submit" aria-label="Wyślij komentarz">➤</button></form>')+'</div></div></article>';
  }).join("");
  host.innerHTML='<section class="forum-page-intro"><div class="forum-page-intro-copy"><span class="community-dialog-eyebrow">ZSPM COMMUNITY · FORUM</span><h2>Forum ZSPM</h2><p>Wymieniaj się pomysłami, pytaj o szkołę i pomagaj innym. Nie publikuj prywatnych danych.</p></div><button type="button" class="community-create-button" id="open-forum-modal">＋ Dodaj temat</button></section><div class="feature-list">'+(cards||'<div class="community-empty-state"><span>✧</span><strong>Forum jest jeszcze puste</strong><small>Dodaj pierwszy temat i rozpocznij rozmowę.</small></div>')+'</div><div class="community-create-backdrop" id="forum-modal" hidden><section class="community-create-dialog" role="dialog" aria-modal="true" aria-labelledby="forum-modal-title"><header class="community-dialog-header"><div><span class="community-dialog-eyebrow">ZSPM COMMUNITY · FORUM</span><h3 id="forum-modal-title">Dodaj temat</h3><p>Wybierz kategorię, napisz treść i dopasuj styl karty.</p></div><button type="button" class="community-dialog-close" id="close-forum-modal" aria-label="Zamknij">×</button></header><form class="community-create-form" id="forum-post-form"><label>Kategoria<select id="forum-category">'+Object.entries(FORUM_CATEGORIES).map(([k,v])=>'<option value="'+k+'">'+escapeHTML(v)+'</option>').join("")+'</select></label><label>Tytuł<input id="forum-title" maxlength="100" minlength="4" required placeholder="O czym chcesz porozmawiać?"></label><label>Treść<textarea id="forum-body" maxlength="5000" minlength="10" rows="5" required placeholder="Napisz coś od siebie..."></textarea></label>'+communityCardStylePicker("classic","forum-card-style")+'<button type="submit" class="community-dialog-submit">Opublikuj temat</button><p id="forum-feedback" class="feature-feedback" aria-live="polite"></p></form></section></div>';
- const sectionNav='<nav class="community-hub-nav" aria-label="Sekcje społeczności">'+
-  '<button type="button" class="active" data-community-section="forum">Forum</button>'+
-  '<button type="button" data-community-section="feed">Aktywność</button>'+
-  '<button type="button" data-community-section="ideas">Pomysły</button>'+
-  '<button type="button" data-community-section="announcements">Ogłoszenia</button>'+
-  '<button type="button" data-community-section="events">Wydarzenia</button></nav>';
- host.querySelector(".forum-page-intro")?.insertAdjacentHTML("afterend",sectionNav);
- host.querySelectorAll("[data-community-section]").forEach(button=>button.addEventListener("click",()=>openPage(button.dataset.communitySection)));
  const modal=host.querySelector("#forum-modal"),form=host.querySelector("#forum-post-form");
  const close=()=>{modal.hidden=true;form.reset();host.querySelector("#forum-card-style").value="classic";host.querySelectorAll("[data-card-style-option]").forEach(b=>{const active=b.dataset.cardStyleOption==="classic";b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));});document.removeEventListener("keydown",onKey);};
  const onKey=e=>{if(e.key==="Escape"&&!modal.hidden)close();};
