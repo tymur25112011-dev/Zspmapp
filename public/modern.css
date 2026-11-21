@@ -7185,3 +7185,80 @@ body::after {
     backdrop-filter: none !important;
   }
 }
+
+
+/* Final theme backgrounds: DarkOS and Liquid Glass are clean surfaces, not wallpapers. */
+:root[data-theme="dark"],
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] html {
+  background: #101010 !important;
+  background-image: none !important;
+  background-attachment: scroll !important;
+}
+:root[data-theme="liquid-glass"],
+:root[data-theme="liquid-glass"] body,
+:root[data-theme="liquid-glass"] html {
+  background: #edf3fb !important;
+  background-image: none !important;
+  background-attachment: scroll !important;
+}
+:root[data-theme="dark"] body::before,
+:root[data-theme="dark"] body::after,
+:root[data-theme="liquid-glass"] body::before,
+:root[data-theme="liquid-glass"] body::after {
+  content: none !important;
+  display: none !important;
+  opacity: 0 !important;
+  background: none !important;
+  filter: none !important;
+  animation: none !important;
+}
+:root[data-theme="dark"] .settings-wallpaper-panel,
+:root[data-theme="liquid-glass"] .settings-wallpaper-panel,
+:root[data-theme="dark"] #christmas-decorations,
+:root[data-theme="liquid-glass"] #christmas-decorations {
+  display: none !important;
+}
+:root[data-theme="dark"] #app,
+:root[data-theme="dark"] #auth,
+:root[data-theme="liquid-glass"] #app,
+:root[data-theme="liquid-glass"] #auth {
+  background: transparent !important;
+}
+@media (max-width: 760px) {
+  /* Keep System colorful but render its wallpaper as static gradients only. */
+  :root[data-theme="system"] body {
+    background-attachment: scroll !important;
+  }
+  :root[data-theme="system"] body::before,
+  :root[data-theme="system"] body::after {
+    display: none !important;
+    content: none !important;
+    animation: none !important;
+    filter: none !important;
+  }
+  /* Liquid Glass keeps translucent surfaces with a smaller, cheaper blur. */
+  :root[data-theme="liquid-glass"] #app .card,
+  :root[data-theme="liquid-glass"] #app .page-content,
+  :root[data-theme="liquid-glass"] #app .profile-card,
+  :root[data-theme="liquid-glass"] #app .chat-head,
+  :root[data-theme="liquid-glass"] #app .conv-item,
+  :root[data-theme="liquid-glass"] #app .menu-item,
+  :root[data-theme="liquid-glass"] #app .bottom-nav,
+  :root[data-theme="liquid-glass"] #app .bell-btn,
+  :root[data-theme="liquid-glass"] #app .account-menu,
+  :root[data-theme="liquid-glass"] #auth .card {
+    -webkit-backdrop-filter: blur(4px) saturate(108%) !important;
+    backdrop-filter: blur(4px) saturate(108%) !important;
+  }
+  #app .menu-item,
+  #app .nav-item,
+  #app .page-content,
+  #app .profile-card,
+  #app .conv-item,
+  #app .hero,
+  #auth .card {
+    animation: none !important;
+    transition-property: color, background-color, border-color, opacity !important;
+  }
+}
