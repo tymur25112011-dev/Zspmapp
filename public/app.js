@@ -3727,9 +3727,15 @@ async function openChat(conversationId) {
     })
     .on("postgres_changes", {
       event: "*", schema: "public", table: "message_reactions"
-    }, async () => {
+    }, async payload => {
       if (activeConversationId !== conversationId) return;
+      const changedMessageId = payload?.new?.message_id || payload?.old?.message_id;
+      const visibleMessage = changedMessageId
+        ? $("chat-msgs")?.querySelector('.bubble-text[data-msg-id="' + CSS.escape(changedMessageId) + '"]')
+        : null;
+      if (!visibleMessage) return;
       const fresh = await loadConversationMessages(conversationId);
+      if (activeConversationId !== conversationId) return;
       renderMessages(fresh);
     })
     .on("postgres_changes", {
