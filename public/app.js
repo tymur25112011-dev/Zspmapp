@@ -1740,7 +1740,7 @@ function renderBugReportPage() {
     const description=form.elements.description.value.trim();
     const area=form.elements.area.value;
     if(subject.length<4||description.length<10)return;
-    const body=["Zgłoszenie błędu ZSPM Community","","Użytkownik: "+(currentUser?.name||"Niepodany"),"Dział: "+area,"","Opis:",description].join("\\n");
+    const body=["Zgłoszenie błędu ZSPM Community","","Użytkownik: "+(currentUser?.name||"Niepodany"),"Dział: "+area,"","Opis:",description].join("\n");
     const mailto="mailto:zspmcommunity.support@gmail.com?subject="+encodeURIComponent("[Zgłoszenie błędu] "+subject)+"&body="+encodeURIComponent(body);
     window.location.href=mailto;
   });
