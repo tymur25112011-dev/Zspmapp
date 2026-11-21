@@ -9,7 +9,6 @@ const APP_SHELL = [
   "./public/supabase-config.js",
   "./manifest.webmanifest",
   "./public/zspm-community-icon-192.png",
-  "./public/zspm-community-icon-192.png",
   "./public/zspm-community-icon-512.png",
   
 ];
