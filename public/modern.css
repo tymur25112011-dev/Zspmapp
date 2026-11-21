@@ -6575,3 +6575,21 @@ body::before {
 #app #page-content .profile-comment-extra:not([hidden]) {
   display: flex !important;
 }
+
+/* UI refinements: compact comment roles, clear vote/like semantics, iOS-inspired wallpaper */
+#app .forum-comment .user-role-badge{font-size:8px!important;line-height:1.15!important;padding:2px 5px!important;letter-spacing:.035em;border-radius:999px;min-height:0!important}
+#app .forum-comment .community-author-row{gap:6px;align-items:center}
+#app .forum-comment .community-author-name{font-size:11px}
+#app .idea-vote.up.selected{color:#16834b!important;background:rgba(34,197,94,.16)!important;border-color:rgba(34,197,94,.58)!important;box-shadow:0 0 16px rgba(34,197,94,.12)!important}
+#app .idea-vote.up.selected svg{color:#16a34a;stroke:currentColor}
+#app .community-poll-footer [data-poll-vote]{color:#fff!important;background:linear-gradient(135deg,#20a85b,#138447)!important;border:1px solid rgba(74,222,128,.42)!important;box-shadow:0 7px 18px rgba(22,163,74,.2)}
+#app .community-poll-footer [data-poll-vote]:active{transform:scale(.97)}
+#app .profile-social button.social-like{min-height:38px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:7px 13px;border-radius:999px;color:var(--zspm-text,#f5f3ff);background:rgba(255,255,255,.055);border:1px solid var(--zspm-border,rgba(145,168,204,.22));font-size:12px;font-weight:700;transition:transform .16s ease,color .18s ease,background .18s ease,border-color .18s ease}
+#app .profile-social button.social-like svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2}
+#app .profile-social button.social-like.liked{color:#ff4968!important;background:rgba(255,73,104,.13)!important;border-color:rgba(255,73,104,.36)!important;box-shadow:none!important}
+#app .profile-social button.social-like.liked svg{fill:currentColor!important;stroke:currentColor!important}
+#app .profile-social button.social-like:active{transform:scale(.96)}
+html,body{background-color:#090d20!important}
+body{background:radial-gradient(ellipse 70% 48% at 8% 5%,rgba(105,92,245,.34),transparent 72%),radial-gradient(ellipse 58% 52% at 96% 18%,rgba(42,151,235,.28),transparent 72%),radial-gradient(ellipse 68% 56% at 52% 100%,rgba(194,91,204,.20),transparent 74%),linear-gradient(145deg,#090d20 0%,#111b3a 42%,#11112b 72%,#090d20 100%)!important;background-attachment:fixed!important;background-size:150% 150%!important}
+body::after{opacity:.85!important;background:radial-gradient(ellipse 32rem 24rem at 12% 18%,rgba(119,106,255,.22),transparent 72%),radial-gradient(ellipse 28rem 32rem at 90% 34%,rgba(67,177,255,.18),transparent 72%),radial-gradient(ellipse 34rem 26rem at 54% 92%,rgba(226,112,208,.13),transparent 72%)!important;filter:blur(18px)}
+@media(prefers-reduced-motion:reduce){body{animation:none!important}#app .profile-social button.social-like,#app .community-poll-footer [data-poll-vote]{transition:none!important}}
