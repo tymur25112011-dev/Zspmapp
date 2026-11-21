@@ -2245,6 +2245,11 @@ function compressProfilePhoto(file) {
       const image = new Image();
       image.onerror = () => reject(new Error("Nie udało się otworzyć zdjęcia."));
       image.onload = () => {
+        const pixelCount = image.width * image.height;
+        if (!image.width || !image.height || pixelCount > 40000000) {
+          reject(new Error("Zdjęcie ma zbyt dużą rozdzielczość. Wybierz obraz do 40 megapikseli."));
+          return;
+        }
         const maxSide = 512;
         const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
         const canvas = document.createElement("canvas");
@@ -2745,6 +2750,8 @@ function compressCommunityImage(file, maxSide) {
       const image=new Image();
       image.onerror=()=>reject(new Error("Nie udało się otworzyć obrazu."));
       image.onload=()=>{
+        const pixelCount=image.width*image.height;
+        if(!image.width||!image.height||pixelCount>40000000) return reject(new Error("Obraz ma zbyt dużą rozdzielczość. Wybierz plik do 40 megapikseli."));
         const scale=Math.min(1,maxSide/Math.max(image.width,image.height));
         const canvas=document.createElement("canvas");
         canvas.width=Math.max(1,Math.round(image.width*scale)); canvas.height=Math.max(1,Math.round(image.height*scale));
