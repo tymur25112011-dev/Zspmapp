@@ -48,7 +48,44 @@ jobs:
               raise RuntimeError("Could not locate the dark panel around the official crest")
           panel = source.crop(panel_bbox)
           gray = ImageOps.grayscale(panel)
-          alpha = gray.point(lambda p: max(0, min(255, int((p - 58) * 255 / 175))))
+          width, height = gray.size
+          values = list(gray.getdata())
+          outside = bytearray(width * height)
+          from collections import deque
+          queue = deque()
+
+          # Remove bright components that touch the panel edge (the frame/canvas),
+          # while keeping the isolated white crest and its lower bars.
+          for x in range(width):
+              if values[x] > 90:
+                  queue.append(x)
+              bottom = (height - 1) * width + x
+              if values[bottom] > 90:
+                  queue.append(bottom)
+          for y in range(height):
+              left = y * width
+              right = left + width - 1
+              if values[left] > 90:
+                  queue.append(left)
+              if values[right] > 90:
+                  queue.append(right)
+          while queue:
+              index = queue.popleft()
+              if outside[index] or values[index] <= 90:
+                  continue
+              outside[index] = 1
+              x = index % width
+              y = index // width
+              if x > 0: queue.append(index - 1)
+              if x + 1 < width: queue.append(index + 1)
+              if y > 0: queue.append(index - width)
+              if y + 1 < height: queue.append(index + width)
+
+          alpha_values = bytearray(width * height)
+          for i, luminance in enumerate(values):
+              if not outside[i]:
+                  alpha_values[i] = max(0, min(255, int((luminance - 58) * 255 / 175)))
+          alpha = Image.frombytes("L", gray.size, bytes(alpha_values))
           bbox = alpha.point(lambda p: 255 if p > 12 else 0).getbbox()
           if not bbox:
               raise RuntimeError("Could not isolate the white crest from the source image")
