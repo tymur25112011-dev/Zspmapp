@@ -1,9 +1,9 @@
-const CACHE_NAME = "zspm-community-shell-v128";
+const CACHE_NAME = "zspm-community-shell-v129";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./download.html",
-  "./public/modern.css?v=87",
+  "./public/modern.css?v=88",
   "./public/app.js?v=80",
   "./public/support-config.js?v=2",
   "./public/supabase-config.js",
