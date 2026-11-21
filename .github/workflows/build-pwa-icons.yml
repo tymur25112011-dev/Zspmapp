@@ -23,7 +23,7 @@ jobs:
 
       - name: Render the exact in-app crest treatment into PNG icons
         run: |
-          python -m pip install --quiet playwright
+          python -m pip install --quiet playwright pillow
           python -m playwright install --with-deps chromium
           python - <<'PY'
           from base64 import b64encode
