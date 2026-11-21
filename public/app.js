@@ -1604,7 +1604,7 @@ async function openPage(page, options = {}) {
     else button.removeAttribute("aria-current");
   });
   const moreButton = $("more-nav-toggle");
-  const morePages = ["profiles","my-profile","friends","forum","polls","updates","settings","admin","bug-report"];
+  const morePages = ["profiles","my-profile","friends","forum","polls","updates","settings","admin","bug-report","support-contact","privacy","support"];
   const isMorePage = morePages.includes(page);
   if (moreButton) {
     moreButton.classList.toggle("active", isMorePage);
@@ -1617,6 +1617,7 @@ async function openPage(page, options = {}) {
   });
   const moreMenu = $("more-nav-menu");
   if (moreMenu) moreMenu.classList.add("hidden");
+  document.body.classList.remove("drawer-open");
   if (moreButton) moreButton.setAttribute("aria-expanded","false");
 }
 
