@@ -1463,11 +1463,23 @@ async function openPage(page, options = {}) {
   }
 
   document.querySelectorAll(".nav-item[data-page]").forEach(button => {
-    button.classList.toggle("active", button.dataset.page === page);
+    const isCurrent = button.dataset.page === page;
+    button.classList.toggle("active", isCurrent);
+    if (isCurrent) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
   });
   const moreButton = $("more-nav-toggle");
   const morePages = ["profiles","my-profile","friends","forum","polls","updates","settings","admin"];
-  if (moreButton) moreButton.classList.toggle("active", morePages.includes(page));
+  const isMorePage = morePages.includes(page);
+  if (moreButton) {
+    moreButton.classList.toggle("active", isMorePage);
+    if (isMorePage) moreButton.setAttribute("aria-current", "page");
+    else moreButton.removeAttribute("aria-current");
+  }
+  document.querySelectorAll(".more-nav-link[data-page]").forEach(button => {
+    if (button.dataset.page === page) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  });
   const moreMenu = $("more-nav-menu");
   if (moreMenu) moreMenu.classList.add("hidden");
   if (moreButton) moreButton.setAttribute("aria-expanded","false");
