@@ -718,7 +718,7 @@ async function enterApp() {
 
   const { data: badgeRow, error: badgeError } = await supabaseClient
     .from("user_badges").select("badge").eq("user_id", currentUser.id).maybeSingle();
-  currentUserBadge = badgeError ? null : (badgeRow?.badge || null);
+  currentUserBadge = badgeError ? "user" : (badgeRow?.badge || "user");
 
   $("auth").classList.add("hidden");
   $("app").classList.remove("hidden");
@@ -1183,7 +1183,7 @@ async function renderAdminPage() {
       '</small><button type="button" class="admin-small-btn" data-admin-action="revoke" data-id="' +
       escapeHTML(m.id) + '">Zdejmij</button></div>').join("");
     const badge = profile.id === currentUser.id ? '<span class="user-role-badge admin-role">ADMIN</span>' :
-      badgeById.get(profile.id) === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : "";
+      badgeById.get(profile.id) === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : '<span class="user-role-badge user-role">USER</span>';
     return '<article class="admin-user-card"><div class="admin-user-head"><div><strong>' +
       escapeHTML(profile.nickname) + '</strong> ' + badge + '<small>' +
       escapeHTML(profile.class_name || "Klasa niepodana") + '</small></div></div>' +
@@ -1728,14 +1728,14 @@ async function loadMyProfileFromSupabase() {
   myProfileCache = await mapDatabaseProfile(data);
   if (myProfileCache) {
     myProfileCache.isAdmin = isAdmin;
-    myProfileCache.badge = isAdmin ? "admin" : currentUserBadge;
+    myProfileCache.badge = isAdmin ? "admin" : (currentUserBadge || "user");
 
     const profiles = getUserProfiles();
     profiles[currentUser.email] = myProfileCache;
     saveUserProfiles(profiles);
     $("user-name").innerHTML = escapeHTML(myProfileCache.nickname) + "!" +
       (isAdmin ? ' <span class="user-role-badge admin-role">ADMIN</span>' :
-        currentUserBadge === "premium" ? ' <span class="user-role-badge premium-role">PREMIUM</span>' : "");
+        currentUserBadge === "premium" ? ' <span class="user-role-badge premium-role">PREMIUM</span>' : ' <span class="user-role-badge user-role">USER</span>');
   }
   return myProfileCache;
 }
@@ -1830,7 +1830,7 @@ async function loadPublicProfilesFromSupabase() {
     const profile = await mapDatabaseProfile(row);
     if (profile) {
       profile.isAdmin = adminIds.has(row.id);
-      profile.badge = profile.isAdmin ? "admin" : (badgeMap.get(row.id) || null);
+      profile.badge = profile.isAdmin ? "admin" : (badgeMap.get(row.id) || "user");
     }
     return profile;
   }))).filter(Boolean);
@@ -1968,9 +1968,15 @@ function communityAuthorHTML(userId, fallbackNickname = "Uczeń") {
     ? profileAvatarHTML({id:userId,nickname,photo:profile?.photo||""},"community-author-avatar")
     : '<span class="community-author-avatar profile-avatar-placeholder" aria-hidden="true">👤</span>';
   const online = Boolean(userId && onlineUsers.has(userId));
+  const roleBadge = profile?.isAdmin
+    ? '<span class="user-role-badge admin-role">ADMIN</span>'
+    : profile?.badge === "premium"
+      ? '<span class="user-role-badge premium-role">PREMIUM</span>'
+      : '<span class="user-role-badge user-role">USER</span>';
   return '<div class="community-author-row">' + avatar +
     (userId ? '<span class="community-author-presence '+(online?'is-online':'is-offline')+'" data-author-presence-user="'+id+'" aria-label="'+(online?'Online':'Offline')+'" title="'+(online?'Online':'Offline')+'"></span>' : '') +
-    '<button type="button" class="community-author-name" '+(userId?'data-open-community-profile="'+id+'"':'disabled')+'>'+escapeHTML(nickname)+'</button></div>';
+    '<button type="button" class="community-author-name" '+(userId?'data-open-community-profile="'+id+'"':'disabled')+'">'+escapeHTML(nickname)+'</button>' +
+    roleBadge + '</div>';
 }
 
 function profileCardHTML(profile, own) {
@@ -1982,7 +1988,8 @@ function profileCardHTML(profile, own) {
   const roleBadge = profile.isAdmin || (profile.id === currentUser?.id && isAdmin)
     ? '<span class="user-role-badge admin-role">ADMIN</span>'
     : profile.badge === "premium"
-      ? '<span class="user-role-badge premium-role">PREMIUM</span>' : "";
+      ? '<span class="user-role-badge premium-role">PREMIUM</span>'
+      : '<span class="user-role-badge user-role">USER</span>';
   const badge = (own ? `<span class="you-badge">Twój profil</span>` : "") + roleBadge;
 
   const action = own
@@ -2889,7 +2896,7 @@ async function loadProfilesByIds(ids) {
   const badgeMap = new Map((badgeRows || []).map(row => [row.user_id, row.badge]));
   mapped.forEach(profile => {
     profile.isAdmin = adminIds.has(profile.id);
-    profile.badge = profile.isAdmin ? "admin" : (badgeMap.get(profile.id) || null);
+    profile.badge = profile.isAdmin ? "admin" : (badgeMap.get(profile.id) || "user");
   });
   const byId = new Map(publicProfilesCache.map(profile => [profile.id, profile]));
   mapped.forEach(profile => byId.set(profile.id, profile));
@@ -3286,7 +3293,7 @@ async function renderChatList() {
         ${profileAvatarHTML(profile, "conv-avatar")}
         <span class="conv-info">
           <span class="conv-topline">
-            <span class="conv-nick">${escapeHTML(profile.nickname)}${profile.isAdmin ? '<span class="user-role-badge admin-role">ADMIN</span>' : profile.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : ""}</span>
+            <span class="conv-nick">${escapeHTML(profile.nickname)}${profile.isAdmin ? '<span class="user-role-badge admin-role">ADMIN</span>' : profile.badge === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : '<span class="user-role-badge user-role">USER</span>'}</span>
             <time class="conv-time">${escapeHTML(time)}</time>
           </span>
           <span class="conv-bottomline">
