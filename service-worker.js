@@ -1,4 +1,4 @@
-const CACHE_NAME = "zspm-community-shell-v139";
+const CACHE_NAME = "zspm-community-shell-v140";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -8,7 +8,9 @@ const APP_SHELL = [
   "./public/support-config.js?v=2",
   "./public/supabase-config.js",
   "./manifest.webmanifest",
-  "./public/zspm-community-icon.svg?v=2",
+  "./public/zspm-community-icon-192.png",
+  "./public/zspm-community-icon-192.png",
+  "./public/zspm-community-icon-512.png",
   
 ];
 
@@ -41,8 +43,8 @@ self.addEventListener("push", event => {
     const title = String(payload.title || "ZSPM Community").slice(0, 100);
     await self.registration.showNotification(title, {
       body: String(payload.body || "Masz nowe powiadomienie.").slice(0, 220),
-      icon: "./public/zspm-community-icon.svg?v=2",
-      badge: "./public/zspm-community-icon.svg?v=2",
+      icon: "./public/zspm-community-icon-192.png",
+      badge: "./public/zspm-community-icon-192.png",
       tag: payload.tag || "zspm-notification",
       data: { url: payload.data?.url || "./" },
       renotify: false
