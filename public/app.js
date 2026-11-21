@@ -1223,6 +1223,7 @@ async function renderAdminPage() {
   const errors = [profilesResult.error,reportsResult.error,moderationResult.error,badgesResult.error].filter(Boolean);
   if (errors.length) console.warn("Admin data load warnings:", errors);
   const profiles = profilesResult.data || [];
+  const adminIds = await loadAdminFlagsByIds(profiles.map(profile => profile.id));
   const storageStats = storageResult.data || {};
   const cleanupPreview = cleanupPreviewResult.data || {};
   const storageLoadError = storageResult.error || cleanupPreviewResult.error;
@@ -1247,7 +1248,7 @@ async function renderAdminPage() {
       '<small>' + escapeHTML(formatModerationExpiry(m.expires_at)) +
       '</small><button type="button" class="admin-small-btn" data-admin-action="revoke" data-id="' +
       escapeHTML(m.id) + '">Zdejmij</button></div>').join("");
-    const badge = profile.id === currentUser.id ? '<span class="user-role-badge admin-role">ADMIN</span>' :
+    const badge = adminIds.has(profile.id) ? '<span class="user-role-badge admin-role">ADMIN</span>' :
       badgeById.get(profile.id) === "premium" ? '<span class="user-role-badge premium-role">PREMIUM</span>' : '<span class="user-role-badge user-role">USER</span>';
     return '<article class="admin-user-card"><div class="admin-user-head"><div><strong>' +
       escapeHTML(profile.nickname) + '</strong> ' + badge + '<small>' +
