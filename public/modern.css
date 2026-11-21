@@ -5744,3 +5744,16 @@ body {
 #app .idea-vote.up{min-width:76px;min-height:40px;font-size:14px;color:#a8b7ce;background:rgba(145,168,204,.08);border-color:rgba(145,168,204,.24)}
 #app .idea-vote.up.selected{color:#ff526f;background:rgba(255,70,98,.13);border-color:rgba(255,82,111,.48);box-shadow:0 0 16px rgba(255,64,94,.08)}
 @media(prefers-reduced-motion:reduce){#app .social-like,#app .msg-action[data-action="like-msg"],#app .msg-action[data-global-action="like"]{transition:none}}
+
+
+/* The approved community mark already has its own colors and transparent styling. */
+#auth .auth-brand-mark img,
+#app .brand-emblem,
+#app .home-hero-symbol img{
+  filter:drop-shadow(0 0 12px rgba(65,170,255,.38)) !important;
+  mix-blend-mode:normal !important;
+}
+#auth .auth-brand-mark,
+#app .brand-emblem{
+  background:rgba(9,22,42,.72);
+}
