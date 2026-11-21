@@ -1919,15 +1919,11 @@ function profileSocialHTML(profile) {
   const likes = Math.max(0, Number(item.likes) || 0);
   const comments = Array.isArray(item.comments) ? item.comments : [];
   const own = profile.id === currentUser?.id;
-  const commentsHTML = comments.map((comment, index) =>
-    '<div class="profile-comment' + (index >= 2 ? ' profile-comment-extra"' : '') + '">' +
-    communityAuthorHTML(comment.author_id,comment.author || "Uczeń") +
-    '<span>' + escapeHTML(comment.text || "") + '</span></div>'
-  ).join("");
-  const commentsToggle = comments.length > 2
-    ? '<button type="button" class="profile-comments-toggle" data-action="toggle-comments" aria-expanded="true">Mniej</button>'
-    : "";
-
+  const renderComment = comment => '<div class="profile-comment">' + communityAuthorHTML(comment.author_id,comment.author || "Uczeń") + '<span>' + escapeHTML(comment.text || "") + '</span></div>';
+  const olderComments = comments.slice(0,Math.max(0,comments.length-2));
+  const latestComments = comments.slice(-2);
+  const commentsHTML = olderComments.map(comment => '<div class="profile-comment profile-comment-extra">' + communityAuthorHTML(comment.author_id,comment.author || "Uczeń") + '<span>' + escapeHTML(comment.text || "") + '</span></div>').join("") + latestComments.map(renderComment).join("");
+  const commentsToggle = comments.length > 2 ? '<button type="button" class="profile-comments-toggle" data-action="toggle-comments" aria-expanded="false">Więcej</button>' : "";
   return '<div class="profile-social">' +
     '<div class="profile-social-actions">' +
     (own ? '<span class="profile-own-likes" aria-label="Liczba polubień">♥ <span>' + likes + '</span> polubień</span>' : '<button type="button" class="social-like' + (liked ? ' liked' : '') +
@@ -1936,12 +1932,9 @@ function profileSocialHTML(profile) {
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.7c0 5.2-8.8 11-8.8 11s-8.8-5.8-8.8-11A4.7 4.7 0 0 1 12 6.1a4.7 4.7 0 0 1 8.8 2.6Z"/></svg>' +
     (liked ? 'Lubisz' : 'Lubię to') + ' <span>' + likes + '</span></button>') +
     '<span class="profile-comment-count">' + comments.length + ' komentarzy</span></div>' +
-    '<div class="profile-comments expanded">' +
-    (commentsHTML || '<p class="no-comments">Jeszcze nie ma komentarzy.</p>') +
-    '</div>' + commentsToggle +
-    '<form class="profile-comment-form" data-profile-id="' +
-    escapeHTML(profile.id) + '">' +
-    '<input type="text" name="comment" maxlength="240" placeholder="Napisz komentarz..." aria-label="Napisz komentarz" required>' +
+    '<div class="profile-comments">' + (commentsHTML || '<p class="no-comments">Jeszcze nie ma komentarzy.</p>') + '</div>' + commentsToggle +
+    '<form class="profile-comment-form" data-profile-id="' + escapeHTML(profile.id) +
+    '"><input type="text" name="comment" maxlength="240" placeholder="Napisz komentarz..." aria-label="Napisz komentarz" required>' +
     '<button type="submit">Dodaj</button></form></div>';
 }
 
