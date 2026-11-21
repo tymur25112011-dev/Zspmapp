@@ -6193,3 +6193,57 @@ body {
   body, body::before, body::after { animation: none !important; }
   .public-feature-card, .public-steps, #auth .card { transition: none !important; }
 }
+
+
+/* Final blue/cyan polish: align authentication and shared controls with the ZSPM palette. */
+:root {
+  --zspm-accent: #55b7ff;
+  --zspm-accent-2: #168dff;
+}
+#auth .logo-icon,
+#app .small-logo-icon {
+  background: linear-gradient(145deg,#65c8ff 0%,#258ee8 54%,#1558ad 100%);
+  box-shadow: 0 10px 28px rgba(22,141,255,.24);
+}
+#auth .main-btn {
+  background: linear-gradient(120deg,#269dff,#1769cf);
+  border: 1px solid rgba(125,199,255,.28);
+  box-shadow: 0 9px 24px rgba(22,141,255,.2);
+}
+#auth .main-btn:hover {
+  filter: brightness(1.07);
+  box-shadow: 0 11px 28px rgba(22,141,255,.27);
+}
+#auth .switch button,
+#auth .field:focus-within label {
+  color: var(--zspm-blue,#4d9dff);
+}
+#auth .field input:focus {
+  border-color: var(--zspm-blue,#4d9dff);
+  box-shadow: 0 0 0 3px color-mix(in srgb,var(--zspm-blue,#4d9dff) 16%,transparent);
+}
+#auth button:focus-visible,
+#app button:focus-visible,
+#app a:focus-visible {
+  outline-color: #69c5ff;
+}
+#app .menu-item:focus-visible,
+#app .nav-item:focus-visible,
+#app .more-nav-link:focus-visible {
+  outline: 2px solid #69c5ff;
+  outline-offset: 3px;
+}
+#app .menu-item,
+#app .page-content,
+#app .profile-card,
+#app .conv-item {
+  -webkit-tap-highlight-color: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  #app .menu-item,
+  #app .nav-item,
+  #auth .main-btn {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
