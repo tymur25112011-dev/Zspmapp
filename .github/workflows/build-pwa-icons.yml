@@ -21,14 +21,15 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Generate self-contained PNG icons from the official crest
+      - name: Render the exact in-app crest treatment into PNG icons
         run: |
-          python -m pip install --quiet pillow
+          python -m pip install --quiet playwright
+          python -m playwright install --with-deps chromium
           python - <<'PY'
-          from io import BytesIO
+          from base64 import b64encode
+          from pathlib import Path
           from urllib.request import Request, urlopen
-          from PIL import Image, ImageDraw, ImageFilter, ImageOps
-          import os
+          from playwright.sync_api import sync_playwright
 
           source_url = "https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741"
           request = Request(source_url, headers={
@@ -37,106 +38,40 @@ jobs:
           })
           with urlopen(request, timeout=30) as response:
               raw = response.read()
-          source = Image.open(BytesIO(raw)).convert("RGBA")
-          print("Official crest source:", source.size)
+          data_uri = "data:image/png;base64," + b64encode(raw).decode("ascii")
 
-          # The official file has a light page canvas around a dark crest panel.
-          # First crop to the dark panel, then turn only its dark background transparent.
-          gray_source = ImageOps.grayscale(source)
-          panel_bbox = gray_source.point(lambda p: 255 if p < 105 else 0).getbbox()
-          if not panel_bbox:
-              raise RuntimeError("Could not locate the dark panel around the official crest")
-          panel = source.crop(panel_bbox)
-          gray = ImageOps.grayscale(panel)
-          width, height = gray.size
-          values = list(gray.getdata())
-          outside = bytearray(width * height)
-          from collections import deque
-          queue = deque()
+          # Render the same official source image with the exact CSS filter,
+          # border, background and glow used by the approved Witaj w ZSPM mark.
+          html = f"""<!doctype html><html><head><meta charset="utf-8"><style>
+          * {{ box-sizing:border-box }}
+          html,body {{ margin:0;width:512px;height:512px;overflow:hidden;background:#050A13 }}
+          img {{
+            display:block;width:512px;height:512px;object-fit:contain;
+            padding:6px;border:1px solid rgba(76,205,255,.62);border-radius:22px;
+            background:linear-gradient(145deg,rgba(11,55,83,.94),rgba(17,35,65,.96));
+            mix-blend-mode:screen;
+            filter:invert(1) sepia(1) saturate(4.2) hue-rotate(164deg) brightness(1.12)
+              drop-shadow(0 0 11px rgba(65,205,255,.5));
+            box-shadow:0 0 20px rgba(28,174,255,.24),0 8px 26px rgba(0,0,0,.22);
+          }}
+          </style></head><body><img src="{data_uri}"></body></html>"""
 
-          # Remove bright components that touch the panel edge (the frame/canvas),
-          # while keeping the isolated white crest and its lower bars.
-          for x in range(width):
-              if values[x] > 90:
-                  queue.append(x)
-              bottom = (height - 1) * width + x
-              if values[bottom] > 90:
-                  queue.append(bottom)
-          for y in range(height):
-              left = y * width
-              right = left + width - 1
-              if values[left] > 90:
-                  queue.append(left)
-              if values[right] > 90:
-                  queue.append(right)
-          while queue:
-              index = queue.popleft()
-              if outside[index] or values[index] <= 90:
-                  continue
-              outside[index] = 1
-              x = index % width
-              y = index // width
-              if x > 0: queue.append(index - 1)
-              if x + 1 < width: queue.append(index + 1)
-              if y > 0: queue.append(index - width)
-              if y + 1 < height: queue.append(index + width)
+          Path("public").mkdir(exist_ok=True)
+          with sync_playwright() as p:
+              browser = p.chromium.launch()
+              page = browser.new_page(viewport={"width":512,"height":512}, device_scale_factor=1)
+              page.set_content(html, wait_until="load")
+              page.screenshot(path="public/zspm-community-icon-512.png", full_page=True)
+              browser.close()
 
-          alpha_values = bytearray(width * height)
-          for i, luminance in enumerate(values):
-              if not outside[i]:
-                  alpha_values[i] = max(0, min(255, int((luminance - 58) * 255 / 175)))
-          alpha = Image.frombytes("L", gray.size, bytes(alpha_values))
-          bbox = alpha.point(lambda p: 255 if p > 12 else 0).getbbox()
-          if not bbox:
-              raise RuntimeError("Could not isolate the white crest from the source image")
-          alpha = alpha.crop(bbox)
-
-          # Compose a full-bleed, Android-friendly square with the same navy/blue
-          # glass treatment used by the app header. The crest geometry is unchanged.
-          size = 512
-          base = Image.new("RGBA", (size, size), (6, 15, 29, 255))
-          pixels = base.load()
-          for y in range(size):
-              t = y / (size - 1)
-              for x in range(size):
-                  glow = max(0.0, 1.0 - (((x - 256) ** 2 + (y - 224) ** 2) ** 0.5) / 360)
-                  pixels[x, y] = (
-                      int(6 + 8 * (1 - t) + 5 * glow),
-                      int(15 + 18 * (1 - t) + 28 * glow),
-                      int(29 + 26 * (1 - t) + 43 * glow),
-                      255
-                  )
-
-          max_crest = 350
-          scale = min(max_crest / alpha.width, max_crest / alpha.height)
-          crest_size = (max(1, round(alpha.width * scale)), max(1, round(alpha.height * scale)))
-          alpha = alpha.resize(crest_size, Image.Resampling.LANCZOS)
-
-          # Subtle cyan glow behind the original white silhouette.
-          glow_mask = Image.new("L", (size, size), 0)
-          gx = (size - crest_size[0]) // 2
-          gy = (size - crest_size[1]) // 2 - 2
-          glow_mask.paste(alpha, (gx, gy))
-          glow_mask = glow_mask.filter(ImageFilter.GaussianBlur(20))
-          glow_layer = Image.new("RGBA", (size, size), (36, 151, 255, 0))
-          glow_layer.putalpha(glow_mask.point(lambda p: int(p * 0.34)))
-          base = Image.alpha_composite(base, glow_layer)
-
-          crest_layer = Image.new("RGBA", crest_size, (151, 211, 255, 0))
-          crest_layer.putalpha(alpha)
-          base.alpha_composite(crest_layer, (gx, gy))
-
-          draw = ImageDraw.Draw(base)
-          draw.rounded_rectangle((22, 22, 490, 490), radius=104,
-                                 outline=(63, 170, 255, 220), width=6)
-          draw.rounded_rectangle((38, 38, 474, 474), radius=90,
-                                 outline=(156, 207, 255, 55), width=2)
-
-          os.makedirs("public", exist_ok=True)
-          base.convert("RGB").save("public/zspm-community-icon-512.png", optimize=True)
-          base.resize((192, 192), Image.Resampling.LANCZOS).convert("RGB").save(
+          from PIL import Image
+          icon = Image.open("public/zspm-community-icon-512.png").convert("RGB")
+          if icon.size != (512,512):
+              raise RuntimeError(f"Unexpected icon dimensions: {icon.size}")
+          icon.resize((192,192),Image.Resampling.LANCZOS).save(
               "public/zspm-community-icon-192.png", optimize=True
           )
+          print("Created exact-style 512px and 192px PNG icons from official BIP crest")
           PY
 
       - name: Commit generated icons
