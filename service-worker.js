@@ -1,4 +1,4 @@
-const CACHE_NAME = "zspm-community-shell-v136";
+const CACHE_NAME = "zspm-community-shell-v137";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -8,7 +8,7 @@ const APP_SHELL = [
   "./public/support-config.js?v=2",
   "./public/supabase-config.js",
   "./manifest.webmanifest",
-  "./public/zspm-community-icon.svg",
+  "./public/zspm-community-icon.svg?v=2",
   
 ];
 
@@ -41,8 +41,8 @@ self.addEventListener("push", event => {
     const title = String(payload.title || "ZSPM Community").slice(0, 100);
     await self.registration.showNotification(title, {
       body: String(payload.body || "Masz nowe powiadomienie.").slice(0, 220),
-      icon: "https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741",
-      badge: "https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741",
+      icon: "./public/zspm-community-icon.svg?v=2",
+      badge: "./public/zspm-community-icon.svg?v=2",
       tag: payload.tag || "zspm-notification",
       data: { url: payload.data?.url || "./" },
       renotify: false
