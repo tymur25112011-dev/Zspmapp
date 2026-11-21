@@ -1,4 +1,4 @@
-const CACHE_NAME = "zspm-community-shell-v146";
+const CACHE_NAME = "zspm-community-shell-v147";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -28,7 +28,7 @@ self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+        keys.filter(key => key.startsWith("zspm-community-shell-") && key !== CACHE_NAME).map(key => caches.delete(key))
       ))
       .then(() => self.clients.claim())
   );
@@ -57,7 +57,16 @@ self.addEventListener("push", event => {
 self.addEventListener("notificationclick", event => {
   event.notification.close();
   event.waitUntil((async () => {
-    const target = new URL(event.notification.data?.url || "./", self.registration.scope).href;
+    const scopeUrl = new URL(self.registration.scope);
+    let target = new URL("./", scopeUrl).href;
+    try {
+      const requested = new URL(event.notification.data?.url || "./", scopeUrl);
+      const isInsideApp = requested.origin === scopeUrl.origin &&
+        requested.pathname.startsWith(scopeUrl.pathname);
+      if (isInsideApp) target = requested.href;
+    } catch {
+      // Keep the safe in-app fallback for malformed notification URLs.
+    }
     const clientsList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     for (const client of clientsList) {
       if ("focus" in client) {
@@ -86,7 +95,10 @@ self.addEventListener("fetch", event => {
           }
           return response;
         })
-        .catch(async () => (await caches.match(request)) || caches.match("./index.html"))
+        .catch(async () => {
+          const cache = await caches.open(CACHE_NAME);
+          return (await cache.match(request)) || (await cache.match("./index.html"));
+        })
     );
     return;
   }
@@ -95,15 +107,15 @@ self.addEventListener("fetch", event => {
   if (!isAppAsset) return;
 
   event.respondWith(
-    caches.match(request).then(cached => {
+    caches.open(CACHE_NAME).then(async cache => {
+      const cached = await cache.match(request);
       if (cached) return cached;
-      return fetch(request).then(response => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-        }
-        return response;
-      });
+      const response = await fetch(request);
+      if (response.ok) {
+        const copy = response.clone();
+        await cache.put(request, copy);
+      }
+      return response;
     })
   );
 });
