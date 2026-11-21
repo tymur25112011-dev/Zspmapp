@@ -13,8 +13,9 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741",
-      "sizes": "300x300",
+      "src": "./public/zspm-community-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any"
     }
   ]
