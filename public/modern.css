@@ -6513,3 +6513,65 @@ body::after {
 #page-content .profile-card .profile-comments.expanded .profile-comment-extra:not([hidden]) {
   display: flex !important;
 }
+
+
+/* Corrected global overrides for the profile social controls and wallpaper. */
+html, body {
+  background-color: #080d1d !important;
+}
+body {
+  isolation: isolate !important;
+  background:
+    radial-gradient(ellipse at 9% 8%, rgba(107, 93, 255, .30), transparent 34rem),
+    radial-gradient(ellipse at 92% 19%, rgba(26, 198, 218, .22), transparent 32rem),
+    radial-gradient(ellipse at 52% 96%, rgba(176, 91, 235, .20), transparent 40rem),
+    linear-gradient(135deg, #070b19 0%, #111a35 48%, #090d1d 100%) !important;
+  background-attachment: fixed !important;
+}
+body::before {
+  z-index: -1 !important;
+  opacity: .9 !important;
+  background:
+    radial-gradient(ellipse at 24% 34%, rgba(86, 119, 255, .16), transparent 28rem),
+    radial-gradient(ellipse at 80% 70%, rgba(45, 210, 218, .12), transparent 30rem),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.026) 0 1px, transparent 1px 66px) !important;
+}
+#app.container,
+#auth.container,
+#app #other-page,
+#app #home-page,
+#app #page-content {
+  background-color: transparent !important;
+}
+#app.container,
+#auth.container {
+  background: transparent !important;
+}
+#app #page-content .profile-card .profile-social button.social-like:not(.liked) {
+  color: #aeb8c9 !important;
+  background: rgba(148, 163, 184, .13) !important;
+  border: 1px solid rgba(174, 184, 201, .42) !important;
+  box-shadow: none !important;
+}
+#app #page-content .profile-card .profile-social button.social-like:not(.liked) svg {
+  color: inherit !important;
+  fill: none !important;
+  stroke: currentColor !important;
+}
+#app #page-content .profile-card .profile-social button.social-like.liked {
+  color: #ff4968 !important;
+  background: rgba(255, 73, 104, .19) !important;
+  border: 1px solid rgba(255, 73, 104, .68) !important;
+  box-shadow: 0 0 16px rgba(255, 64, 94, .18) !important;
+}
+#app #page-content .profile-card .profile-social button.social-like.liked svg {
+  color: inherit !important;
+  fill: currentColor !important;
+  stroke: currentColor !important;
+}
+#app #page-content .profile-comment-extra[hidden] {
+  display: none !important;
+}
+#app #page-content .profile-comment-extra:not([hidden]) {
+  display: flex !important;
+}
