@@ -1075,7 +1075,7 @@ async function renderCommunityAnnouncementsPage(){await renderCommunityEventsPag
 
 function renderSupportContactPage() {
   const host = $("page-content");
-  const mailtoUrl = "mailto:zspmcommunity.support@gmail.com?subject=" + encodeURIComponent("Pomoc techniczna — ZSPM Community") + "&body=" + encodeURIComponent("Cześć!\\n\\nPotrzebuję pomocy z aplikacją ZSPM Community.\\n\\nOpis problemu:\\n");
+  const mailtoUrl = "mailto:zspmcommunity.support@gmail.com?subject=" + encodeURIComponent("Pomoc techniczna — ZSPM Community") + "&body=" + encodeURIComponent("Cześć!\n\nPotrzebuję pomocy z aplikacją ZSPM Community.\n\nOpis problemu:\n");
   host.innerHTML = '<section class="page-content support-contact-page">' +
     '<div class="support-contact-symbol" aria-hidden="true">✉</div>' +
     '<span class="community-feature-kicker">ZSPM COMMUNITY · SUPPORT</span>' +
