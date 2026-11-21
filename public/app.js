@@ -3,6 +3,7 @@
 const $ = id => document.getElementById(id);
 
 const THEME_KEY = "zspm_community_theme";
+const WALLPAPER_KEY = "zspm_community_wallpaper";
 const APP_LANG_KEY="zspm_community_language";
 const APP_LANGS={"pl":{"lang":"Język aplikacji","intro":"Wybierz język całej aplikacji.","appearance":"Wygląd aplikacji","appearanceDesc":"Wybierz motyw interfejsu. Ustawienie zostanie zapamiętane na tym urządzeniu.","theme":"Motyw","push":"Powiadomienia na telefonie","pushDesc":"Otrzymuj powiadomienia o nowych wiadomościach i aktywności, nawet gdy aplikacja jest zamknięta. Wymagana jest zgoda systemu Android.","pushCheck":"Sprawdzanie ustawień...","pushOn":"Włącz powiadomienia","pushOff":"Wyłącz powiadomienia","privacy":"Prywatność","privacyDesc":"Ustawienia prywatności profilu są zapisywane na Twoim koncie.","visible":"Ankieta widoczna na liście","visibleDesc":"Gdy wyłączysz, Twój profil nie będzie wyświetlany w sekcji „Ankiety uczniów”.","showClass":"Pokazuj klasę w ankiecie","classDesc":"Ukrywa numer klasy na Twoim profilu publicznym.","showInterests":"Pokazuj zainteresowania w ankiecie","interestsDesc":"Ukrywa Twoje zainteresowania na profilu publicznym.","logout":"Wyloguj się"},"en":{"lang":"App language","intro":"Choose the language used across the app.","appearance":"App appearance","appearanceDesc":"Choose the interface theme. This setting is saved on this device.","theme":"Theme","push":"Phone notifications","pushDesc":"Receive notifications about new messages and activity even when the app is closed. Android permission is required.","pushCheck":"Checking settings...","pushOn":"Enable notifications","pushOff":"Disable notifications","privacy":"Privacy","privacyDesc":"Your profile privacy settings are saved to your account.","visible":"Show questionnaire in the list","visibleDesc":"When disabled, your profile will not appear in Student questionnaires.","showClass":"Show class in questionnaire","classDesc":"Hides your class on your public profile.","showInterests":"Show interests in questionnaire","interestsDesc":"Hides your interests on your public profile.","logout":"Log out"},"ru":{"lang":"Язык приложения","intro":"Выберите язык всего приложения.","appearance":"Внешний вид приложения","appearanceDesc":"Выберите тему интерфейса. Настройка сохранится на этом устройстве.","theme":"Тема","push":"Уведомления на телефоне","pushDesc":"Получайте уведомления о новых сообщениях и активности, даже когда приложение закрыто. Требуется разрешение Android.","pushCheck":"Проверка настроек...","pushOn":"Включить уведомления","pushOff":"Отключить уведомления","privacy":"Приватность","privacyDesc":"Настройки приватности профиля сохраняются в вашем аккаунте.","visible":"Показывать анкету в списке","visibleDesc":"Если отключить, ваш профиль не будет отображаться в разделе анкет учеников.","showClass":"Показывать класс в анкете","classDesc":"Скрывает номер класса в публичном профиле.","showInterests":"Показывать интересы в анкете","interestsDesc":"Скрывает ваши интересы в публичном профиле.","logout":"Выйти"},"uk":{"lang":"Мова застосунку","intro":"Виберіть мову всього застосунку.","appearance":"Вигляд застосунку","appearanceDesc":"Виберіть тему інтерфейсу. Налаштування збережеться на цьому пристрої.","theme":"Тема","push":"Сповіщення на телефоні","pushDesc":"Отримуйте сповіщення про нові повідомлення та активність, навіть коли застосунок закрито. Потрібен дозвіл Android.","pushCheck":"Перевірка налаштувань...","pushOn":"Увімкнути сповіщення","pushOff":"Вимкнути сповіщення","privacy":"Приватність","privacyDesc":"Налаштування приватності профілю зберігаються у вашому обліковому записі.","visible":"Показувати анкету у списку","visibleDesc":"Якщо вимкнути, ваш профіль не відображатиметься в анкетах учнів.","showClass":"Показувати клас в анкеті","classDesc":"Приховує номер класу у вашому публічному профілі.","showInterests":"Показувати інтереси в анкеті","interestsDesc":"Приховує ваші інтереси у публічному профілі.","logout":"Вийти"}};
 let appLanguage=(()=>{try{const v=localStorage.getItem(APP_LANG_KEY);return APP_LANGS[v]?v:"pl";}catch(e){return "pl";}})();
@@ -431,6 +432,13 @@ function applyTheme(theme) {
   } catch (error) {}
 }
 
+const WALLPAPER_OPTIONS = ["aurora","ocean","midnight","sunset","emerald","rose","graphite"];
+function applyWallpaper(wallpaper) {
+  const selected = WALLPAPER_OPTIONS.includes(wallpaper) ? wallpaper : "aurora";
+  document.documentElement.dataset.wallpaper = selected;
+  try { localStorage.setItem(WALLPAPER_KEY, selected); } catch (error) {}
+}
+
 const CHRISTMAS_KEY = "zspm_christmas_decorations";
 function applyChristmasDecorations(enabled) {
   const active = enabled !== false;
@@ -447,6 +455,7 @@ function applyChristmasDecorations(enabled) {
 
 try {
   applyTheme(localStorage.getItem(THEME_KEY) || "system");
+  applyWallpaper(localStorage.getItem(WALLPAPER_KEY) || "aurora");
   applyChristmasDecorations(localStorage.getItem(CHRISTMAS_KEY) !== "off");
 } catch (error) {
   applyTheme("system");
@@ -1064,6 +1073,31 @@ async function renderCommunityDailyQuestsPage() {
 
 async function renderCommunityAnnouncementsPage(){await renderCommunityEventsPage("announcement");}
 
+function renderSupportContactPage() {
+  const host = $("page-content");
+  const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=zspmcommunity.support@gmail.com&su=" + encodeURIComponent("Pomoc techniczna — ZSPM Community");
+  host.innerHTML = '<section class="page-content support-contact-page">' +
+    '<div class="support-contact-symbol" aria-hidden="true">✉</div>' +
+    '<span class="community-feature-kicker">ZSPM COMMUNITY · SUPPORT</span>' +
+    '<h2>Jesteśmy tutaj, aby pomóc</h2>' +
+    '<p>Masz pytanie, napotkałeś problem lub potrzebujesz pomocy z aplikacją? Napisz do naszego zespołu wsparcia. Postaramy się odpowiedzieć tak szybko, jak to możliwe.</p>' +
+    '<a class="support-contact-cta" href="' + gmailUrl + '" target="_blank" rel="noopener noreferrer">Napisz <span aria-hidden="true">↗</span></a>' +
+    '<small>Adres: zspmcommunity.support@gmail.com</small>' +
+    '</section>';
+}
+
+function renderPrivacyPage() {
+  const host = $("page-content");
+  host.innerHTML = '<section class="page-content privacy-hub-page">' +
+    '<span class="community-feature-kicker">ZSPM COMMUNITY · PRIVACY</span>' +
+    '<h2>Twoja prywatność ma znaczenie</h2>' +
+    '<p>Możesz kontrolować widoczność swojego profilu oraz informacje wyświetlane innym osobom. Szczegółowe zasady przetwarzania danych znajdziesz w dokumentach aplikacji.</p>' +
+    '<button type="button" class="privacy-hub-action" data-page="settings">Ustawienia prywatności profilu <span>→</span></button>' +
+    '<a class="privacy-hub-action secondary" href="./polityka-prywatnosci.html">Polityka prywatności <span>↗</span></a>' +
+    '<a class="privacy-hub-action secondary" href="./polityka-bezpieczenstwa.html">Zasady bezpieczeństwa <span>↗</span></a>' +
+    '</section>';
+}
+
 // NAWIGACJA
 
 const pages = {
@@ -1116,6 +1150,18 @@ const pages = {
   settings: {
     title: "Ustawienia",
     subtitle: "Zarządzaj swoim kontem",
+    content: ""
+  },
+
+  "support-contact": {
+    title: "Pomoc techniczna",
+    subtitle: "Skontaktuj się z zespołem ZSPM Community",
+    content: ""
+  },
+
+  privacy: {
+    title: "Prywatność",
+    subtitle: "Zasady i ustawienia prywatności",
     content: ""
   },
 
@@ -1524,6 +1570,10 @@ async function openPage(page, options = {}) {
       await renderNotificationsPage();
     } else if (page === "settings") {
       renderSettingsPage();
+    } else if (page === "support-contact") {
+      renderSupportContactPage();
+    } else if (page === "privacy") {
+      renderPrivacyPage();
     } else if (page === "ideas") {
       await renderIdeasPage();
     } else if (page === "forum") {
@@ -2574,12 +2624,22 @@ async function refreshPhonePushSettings() {
 function renderSettingsPage() {
   const myProfile=getMyProfile(),privacy=myProfile?.privacy||{...DEFAULT_PRIVACY};
   const selectedTheme=document.documentElement.dataset.theme||"system";
+  const selectedWallpaper=document.documentElement.dataset.wallpaper||"aurora";
   const christmasEnabled=!document.getElementById("christmas-decorations")?.classList.contains("hidden");
   const languages=[["pl","🇵🇱","Polski"],["en","🇬🇧","English"],["ru","🇷🇺","Русский"],["uk","🇺🇦","Українська"]];
   const themes=[
     ["system","◐",appLanguage==="ru"?"Системная":appLanguage==="uk"?"Системна":appLanguage==="en"?"System":"Systemowy",appLanguage==="ru"?"Стандартный вид":appLanguage==="uk"?"Стандартний вигляд":appLanguage==="en"?"Default appearance":"Domyślny wygląd"],
     ["dark","☾","DarkOS",appLanguage==="ru"?"Тёмная синяя тема":appLanguage==="uk"?"Темна синя тема":appLanguage==="en"?"Deep blue dark theme":"Ciemny niebieski motyw"],
     ["liquid-glass","✧","Liquid Glass",appLanguage==="ru"?"Стеклянные эффекты":appLanguage==="uk"?"Скляні ефекти":appLanguage==="en"?"Glass interface effects":"Szklane efekty interfejsu"]
+  ];
+  const wallpapers=[
+    ["aurora","Aurora","Fioletowe zorze i chłodne światło"],
+    ["ocean","Ocean","Głębia oceanu i turkusowe fale"],
+    ["midnight","Midnight","Granatowa noc z błękitnym blaskiem"],
+    ["sunset","Sunset","Ciepły róż, bursztyn i śliwka"],
+    ["emerald","Emerald","Szmaragdowa zieleń i morski błękit"],
+    ["rose","Rose","Różowe światło i lawendowe cienie"],
+    ["graphite","Graphite","Minimalistyczny grafit i srebro"]
   ];
   $("page-content").innerHTML=`
     <section class="page-content settings-choice-panel language-panel">
@@ -2591,6 +2651,10 @@ function renderSettingsPage() {
       <div class="settings-theme-grid">${themes.map(([id,icon,name,desc])=>`<button type="button" class="settings-choice theme-choice theme-${id} ${selectedTheme===id?"selected":""}" data-theme-choice="${id}" aria-pressed="${selectedTheme===id}"><span class="theme-preview"><i></i><i></i><i></i></span><span class="choice-copy"><strong>${icon} ${name}</strong><small>${desc}</small></span><span class="choice-check">✓</span></button>`).join("")}</div>
       <div class="switch-row"><div><div class="switch-label">Christmas Update</div><div class="switch-hint">${appLanguage==="ru"?"Временное рождественское оформление: гирлянда, снег, ёлка и снеговик.":appLanguage==="uk"?"Тимчасове різдвяне оформлення: гірлянда, сніг, ялинка та сніговик.":appLanguage==="en"?"Temporary Christmas decorations: garland, snow, tree and snowman.":"Tymczasowe dekoracje świąteczne: girlanda, śnieg, choinka i bałwan."}</div></div><label class="toggle"><input type="checkbox" id="christmas-toggle" ${christmasEnabled?"checked":""}><span class="slider"></span></label></div>
     </section>
+    <section class="page-content settings-wallpaper-panel">
+      <div class="settings-panel-heading"><span class="settings-panel-icon">✦</span><div><h3>Tło ekranu głównego</h3><p>Wybierz kolorystykę i klimat swojego ekranu. Zmiana zapisuje się na tym urządzeniu.</p></div></div>
+      <div class="wallpaper-picker-grid">${wallpapers.map(([id,name,desc])=>'<button type="button" class="wallpaper-choice '+(selectedWallpaper===id?'selected':'')+'" data-wallpaper-choice="'+id+'" aria-pressed="'+(selectedWallpaper===id)+'"><span class="wallpaper-preview wallpaper-'+id+'"><i></i><i></i></span><span class="wallpaper-choice-copy"><strong>'+name+'</strong><small>'+desc+'</small></span><span class="wallpaper-check">✓</span></button>').join("")}</div>
+    </section>
     <div class="page-content"><h3>${tr("push")}</h3><p>${tr("pushDesc")}</p><p id="push-settings-status" class="switch-hint">${tr("pushCheck")}</p><button type="button" class="main-btn" id="push-enable-button">${tr("pushOn")}</button><button type="button" class="logout" id="push-disable-button" hidden>${tr("pushOff")}</button></div>
     <div class="page-content"><h3>${tr("privacy")}</h3><p>${tr("privacyDesc")}</p>
       <div class="switch-row"><div><div class="switch-label">${tr("visible")}</div><div class="switch-hint">${tr("visibleDesc")}</div></div><label class="toggle"><input type="checkbox" id="privacy-visible" ${privacy.visible!==false?"checked":""}><span class="slider"></span></label></div>
@@ -2599,6 +2663,7 @@ function renderSettingsPage() {
     <button class="logout" id="logout-button">${tr("logout")}</button>`;
   document.querySelectorAll("[data-language-choice]").forEach(b=>b.addEventListener("click",()=>setAppLanguage(b.dataset.languageChoice)));
   document.querySelectorAll("[data-theme-choice]").forEach(b=>b.addEventListener("click",()=>{applyTheme(b.dataset.themeChoice);renderSettingsPage();}));
+  document.querySelectorAll("[data-wallpaper-choice]").forEach(b=>b.addEventListener("click",()=>{applyWallpaper(b.dataset.wallpaperChoice);renderSettingsPage();}));
   const on=$("push-enable-button"),off=$("push-disable-button");
   if(on)on.addEventListener("click",async()=>{on.disabled=true;try{await enablePhonePush();}catch(error){const st=$("push-settings-status");if(st)st.textContent=error.message||"Error";}finally{on.disabled=false;await refreshPhonePushSettings();}});
   if(off)off.addEventListener("click",async()=>{off.disabled=true;try{await disablePhonePush();}catch(error){const st=$("push-settings-status");if(st)st.textContent=error.message||"Error";}finally{off.disabled=false;await refreshPhonePushSettings();}});
@@ -4685,3 +4750,27 @@ async function restoreSupabaseSession() {
 }
 
 restoreSupabaseSession();
+
+
+// Performance: defer off-screen community imagery without delaying the brand/header assets.
+(function setupLazyCommunityImages() {
+  const excluded = "img.brand-emblem, .home-hero img, #launch-splash img, img[loading='eager']";
+  const markLazy = root => {
+    if (!root || root.nodeType !== 1) return;
+    if (root.matches?.("img") && !root.matches(excluded)) {
+      if (!root.hasAttribute("loading")) root.loading = "lazy";
+      if (!root.hasAttribute("decoding")) root.decoding = "async";
+    }
+    root.querySelectorAll?.("img:not([loading])").forEach(img => {
+      if (!img.matches(excluded)) { img.loading = "lazy"; img.decoding = "async"; }
+    });
+  };
+  if (!("MutationObserver" in window)) return;
+  markLazy(document.body);
+  const observer = new MutationObserver(records => {
+    for (const record of records) {
+      record.addedNodes.forEach(node => { if (node.nodeType === 1) markLazy(node); });
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
