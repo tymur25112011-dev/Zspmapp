@@ -1192,6 +1192,21 @@ function updateAdminHomeCard() {
     grid.appendChild(card);
     card.addEventListener("click", () => openPage("admin"));
   }
+
+  // Apply the priority order at runtime as well as in the HTML, so dynamic
+  // cards and cached markup cannot restore the old menu arrangement.
+  const priority = [
+    "feed","events","announcements","chat","groups","timetable","planner",
+    "polls","forum","search","profiles","friends","my-profile","favorites",
+    "quests","updates","ranking","ideas","information","settings",
+    "cosmetics","support","bug-report","admin"
+  ];
+  const rank = new Map(priority.map((page, index) => [page, index]));
+  [...grid.querySelectorAll(":scope > .menu-item")].sort((a, b) => {
+    const aRank = rank.has(a.dataset.page) ? rank.get(a.dataset.page) : 999;
+    const bRank = rank.has(b.dataset.page) ? rank.get(b.dataset.page) : 999;
+    return aRank - bRank;
+  }).forEach(card => grid.appendChild(card));
 }
 
 function formatModerationExpiry(value) {
