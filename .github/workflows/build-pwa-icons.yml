@@ -40,18 +40,15 @@ jobs:
           source = Image.open(BytesIO(raw)).convert("RGBA")
           print("Official crest source:", source.size)
 
-          # The BIP file is a white crest on a dark square. Convert only that
-          # dark canvas to transparency while preserving the original crest silhouette.
-          alpha = source.getchannel("A")
-          if alpha.getextrema() == (255, 255):
-              gray = ImageOps.grayscale(source)
-              alpha = gray.point(lambda p: max(0, min(255, int((p - 38) * 255 / 190))))
-          else:
-              gray = ImageOps.grayscale(source)
-              luminance_mask = gray.point(lambda p: max(0, min(255, int((p - 24) * 255 / 205))))
-              from PIL import ImageChops
-              alpha = ImageChops.multiply(alpha, luminance_mask)
-
+          # The official file has a light page canvas around a dark crest panel.
+          # First crop to the dark panel, then turn only its dark background transparent.
+          gray_source = ImageOps.grayscale(source)
+          panel_bbox = gray_source.point(lambda p: 255 if p < 105 else 0).getbbox()
+          if not panel_bbox:
+              raise RuntimeError("Could not locate the dark panel around the official crest")
+          panel = source.crop(panel_bbox)
+          gray = ImageOps.grayscale(panel)
+          alpha = gray.point(lambda p: max(0, min(255, int((p - 58) * 255 / 175))))
           bbox = alpha.point(lambda p: 255 if p > 12 else 0).getbbox()
           if not bbox:
               raise RuntimeError("Could not isolate the white crest from the source image")
