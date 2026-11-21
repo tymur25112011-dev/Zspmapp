@@ -5802,3 +5802,22 @@ body {
   border-radius:27px;
   box-shadow:0 0 0 1px rgba(105,181,255,.4),0 0 42px rgba(31,132,255,.34);
 }
+
+
+/* One canonical treatment for every official crest instance.
+   The Witaj w ZSPM hero crest is the visual reference. */
+#launch-splash .launch-inner > img,
+#auth .auth-brand-mark img,
+#app .brand-emblem,
+#app .home-hero-symbol img {
+  display:block !important;
+  object-fit:contain !important;
+  padding:6px !important;
+  border:1px solid rgba(76,205,255,.62) !important;
+  border-radius:22px !important;
+  background:linear-gradient(145deg,rgba(11,55,83,.94),rgba(17,35,65,.96)) !important;
+  mix-blend-mode:screen !important;
+  filter:invert(1) sepia(1) saturate(4.2) hue-rotate(164deg) brightness(1.12)
+    drop-shadow(0 0 11px rgba(65,205,255,.5)) !important;
+  box-shadow:0 0 20px rgba(28,174,255,.24),0 8px 26px rgba(0,0,0,.22) !important;
+}
