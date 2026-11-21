@@ -1694,7 +1694,7 @@ async function renderRankingPage() {
   const donationRows = (donationsResult.data || []).filter(r => names.has(r.user_id)).sort((a,b)=>Number(b.amount)-Number(a.amount));
   const activityRows = (activityResult.data || []).filter(r => names.has(r.user_id)).sort((a,b)=>Number(b.active_seconds)-Number(a.active_seconds));
   const likeRows = [...likes.entries()].map(([user_id,count]) => ({user_id,count})).filter(r => names.has(r.user_id)).sort((a,b)=>b.count-a.count);
-  await loadProfilesByIds([...new Set([...donationRows,...activityRows,...likeRows].map(row=>row.user_id))]);
+  await loadProfilesByIds([...new Set([...donationRows.slice(0,10),...activityRows.slice(0,10),...likeRows.slice(0,10)].map(row=>row.user_id))]);
   const rankingHTML = (rows,valueFn) => {
     const top=rows.slice(0,10);
     if(!top.length) return '<div class="community-empty-state"><strong>Ranking jest jeszcze pusty.</strong><small>Wyniki pojawią się tutaj wraz z aktywnością społeczności.</small></div>';
