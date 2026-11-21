@@ -3,12 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#08111f">
-  <meta name="description" content="Zainstaluj ZSPM Community — społeczność uczniów, rozmowy i poznawanie nowych osób.">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="Poznaj ZSPM Community — miejsce do poznawania uczniów, rozmów i szkolnych inspiracji. Zainstaluj PWA lub korzystaj w przeglądarce.">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./public/zspm-community-icon-192.png">
   <link rel="apple-touch-icon" href="./public/zspm-community-icon-192.png">
-  <title>Zainstaluj ZSPM Community</title>
+  <title>ZSPM Community — poznaj swoją społeczność</title>
+  <meta property="og:title" content="ZSPM Community — poznaj swoją społeczność">
+  <meta property="og:description" content="Poznawaj uczniów, rozmawiaj i miej szkolną społeczność pod ręką.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tymur25112011-dev.github.io/Zspmapp/download.html">
   <style>
     :root{color-scheme:dark;--bg:#08111f;--panel:#101e32;--line:rgba(126,177,255,.2);--text:#f2f7ff;--muted:#9db1ca;--blue:#4d9dff;--blue2:#246bd6}
     *{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;min-height:100vh;padding:24px;color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 50% -10%,rgba(54,123,220,.27),transparent 38rem),linear-gradient(160deg,#08111f,#0c1729 60%,#080f1b)}
@@ -132,13 +136,131 @@
         drop-shadow(0 0 11px rgba(65,205,255,.5)) !important;
       box-shadow:0 0 20px rgba(28,174,255,.24),0 8px 26px rgba(0,0,0,.22) !important;
     }
+
+    /* Refined download landing page — premium, spacious and mobile-first */
+    :root{--bg:#07111f;--panel:#0e1d31;--line:rgba(137,180,231,.17);--muted:#9db1ca;--blue:#65adff;--blue2:#286fd1}
+    body{padding:22px clamp(16px,3vw,34px);background:radial-gradient(ellipse at 50% -12%,rgba(43,119,213,.28),transparent 42rem),radial-gradient(ellipse at 95% 50%,rgba(21,83,147,.11),transparent 32rem),linear-gradient(155deg,#07111f,#0a1729 58%,#060e19)}
+    .wrap{width:min(100%,1040px)}
+    .top{justify-content:space-between;padding:12px 0 22px;border-bottom:1px solid rgba(137,180,231,.1)}
+    .top-brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}
+    .top-nav{display:flex;align-items:center;gap:7px}
+    .top-nav a{padding:9px 12px;border:1px solid transparent;border-radius:999px;color:#a9bfd9;text-decoration:none;font-size:12px;font-weight:650;transition:background .18s,border-color .18s,color .18s}
+    .top-nav a:hover{color:#fff;border-color:var(--line);background:rgba(72,130,199,.1)}
+    .top img{width:42px;height:42px}
+    .showcase{min-height:445px;margin-top:18px;border:1px solid rgba(133,180,255,.12);border-radius:28px;padding-top:20px;background:radial-gradient(ellipse at 72% 52%,rgba(31,107,194,.17),transparent 42%),radial-gradient(ellipse at 12% 0,rgba(37,99,180,.12),transparent 44%),linear-gradient(145deg,#081322,#0a1729 58%,#07111f)}
+    .showcase-inner{min-height:405px;grid-template-columns:.92fr 1.08fr;gap:24px;padding:0 28px}
+    .showcase-copy{padding-bottom:30px}
+    .showcase-copy h2{font-size:clamp(34px,4.7vw,53px);line-height:1.02;letter-spacing:-2px}
+    .showcase-copy p{font-size:14px;line-height:1.8}
+    .showcase-points span{border-color:rgba(138,185,244,.2);background:rgba(19,43,72,.6);padding:8px 12px}
+    .device-stage{transform:scale(.98);transform-origin:center}
+    .device{box-shadow:0 30px 75px rgba(0,0,0,.48),0 0 0 1px rgba(138,185,244,.12)}
+    main{text-align:left;padding:54px 0 24px}
+    main>.app-icon,main>.eyebrow,main>h1,main>.lead{display:block;margin-left:auto;margin-right:auto;text-align:center}
+    main>.app-icon{margin-bottom:19px}
+    main>.eyebrow{width:max-content;max-width:100%;margin-bottom:0}
+    main>h1{font-size:clamp(34px,6vw,52px);margin-top:17px}
+    main>.lead{max-width:650px;font-size:15px}
+    .actions{grid-template-columns:1fr 1fr;width:min(100%,500px);margin-top:27px}
+    .btn{min-height:58px;border-radius:16px}
+    .primary{background:linear-gradient(120deg,#4da4ff,#2868ce);box-shadow:0 14px 35px rgba(36,107,214,.25)}
+    .secondary{background:rgba(18,34,55,.65);border-color:rgba(137,180,231,.25)}
+    .hint{text-align:center}
+    .features{grid-template-columns:repeat(3,1fr);gap:14px;margin:38px 0 0}
+    .feature{min-height:142px;padding:20px;border-radius:19px;background:linear-gradient(150deg,rgba(18,37,61,.92),rgba(10,24,41,.82));transition:transform .2s,border-color .2s}
+    .feature:hover,.detail-card:hover{transform:translateY(-3px);border-color:rgba(101,173,255,.38)}
+    .feature .ico{display:grid;place-items:center;width:42px;height:42px;border:1px solid rgba(101,173,255,.19);border-radius:14px;background:rgba(45,112,188,.14)}
+    .feature b{font-size:14px;margin:13px 0 7px}
+    .feature p{font-size:12px}
+    .details-section,.install-section,.faq-section{margin-top:76px}
+    .section-heading{max-width:660px;margin:0 auto 25px;text-align:center}
+    .section-kicker{color:#83bdff;font-size:10px;font-weight:850;letter-spacing:2.1px}
+    .section-heading h2,.install-copy h2{margin:10px 0 12px;color:#f5f8ff;font-size:clamp(27px,4.5vw,40px);line-height:1.08;letter-spacing:-1.3px}
+    .section-heading h2 span,.install-copy h2 span{color:#76b7ff}
+    .section-heading p,.install-copy>p{max-width:630px;margin:0 auto;color:var(--muted);font-size:13px;line-height:1.8}
+    .detail-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .detail-card{min-height:220px;padding:20px 17px;border:1px solid var(--line);border-radius:19px;background:linear-gradient(155deg,rgba(17,35,58,.92),rgba(10,22,38,.82));transition:transform .2s,border-color .2s}
+    .detail-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:rgba(48,117,196,.15);border:1px solid rgba(101,173,255,.2);color:#83bdff;font-size:21px}
+    .detail-number{margin-top:18px;color:#79b7fa;font-size:9px;font-weight:850;letter-spacing:1.5px}
+    .detail-card h3{margin-top:7px;color:#f1f6ff;font-size:15px;line-height:1.3}
+    .detail-card p{margin-top:9px;color:#9db1ca;font-size:11px;line-height:1.65}
+    .install-section{display:grid;grid-template-columns:.85fr 1.15fr;gap:34px;align-items:center;padding:30px;border:1px solid var(--line);border-radius:25px;background:radial-gradient(ellipse at 0 0,rgba(42,112,190,.16),transparent 55%),linear-gradient(145deg,rgba(16,34,56,.9),rgba(8,20,35,.92))}
+    .install-copy h2{font-size:clamp(27px,3.7vw,37px)}
+    .install-copy>p{font-size:12px}
+    .install-timeline{display:grid;gap:17px;list-style:none}
+    .install-timeline li{display:flex;gap:13px;align-items:flex-start}
+    .install-timeline li>span{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border:1px solid rgba(101,173,255,.35);border-radius:11px;background:rgba(43,111,190,.18);color:#9acaff;font-size:13px;font-weight:850}
+    .install-timeline b{color:#eef5ff;font-size:13px}
+    .install-timeline p{margin-top:4px;color:#9db1ca;font-size:11px;line-height:1.6}
+    .privacy-panel{display:flex;gap:16px;align-items:flex-start;margin-top:24px;padding:22px;border:1px solid rgba(92,157,222,.2);border-radius:19px;background:rgba(26,72,116,.13)}
+    .privacy-symbol{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border-radius:13px;background:rgba(50,126,199,.17);color:#88c2ff;font-size:23px}
+    .privacy-panel h2{color:#eff6ff;font-size:14px}
+    .privacy-panel p{margin-top:6px;color:#9db1ca;font-size:11px;line-height:1.7}
+    .faq-section{max-width:780px;margin-left:auto;margin-right:auto}
+    .faq-section .section-heading{margin-bottom:20px}
+    .faq-item{margin:9px 0;border:1px solid var(--line);border-radius:15px;background:rgba(15,30,49,.72);overflow:hidden}
+    .faq-item summary{position:relative;padding:16px 44px 16px 17px;color:#eaf3ff;font-size:13px;font-weight:750;cursor:pointer;list-style:none}
+    .faq-item summary::-webkit-details-marker{display:none}
+    .faq-item summary:after{content:"+";position:absolute;right:17px;top:12px;color:#82bdff;font-size:22px;font-weight:400}
+    .faq-item[open] summary:after{content:"−"}
+    .faq-item p{padding:0 17px 16px;color:#9db1ca;font-size:12px;line-height:1.7}
+    .steps{margin-top:20px}
+    footer{margin-top:34px;border-top:1px solid rgba(137,180,231,.1);padding:25px 0 12px}
+    /* Use the approved crest cleanly, without the oversized badge ring. */
+    img[src*="337741"]{padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;filter:invert(1) sepia(1) saturate(4.2) hue-rotate(164deg) brightness(1.12) drop-shadow(0 0 7px rgba(65,205,255,.32))!important}
+    .showcase-brand img{width:48px;height:48px}
+    .screen-brand img{width:22px;height:22px}
+    .top img{width:42px;height:42px}
+    .app-icon{width:104px;height:104px;border-radius:0}
+    @media(max-width:760px){
+      .top-nav{gap:2px}.top-nav a{padding:8px 9px;font-size:11px}
+      .showcase{min-height:560px;padding:26px 12px 0}.showcase-inner{grid-template-columns:1fr;min-height:535px;gap:0;padding:0 8px}
+      .showcase-copy{padding:4px 0 0}.device-stage{min-height:300px;transform:scale(.84);transform-origin:top center}
+      .detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .install-section{grid-template-columns:1fr;gap:24px;padding:23px}
+      .install-copy{text-align:center}.install-copy>p{margin-left:auto;margin-right:auto}
+    }
+    @media(max-width:560px){
+      body{padding:13px}
+      .top{align-items:flex-start;gap:8px;padding:8px 0 15px}
+      .top-brand{gap:8px}.top img{width:35px;height:35px}.brand{font-size:14px}.brand small{font-size:10px}
+      .top-nav{flex-wrap:wrap;justify-content:flex-end;max-width:52%}.top-nav a{font-size:10px;padding:7px 8px}
+      .showcase{margin-top:13px;min-height:535px;border-radius:22px;padding-left:8px;padding-right:8px}
+      .showcase-inner{min-height:505px}.showcase-copy h2{font-size:34px}.showcase-copy p{font-size:12px}
+      .device-stage{transform:scale(.76);min-height:270px}
+      main{padding-top:42px}.actions{grid-template-columns:1fr;width:min(100%,390px)}
+      .features{grid-template-columns:1fr;gap:9px;margin-top:28px}
+      .feature{min-height:0;display:flex;gap:13px;align-items:flex-start;padding:15px}
+      .feature b{margin:1px 0 5px}.feature .ico{flex:0 0 42px}
+      .details-section,.install-section,.faq-section{margin-top:54px}
+      .detail-grid{grid-template-columns:1fr;gap:9px}
+      .detail-card{min-height:0;padding:17px}.detail-number{margin-top:12px}
+      .install-section{padding:18px;border-radius:20px}
+      .privacy-panel{padding:16px;gap:11px}
+    }
+    @media(max-width:370px){
+      .top{flex-direction:column}.top-nav{max-width:100%;justify-content:flex-start}
+      .showcase-copy h2{font-size:30px}.device-stage{transform:scale(.68);min-height:240px}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .feature,.detail-card,.top-nav a,.primary{transition:none!important}
+      .feature:hover,.detail-card:hover{transform:none}
+    }
+
 </style>
 </head>
 <body>
   <div class="wrap">
     <header class="top">
-      <img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" referrerpolicy="no-referrer" loading="eager" decoding="async" alt="" width="42" height="42">
-      <div class="brand">ZSPM Community<small>Społeczność uczniów</small></div>
+      <a class="top-brand" href="./download.html" aria-label="ZSPM Community — strona instalacji">
+        <img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" referrerpolicy="no-referrer" loading="eager" decoding="async" alt="" width="42" height="42">
+        <span class="brand">ZSPM Community<small>Społeczność uczniów</small></span>
+      </a>
+      <nav class="top-nav" aria-label="Nawigacja strony">
+        <a href="#mozliwosci">Możliwości</a>
+        <a href="#instalacja">Instalacja</a>
+        <a href="#pytania">FAQ</a>
+      </nav>
     </header>
 
     <section class="showcase" aria-label="Poznaj ZSPM Community">
@@ -198,6 +320,69 @@
         <h2>Jak zainstalować ręcznie?</h2>
         <p><b>Android / Chrome:</b> otwórz menu przeglądarki (⋮), wybierz „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”.</p>
         <p><b>iPhone / Safari:</b> dotknij przycisku Udostępnij, a następnie „Dodaj do ekranu początkowego”.</p>
+      </section>
+
+      <section class="details-section" id="mozliwosci">
+        <div class="section-heading">
+          <span class="section-kicker">W TWOIM ZASIĘGU</span>
+          <h2>Jedna przestrzeń.<br><span>Wiele możliwości.</span></h2>
+          <p>ZSPM Community pomaga być bliżej szkolnej społeczności — niezależnie od tego, czy chcesz kogoś poznać, porozmawiać, czy uporządkować codzienne sprawy.</p>
+        </div>
+        <div class="detail-grid">
+          <article class="detail-card">
+            <span class="detail-icon">♙</span>
+            <div class="detail-number">01 / SPOŁECZNOŚĆ</div>
+            <h3>Poznaj innych uczniów</h3>
+            <p>Przeglądaj profile, odkrywaj wspólne zainteresowania i przedstaw się społeczności na własnych zasadach.</p>
+          </article>
+          <article class="detail-card">
+            <span class="detail-icon">✉</span>
+            <div class="detail-number">02 / ROZMOWY</div>
+            <h3>Bądź w kontakcie</h3>
+            <p>Rozmawiaj z innymi użytkownikami i wracaj do swoich konwersacji w jednym, wygodnym miejscu.</p>
+          </article>
+          <article class="detail-card">
+            <span class="detail-icon">✦</span>
+            <div class="detail-number">03 / POMYSŁY</div>
+            <h3>Dziel się tym, co tworzysz</h3>
+            <p>Wymieniaj się inspiracjami, zadawaj pytania i angażuj się w życie szkolnej społeczności.</p>
+          </article>
+          <article class="detail-card">
+            <span class="detail-icon">▦</span>
+            <div class="detail-number">04 / ORGANIZACJA</div>
+            <h3>Miej sprawy pod ręką</h3>
+            <p>Korzystaj z dostępnych szkolnych informacji i narzędzi organizacyjnych, gdy są udostępnione na platformie.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="install-section" id="instalacja">
+        <div class="install-copy">
+          <span class="section-kicker">PROSTO I WYGODNIE</span>
+          <h2>Gotowe w kilku<br><span>prostych krokach.</span></h2>
+          <p>To aplikacja PWA — działa przez przeglądarkę, a na zgodnym urządzeniu możesz dodać ją do ekranu głównego. Nie musisz pobierać pliku APK.</p>
+        </div>
+        <ol class="install-timeline">
+          <li><span>1</span><div><b>Otwórz stronę w przeglądarce</b><p>Najlepiej użyj aktualnej wersji Chrome na Androidzie lub Safari na iPhonie.</p></div></li>
+          <li><span>2</span><div><b>Wybierz „Zainstaluj aplikację”</b><p>Jeśli przeglądarka pokaże przycisk instalacji, skorzystaj z niego. W innym przypadku otwórz menu i wybierz dodanie do ekranu głównego.</p></div></li>
+          <li><span>3</span><div><b>Uruchamiaj z ekranu głównego</b><p>Po dodaniu skrótu otworzysz ZSPM Community jak osobną aplikację.</p></div></li>
+        </ol>
+      </section>
+
+      <section class="privacy-panel">
+        <span class="privacy-symbol">◇</span>
+        <div><h2>Twoja prywatność ma znaczenie</h2><p>Używaj pseudonimu, udostępniaj tylko informacje, które chcesz pokazać innym, i nie publikuj danych takich jak adres, numer telefonu czy hasła. ZSPM Community jest niezależnym projektem społecznościowym, a nie oficjalnym kanałem komunikacji szkoły.</p></div>
+      </section>
+
+      <section class="faq-section" id="pytania">
+        <div class="section-heading">
+          <span class="section-kicker">MASZ PYTANIA?</span>
+          <h2>Najważniejsze informacje</h2>
+        </div>
+        <details class="faq-item"><summary>Czy muszę pobierać plik APK?</summary><p>Nie. ZSPM Community jest aplikacją internetową PWA. Możesz korzystać z niej w przeglądarce i — jeśli urządzenie obsługuje instalację — dodać ją do ekranu głównego.</p></details>
+        <details class="faq-item"><summary>Czy instalacja jest płatna?</summary><p>Nie. Dodanie aplikacji do ekranu głównego nie wymaga zakupu w sklepie z aplikacjami.</p></details>
+        <details class="faq-item"><summary>Co zrobić, jeśli nie widzę przycisku instalacji?</summary><p>Otwórz menu przeglądarki i sprawdź, czy dostępna jest opcja „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”. Możesz też po prostu korzystać ze strony przez przeglądarkę.</p></details>
+        <details class="faq-item"><summary>Czy mogę korzystać z serwisu bez instalowania?</summary><p>Tak. Wybierz „Otwórz aplikację” — instalacja jest opcjonalna.</p></details>
       </section>
     </main>
     <footer>ZSPM Community · Nieoficjalny projekt społecznościowy</footer>
