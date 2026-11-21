@@ -29,7 +29,7 @@
     <rect x="29" y="29" width="454" height="454" rx="101" fill="none" stroke="url(#edge)" stroke-width="7"/>
     <rect x="43" y="43" width="426" height="426" rx="88" fill="none" stroke="#9ccfff" stroke-opacity=".16" stroke-width="2"/>
     <g clip-path="url(#crest)">
-      <svg x="103" y="57" width="306" height="365" viewBox="43 15 214 255" preserveAspectRatio="xMidYMid meet">
+      <svg x="103" y="57" width="306" height="365" viewBox="0 0 300 300" preserveAspectRatio="xMidYMid meet">
         <image x="0" y="0" width="300" height="300" xlink:href="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741"/>
       </svg>
     </g>
