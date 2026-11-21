@@ -894,6 +894,22 @@ button { cursor: pointer; }
 }
 
 .community-public-note{font-size:11px;line-height:1.5;color:#93aac7;background:rgba(33,90,148,.13);border:1px solid rgba(102,165,231,.17);padding:10px 12px;border-radius:10px;margin:0 0 12px}
+
+/* Branded app launch overlay */
+#launch-splash{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 42%,rgba(27,111,220,.22),transparent 38%),linear-gradient(145deg,#050a13,#0b1930 58%,#050a13);opacity:1;animation:launch-splash-out .65s ease 1.35s forwards;pointer-events:none}
+#launch-splash .launch-inner{display:flex;flex-direction:column;align-items:center;gap:15px;animation:launch-splash-in .85s cubic-bezier(.2,.8,.2,1) both}
+#launch-splash img{width:112px;height:112px;border-radius:27px;box-shadow:0 0 0 1px rgba(105,181,255,.4),0 0 42px rgba(31,132,255,.34);animation:launch-logo-float 1.7s ease-in-out infinite}
+#launch-splash strong{color:#f4f8ff;font-size:20px;letter-spacing:.02em}
+#launch-splash strong span{color:#55b5ff}
+#launch-splash small{color:#9bb6d8;font-size:11px;letter-spacing:.17em;text-transform:uppercase}
+#launch-splash .launch-line{width:92px;height:3px;overflow:hidden;border-radius:9px;background:rgba(120,177,240,.18)}
+#launch-splash .launch-line:after{content:"";display:block;width:45%;height:100%;border-radius:9px;background:linear-gradient(90deg,#2684ef,#8bdcff);animation:launch-progress 1.05s ease-in-out infinite}
+@keyframes launch-splash-in{from{opacity:0;transform:translateY(12px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes launch-logo-float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.025)}}
+@keyframes launch-progress{0%{transform:translateX(-110%)}100%{transform:translateX(240%)}}
+@keyframes launch-splash-out{to{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){#launch-splash,#launch-splash .launch-inner,#launch-splash img,#launch-splash .launch-line:after{animation:none}#launch-splash{opacity:0;visibility:hidden}}
+
 </style>
 <link rel="stylesheet" href="public/modern.css?v=85">
   <meta property="og:image" content="https://bolt.new/static/og_default.png">
@@ -902,6 +918,7 @@ button { cursor: pointer; }
 </head>
 
 <body>
+<div id="launch-splash" aria-hidden="true"><div class="launch-inner"><img src="./public/icons/community-logo.svg" alt=""><strong>ZSPM <span>Community</span></strong><small>Twoja szkolna społeczność</small><div class="launch-line"></div></div></div>
 
 
 <!-- REJESTRACJA I LOGOWANIE -->
@@ -909,7 +926,7 @@ button { cursor: pointer; }
 <div id="auth" class="container">
 
   <div class="logo">
-    <div class="auth-brand-mark" aria-hidden="true"><img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" alt=""></div>
+    <div class="auth-brand-mark" aria-hidden="true"><img src="./public/icons/community-logo.svg" alt=""></div>
     <h1 class="auth-brand-title"><span>ZSPM</span> Community</h1>
     <p>Twoja społeczność szkolna</p>
   </div>
@@ -1030,7 +1047,7 @@ button { cursor: pointer; }
 
       <div class="topbar">
         <div class="small-logo brand-lockup" aria-label="ZSPM Community">
-          <img class="brand-emblem" src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" alt="">
+          <img class="brand-emblem" src="./public/icons/community-logo.svg" alt="">
           <span class="brand-wordmark"><strong>ZSPM</strong><span>COMMUNITY</span></span>
         </div>
 
@@ -1064,7 +1081,7 @@ button { cursor: pointer; }
           <p>Poznaj społeczność, rozmawiaj, dziel się pomysłami i bądź na bieżąco z życiem szkoły.</p>
           <span class="home-hero-signature"><i></i> Zespół Szkół Poligraficzno-Medialnych · Kraków</span>
         </div>
-        <div class="home-hero-symbol" aria-hidden="true"><img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" alt=""></div>
+        <div class="home-hero-symbol" aria-hidden="true"><img src="./public/icons/community-logo.svg" alt=""></div>
       </section><h3 class="section-title" data-i18n="discover">Odkryj aplikację</h3>
 
       <div class="menu-grid">
