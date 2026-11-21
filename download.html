@@ -204,6 +204,7 @@
     const installLater = document.getElementById("installLater");
     const installConfirm = document.getElementById("installConfirm");
     const installDialogNote = document.getElementById("installDialogNote");
+    let manualOnlyAcknowledgement = false;
     const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 
     function openInstallDialog() {
@@ -251,12 +252,18 @@
 
     installConfirm.addEventListener("click", async () => {
       if (isStandalone) return;
+      if (manualOnlyAcknowledgement) {
+        manualOnlyAcknowledgement = false;
+        installConfirm.textContent = "Zainstaluj teraz →";
+        closeInstallDialog();
+        return;
+      }
       if (!installPrompt) {
         installDialogNote.textContent = "Otwórz menu przeglądarki i wybierz „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”.";
         manualSteps.hidden = false;
         installHint.textContent = "Wybierz opcję instalacji z menu przeglądarki.";
         installConfirm.textContent = "Rozumiem";
-        installConfirm.onclick = closeInstallDialog;
+        manualOnlyAcknowledgement = true;
         return;
       }
       installConfirm.disabled = true;
