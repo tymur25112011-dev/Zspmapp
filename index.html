@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#102b4a">
+<meta name="theme-color" content="#111a35">
 <meta name="description" content="ZSPM Community — szkolna społeczność w jednym miejscu. Poznawaj uczniów, rozmawiaj, odkrywaj wydarzenia i organizuj naukę.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -912,7 +912,7 @@ button { cursor: pointer; }
 @media(prefers-reduced-motion:reduce){#launch-splash,#launch-splash .launch-inner,#launch-splash img,#launch-splash .launch-line:after{animation:none}#launch-splash{opacity:0;visibility:hidden}}
 
 </style>
-<link rel="stylesheet" href="public/modern.css?v=95">
+<link rel="stylesheet" href="public/modern.css?v=96">
   <meta property="og:title" content="ZSPM Community — Twoja szkolna społeczność">
   <meta property="og:description" content="Poznawaj ludzi, rozmawiaj, sprawdzaj wydarzenia i organizuj naukę w jednym miejscu.">
   <meta property="og:type" content="website">
@@ -1207,6 +1207,10 @@ button { cursor: pointer; }
           <h3 data-i18n="support">Wesprzyj twórcę</h3>
           <p data-i18n="supportDesc">Wspieraj rozwój projektu</p>
         </button>
+        <button class="menu-item community-new-menu-item" data-page="bug-report">
+          <div class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div>
+          <h3>Zgłoś błąd</h3><p>Powiadom administrację o problemie</p>
+        </button>
 
       </div>
 
@@ -1269,6 +1273,7 @@ button { cursor: pointer; }
     <button type="button" class="more-nav-link" data-page="forum" role="menuitem"><span class="more-nav-icon">▤</span><span>Forum</span></button>
     <button type="button" class="more-nav-link" data-page="polls" role="menuitem"><span class="more-nav-icon">◫</span><span>Ankiety</span></button>
     <button type="button" class="more-nav-link" data-page="updates" role="menuitem"><span class="more-nav-icon">↗</span><span>Aktualizacje</span></button>
+    <button type="button" class="more-nav-link" data-page="bug-report" role="menuitem"><span class="more-nav-icon">!</span><span>Zgłoś błąd</span></button>
     <button type="button" class="more-nav-link" data-page="settings" role="menuitem"><span class="more-nav-icon">⚙</span><span>Ustawienia</span></button>
     <button type="button" class="more-nav-link" id="more-admin-link" data-page="admin" role="menuitem" hidden><span class="more-nav-icon">⬡</span><span>Panel administratora</span></button>
   </div>
@@ -1300,7 +1305,7 @@ button { cursor: pointer; }
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="./public/supabase-config.js"></script>
 <script defer src="./public/support-config.js?v=2"></script>
-<script defer src="./public/app.js?v=84"></script>
+<script defer src="./public/app.js?v=85"></script>
 
 <script>
 if ("serviceWorker" in navigator) {
