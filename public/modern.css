@@ -7262,3 +7262,25 @@ body::after {
     transition-property: color, background-color, border-color, opacity !important;
   }
 }
+
+
+/* Home performance: keep the glass appearance while reducing repeated layout and blur work on phones. */
+#home-page .menu-item,
+#home-page .home-update-item,
+#home-page .home-stats-card {
+  contain: layout style;
+}
+@media (max-width: 760px) and (hover: none) {
+  :root:not([data-theme="light"]) #home-page .menu-item {
+    -webkit-backdrop-filter: blur(9px) saturate(140%) !important;
+    backdrop-filter: blur(9px) saturate(140%) !important;
+  }
+  :root:not([data-theme="light"]) #home-page .home-hero {
+    -webkit-backdrop-filter: blur(14px) saturate(145%) !important;
+    backdrop-filter: blur(14px) saturate(145%) !important;
+  }
+  :root:not([data-theme="light"]) #home-page .menu-icon {
+    -webkit-backdrop-filter: blur(7px) !important;
+    backdrop-filter: blur(7px) !important;
+  }
+}
