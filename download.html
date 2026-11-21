@@ -70,7 +70,17 @@
     @media(max-width:390px){.showcase{min-height:535px}.showcase-inner{min-height:510px}.showcase-copy h2{font-size:30px}.device-stage{transform:scale(.73);min-height:260px}.showcase-points span{font-size:10px}}
     @media(prefers-reduced-motion:reduce){.device-one,.device-two{animation:none}}
 
-  </style>
+
+    /* Match the official gryf to the navy/blue glass identity; hide the white canvas. */
+    .top img,.showcase-brand img,.screen-brand img,.app-icon{
+      mix-blend-mode:screen;
+      filter:invert(1) sepia(1) saturate(3.4) hue-rotate(166deg) brightness(1.08)
+        drop-shadow(0 0 11px rgba(77,166,255,.42));
+      background:rgba(8,24,44,.72);
+      object-fit:contain;
+    }
+    .top img,.showcase-brand img,.screen-brand img{padding:3px;border:1px solid rgba(77,166,255,.28);border-radius:13px}
+\n  </style>
 </head>
 <body>
   <div class="wrap">
