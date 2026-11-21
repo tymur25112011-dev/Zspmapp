@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#08111f">
   <meta name="description" content="Zainstaluj ZSPM Community — społeczność uczniów, rozmowy i poznawanie nowych osób.">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" href="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741">
+  <link rel="icon" href="./public/zspm-community-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./public/zspm-community-icon.svg">
   <title>Zainstaluj ZSPM Community</title>
   <style>
     :root{color-scheme:dark;--bg:#08111f;--panel:#101e32;--line:rgba(126,177,255,.2);--text:#f2f7ff;--muted:#9db1ca;--blue:#4d9dff;--blue2:#246bd6}
@@ -80,19 +80,25 @@
       object-fit:contain;
     }
     .top img,.showcase-brand img,.screen-brand img{padding:3px;border:1px solid rgba(77,166,255,.28);border-radius:13px}
-\n  </style>
+\n  
+    /* The app icon is already composed with the ZSPM Community navy/blue identity. */
+    .top img,.showcase-brand img,.screen-brand img,.app-icon{
+      filter:none !important;mix-blend-mode:normal !important;background:transparent !important;
+      padding:0 !important;border:0 !important;object-fit:contain;
+    }
+</style>
 </head>
 <body>
   <div class="wrap">
     <header class="top">
-      <img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" alt="" width="42" height="42">
+      <img src="./public/zspm-community-icon.svg" alt="" width="42" height="42">
       <div class="brand">ZSPM Community<small>Społeczność uczniów</small></div>
     </header>
 
     <section class="showcase" aria-label="Poznaj ZSPM Community">
       <div class="showcase-inner">
         <div class="showcase-copy">
-          <div class="showcase-brand"><img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" alt=""><div>ZSPM <span>Community</span></div></div>
+          <div class="showcase-brand"><img src="./public/zspm-community-icon.svg" alt=""><div>ZSPM <span>Community</span></div></div>
           <div class="showcase-tag">Twoja szkoła. Twoja społeczność.</div>
           <h2>Więcej niż<br><span>szkolna aplikacja.</span></h2>
           <p>Poznaj uczniów, rozmawiaj, dziel się pomysłami i bądź na bieżąco z tym, co dzieje się w naszej społeczności.</p>
@@ -102,7 +108,7 @@
           <div class="device device-one">
             <div class="screen">
               <div class="screen-status"><span>9:41</span><span>●●●  ▰</span></div>
-              <div class="screen-brand"><img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" alt=""> ZSPM Community</div>
+              <div class="screen-brand"><img src="./public/zspm-community-icon.svg" alt=""> ZSPM Community</div>
               <div class="screen-title">Cześć! 👋</div><div class="screen-sub">Twoja społeczność czeka na Ciebie</div>
               <div class="mini-card"><div class="mini-label">Polecany profil</div><div class="mini-row"><div class="avatar-dot">🦊</div><div><div class="mini-name">SzybkiLis</div><div class="mini-muted">2B · Matematyka, szachy</div></div><span class="mini-action">Profil</span></div></div>
               <div class="mini-tabs"><i>Odkrywaj</i><i>Znajomi</i><i>Aktywność</i></div>
@@ -114,7 +120,7 @@
           <div class="device device-two">
             <div class="screen">
               <div class="screen-status"><span>9:41</span><span>●●●  ▰</span></div>
-              <div class="screen-brand"><img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" alt=""> ZSPM Community</div>
+              <div class="screen-brand"><img src="./public/zspm-community-icon.svg" alt=""> ZSPM Community</div>
               <div class="screen-title">Wasze pomysły</div><div class="screen-sub">Twórzmy coś razem</div>
               <div class="idea"><strong>🎨 Strefa kreatywna</strong><p>Może zorganizujemy konkurs na najlepszy projekt plakatu?</p><div class="idea-foot"><span>♡ 24 polubienia</span><span>Komentarze 8</span></div></div>
               <div class="idea"><strong>🎮 Turniej po lekcjach</strong><p>Zbierzmy ekipę i zaplanujmy wspólną zabawę!</p><div class="idea-foot"><span>♡ 17 polubień</span><span>Komentarze 5</span></div></div>
@@ -128,7 +134,7 @@
       </div>
     </section>
     <main>
-      <img class="app-icon" src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" alt="Ikona ZSPM Community" width="104" height="104">
+      <img class="app-icon" src="./public/zspm-community-icon.svg" alt="Ikona ZSPM Community" width="104" height="104">
       <div class="eyebrow"><span>✦</span> Aplikacja internetowa PWA</div>
       <h1>Twoja społeczność.<br><span>Zawsze pod ręką.</span></h1>
       <p class="lead">Zainstaluj ZSPM Community na swoim telefonie. Otwieraj aplikację z ekranu głównego — bez szukania jej w przeglądarce i bez pobierania pliku APK.</p>
