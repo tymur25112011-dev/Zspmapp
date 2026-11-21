@@ -5698,3 +5698,49 @@ body {
 @media(max-width:380px) {
   #app .telegram-chat-msgs .bubble { max-width:82%; padding:7px 8px 5px; }
 }
+
+
+/* Consistent, visible like states across profiles and chats */
+#app .social-like{
+  min-height:42px;
+  padding:9px 15px;
+  gap:9px;
+  border:1px solid rgba(145,168,204,.25);
+  background:rgba(145,168,204,.09);
+  color:#a8b7ce;
+  font-size:14px;
+  font-weight:750;
+  transition:color .18s ease,background .18s ease,border-color .18s ease,transform .16s ease,box-shadow .18s ease;
+}
+#app .social-like svg{width:22px;height:22px;stroke-width:2.1}
+#app .social-like.liked{
+  color:#ff526f;
+  background:rgba(255,70,98,.12);
+  border-color:rgba(255,82,111,.48);
+  box-shadow:0 0 18px rgba(255,64,94,.1);
+}
+#app .social-like.liked svg{fill:currentColor;stroke:currentColor}
+#app .social-like:active{transform:scale(.95)}
+#app .msg-action[data-action="like-msg"],
+#app .msg-action[data-global-action="like"]{
+  min-height:34px;
+  padding:6px 11px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:750;
+  color:#a8b7ce;
+  background:rgba(145,168,204,.09);
+  border-color:rgba(145,168,204,.24);
+  transition:color .18s ease,background .18s ease,border-color .18s ease,transform .16s ease;
+}
+#app .msg-action[data-action="like-msg"].liked,
+#app .msg-action[data-global-action="like"].liked{
+  color:#ff526f;
+  background:rgba(255,70,98,.12);
+  border-color:rgba(255,82,111,.42);
+}
+#app .msg-action[data-action="like-msg"]:active,
+#app .msg-action[data-global-action="like"]:active{transform:scale(.95)}
+#app .idea-vote.up{min-width:76px;min-height:40px;font-size:14px;color:#a8b7ce;background:rgba(145,168,204,.08);border-color:rgba(145,168,204,.24)}
+#app .idea-vote.up.selected{color:#ff526f;background:rgba(255,70,98,.13);border-color:rgba(255,82,111,.48);box-shadow:0 0 16px rgba(255,64,94,.08)}
+@media(prefers-reduced-motion:reduce){#app .social-like,#app .msg-action[data-action="like-msg"],#app .msg-action[data-global-action="like"]{transition:none}}
