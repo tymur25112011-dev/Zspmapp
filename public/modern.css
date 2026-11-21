@@ -7112,3 +7112,76 @@ body.drawer-open {
     bottom: max(7px, env(safe-area-inset-bottom)) !important;
   }
 }
+
+
+/* Performance pass: keep the default System aurora static; DarkOS and Liquid Glass use clean theme surfaces. */
+body {
+  animation: none !important;
+  background-attachment: scroll !important;
+}
+body::before,
+body::after {
+  animation: none !important;
+}
+body::before {
+  filter: blur(18px) saturate(1.08) !important;
+}
+body::after {
+  filter: none !important;
+}
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] html {
+  background: #101010 !important;
+  background-image: none !important;
+  background-attachment: scroll !important;
+}
+:root[data-theme="dark"] body::before,
+:root[data-theme="dark"] body::after,
+:root[data-theme="liquid-glass"] body::before,
+:root[data-theme="liquid-glass"] body::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  filter: none !important;
+  animation: none !important;
+}
+:root[data-theme="liquid-glass"] body,
+:root[data-theme="liquid-glass"] html {
+  background: #edf3fb !important;
+  background-image: none !important;
+  background-attachment: scroll !important;
+}
+:root[data-theme="dark"] .settings-wallpaper-panel,
+:root[data-theme="liquid-glass"] .settings-wallpaper-panel {
+  display: none !important;
+}
+:root[data-theme="dark"] #christmas-decorations,
+:root[data-theme="liquid-glass"] #christmas-decorations {
+  display: none !important;
+}
+@media (max-width: 760px) {
+  :root[data-theme="liquid-glass"] #app .card,
+  :root[data-theme="liquid-glass"] #app .page-content,
+  :root[data-theme="liquid-glass"] #app .profile-card,
+  :root[data-theme="liquid-glass"] #app .chat-head,
+  :root[data-theme="liquid-glass"] #app .conv-item,
+  :root[data-theme="liquid-glass"] #app .menu-item,
+  :root[data-theme="liquid-glass"] #app .bottom-nav,
+  :root[data-theme="liquid-glass"] #app .bell-btn,
+  :root[data-theme="liquid-glass"] #app .account-menu,
+  :root[data-theme="liquid-glass"] #auth .card {
+    -webkit-backdrop-filter: blur(9px) saturate(115%) !important;
+    backdrop-filter: blur(9px) saturate(115%) !important;
+  }
+  :root[data-theme="dark"] #app .card,
+  :root[data-theme="dark"] #app .page-content,
+  :root[data-theme="dark"] #app .profile-card,
+  :root[data-theme="dark"] #app .chat-head,
+  :root[data-theme="dark"] #app .conv-item,
+  :root[data-theme="dark"] #app .menu-item,
+  :root[data-theme="dark"] #app .bottom-nav,
+  :root[data-theme="dark"] #auth .card {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
