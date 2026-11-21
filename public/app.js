@@ -1625,19 +1625,28 @@ async function renderRankingPage() {
   const names = new Map((profilesResult.data || []).map(p => [p.id,p.nickname]));
   const likes = new Map();
   (likesResult.data || []).forEach(row => likes.set(row.profile_id,(likes.get(row.profile_id)||0)+1));
-  const donationRows = (donationsResult.data || []).filter(r => names.has(r.user_id));
-  const activityRows = (activityResult.data || []).filter(r => names.has(r.user_id));
+  const donationRows = (donationsResult.data || []).filter(r => names.has(r.user_id)).sort((a,b)=>Number(b.amount)-Number(a.amount));
+  const activityRows = (activityResult.data || []).filter(r => names.has(r.user_id)).sort((a,b)=>Number(b.active_seconds)-Number(a.active_seconds));
   const likeRows = [...likes.entries()].map(([user_id,count]) => ({user_id,count})).filter(r => names.has(r.user_id)).sort((a,b)=>b.count-a.count);
-  const rowsHtml = (rows, valueFn) => rows.length ? rows.slice(0,50).map((row,index) =>
-    '<div class="ranking-row"><span class="ranking-place ' + (index<3?'top-'+(index+1):'') + '">' + (index+1) +
-    '</span><strong>' + escapeHTML(names.get(row.user_id) || "Uczeń") + '</strong><span class="ranking-value">' +
-    valueFn(row) + '</span></div>').join("") : '<div class="page-content"><p>Ranking jest jeszcze pusty.</p></div>';
-  host.innerHTML = '<div class="ranking-tabs" role="tablist"><button type="button" class="active" data-ranking-tab="online">🕒 Online</button><button type="button" data-ranking-tab="donations">💙 Donaty</button><button type="button" data-ranking-tab="likes">❤️ Polubienia</button></div>' +
-    '<section class="ranking-panel" data-ranking-panel="online"><h3>TOP aktywności</h3><p class="muted">Łączny szacowany czas aktywności w aplikacji.</p>' + rowsHtml(activityRows,(r)=>formatActiveTime(r.active_seconds)) + '</section>' +
-    '<section class="ranking-panel hidden" data-ranking-panel="donations"><h3>TOP wspierających</h3><p class="muted">Kwoty są aktualizowane ręcznie przez administratora.</p>' + rowsHtml(donationRows,(r)=>Number(r.amount).toFixed(2).replace(".",",")+" zł") + '</section>' +
-    '<section class="ranking-panel hidden" data-ranking-panel="likes"><h3>TOP polubień profili</h3><p class="muted">Liczba polubień otrzymanych przez profil.</p>' + rowsHtml(likeRows,(r)=>r.count+" ❤️") + '</section>';
-  host.querySelectorAll("[data-ranking-tab]").forEach(button => button.addEventListener("click", () => {
-    const tab = button.dataset.rankingTab;
+  await loadProfilesByIds([...new Set([...donationRows,...activityRows,...likeRows].map(row=>row.user_id))]);
+  const rankingHTML = (rows,valueFn) => {
+    const top=rows.slice(0,10);
+    if(!top.length) return '<div class="community-empty-state"><strong>Ranking jest jeszcze pusty.</strong><small>Wyniki pojawią się tutaj wraz z aktywnością społeczności.</small></div>';
+    const podium=[{row:top[1],place:2},{row:top[0],place:1},{row:top[2],place:3}].filter(item=>item.row).map(({row,place})=>{
+      const profile=getProfileById(row.user_id)||{id:row.user_id,nickname:names.get(row.user_id)||"Uczeń"};
+      return '<article class="ranking-podium-card place-'+place+'"><span class="ranking-podium-place">'+place+'</span>'+profileAvatarHTML(profile,"ranking-avatar")+
+        '<strong>'+escapeHTML(profile.nickname||names.get(row.user_id)||"Uczeń")+'</strong><span class="ranking-podium-value">'+valueFn(row)+'</span></article>';
+    }).join("");
+    const rest=top.slice(3).map((row,index)=>'<div class="ranking-row"><span class="ranking-place">'+(index+4)+'</span><strong>'+escapeHTML(names.get(row.user_id)||"Uczeń")+'</strong><span class="ranking-value">'+valueFn(row)+'</span></div>').join("");
+    return '<div class="ranking-podium">'+podium+'</div>'+(rest?'<div class="ranking-top-rest">'+rest+'</div>':"");
+  };
+  host.innerHTML =
+    '<div class="ranking-tabs" role="tablist"><button type="button" class="active" data-ranking-tab="online">🕒 Online</button><button type="button" data-ranking-tab="donations">💙 Donaty</button><button type="button" data-ranking-tab="likes">❤️ Polubienia</button></div>' +
+    '<section class="ranking-panel" data-ranking-panel="online"><h3>TOP aktywności</h3><p class="muted">Łączny szacowany czas aktywności w aplikacji.</p>' + rankingHTML(activityRows,r=>formatActiveTime(r.active_seconds)) + '</section>' +
+    '<section class="ranking-panel hidden" data-ranking-panel="donations"><h3>TOP wspierających</h3><p class="muted">Kwoty są aktualizowane ręcznie przez administratora.</p>' + rankingHTML(donationRows,r=>Number(r.amount).toFixed(2).replace(".",",")+" zł") + '</section>' +
+    '<section class="ranking-panel hidden" data-ranking-panel="likes"><h3>TOP polubień profili</h3><p class="muted">Liczba polubień otrzymanych przez profil.</p>' + rankingHTML(likeRows,r=>r.count+" ❤️") + '</section>';
+  host.querySelectorAll("[data-ranking-tab]").forEach(button=>button.addEventListener("click",()=>{
+    const tab=button.dataset.rankingTab;
     host.querySelectorAll("[data-ranking-tab]").forEach(item=>item.classList.toggle("active",item===button));
     host.querySelectorAll("[data-ranking-panel]").forEach(panel=>panel.classList.toggle("hidden",panel.dataset.rankingPanel!==tab));
   }));
