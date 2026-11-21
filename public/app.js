@@ -1075,13 +1075,13 @@ async function renderCommunityAnnouncementsPage(){await renderCommunityEventsPag
 
 function renderSupportContactPage() {
   const host = $("page-content");
-  const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1&to=zspmcommunity.support@gmail.com&su=" + encodeURIComponent("Pomoc techniczna — ZSPM Community");
+  const mailtoUrl = "mailto:zspmcommunity.support@gmail.com?subject=" + encodeURIComponent("Pomoc techniczna — ZSPM Community") + "&body=" + encodeURIComponent("Cześć!\\n\\nPotrzebuję pomocy z aplikacją ZSPM Community.\\n\\nOpis problemu:\\n");
   host.innerHTML = '<section class="page-content support-contact-page">' +
     '<div class="support-contact-symbol" aria-hidden="true">✉</div>' +
     '<span class="community-feature-kicker">ZSPM COMMUNITY · SUPPORT</span>' +
     '<h2>Jesteśmy tutaj, aby pomóc</h2>' +
     '<p>Masz pytanie, napotkałeś problem lub potrzebujesz pomocy z aplikacją? Napisz do naszego zespołu wsparcia. Postaramy się odpowiedzieć tak szybko, jak to możliwe.</p>' +
-    '<a class="support-contact-cta" href="' + gmailUrl + '" target="_blank" rel="noopener noreferrer">Napisz <span aria-hidden="true">↗</span></a>' +
+    '<a class="support-contact-cta" href="' + mailtoUrl + '">Napisz wiadomość <span aria-hidden="true">↗</span></a>' +
     '<small>Adres: zspmcommunity.support@gmail.com</small>' +
     '</section>';
 }
@@ -4620,17 +4620,35 @@ document.querySelectorAll("[data-page]").forEach(button => {
 const moreNavMenu = $("more-nav-menu");
 const moreNavToggles = [$("more-nav-toggle"), $("top-more-nav-toggle")].filter(Boolean);
 if (moreNavMenu && moreNavToggles.length) {
+  const syncMoreNavViewport = () => {
+    const viewportHeight = Math.round(
+      window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight
+    );
+    if (viewportHeight > 0) {
+      moreNavMenu.style.setProperty("--more-nav-viewport-height", viewportHeight + "px");
+    }
+  };
   const closeMoreNavMenu = () => {
     moreNavMenu.classList.add("hidden");
     moreNavToggles.forEach(toggle => toggle.setAttribute("aria-expanded", "false"));
     document.body.classList.remove("drawer-open");
   };
+  const openMoreNavMenu = () => {
+    if (moreNavMenu.parentElement !== document.body) document.body.appendChild(moreNavMenu);
+    syncMoreNavViewport();
+    moreNavMenu.classList.remove("hidden");
+    document.body.classList.add("drawer-open");
+    moreNavToggles.forEach(toggle => toggle.setAttribute("aria-expanded", "true"));
+    requestAnimationFrame(() => {
+      syncMoreNavViewport();
+      const drawer = moreNavMenu.querySelector(".more-nav-drawer");
+      if (drawer) drawer.scrollTop = 0;
+    });
+  };
   moreNavToggles.forEach(toggle => toggle.addEventListener("click", event => {
     event.stopPropagation();
-    const opening = moreNavMenu.classList.contains("hidden");
-    moreNavMenu.classList.toggle("hidden", !opening);
-    document.body.classList.toggle("drawer-open", opening);
-    moreNavToggles.forEach(item => item.setAttribute("aria-expanded", String(opening)));
+    if (moreNavMenu.classList.contains("hidden")) openMoreNavMenu();
+    else closeMoreNavMenu();
   }));
   moreNavMenu.addEventListener("click", event => {
     if (event.target.closest("[data-page]") || event.target.closest("[data-menu-close]")) closeMoreNavMenu();
@@ -4641,6 +4659,15 @@ if (moreNavMenu && moreNavToggles.length) {
   document.addEventListener("keydown", event => {
     if (event.key === "Escape") closeMoreNavMenu();
   });
+  window.addEventListener("resize", () => {
+    if (!moreNavMenu.classList.contains("hidden")) syncMoreNavViewport();
+  }, { passive: true });
+  window.addEventListener("orientationchange", () => {
+    if (!moreNavMenu.classList.contains("hidden")) requestAnimationFrame(syncMoreNavViewport);
+  }, { passive: true });
+  window.visualViewport?.addEventListener("resize", () => {
+    if (!moreNavMenu.classList.contains("hidden")) syncMoreNavViewport();
+  }, { passive: true });
 }
 
 $("notif-bell").addEventListener("click", () => openPage("notifications"));
