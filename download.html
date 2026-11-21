@@ -242,6 +242,21 @@
       .top{flex-direction:column}.top-nav{max-width:100%;justify-content:flex-start}
       .showcase-copy h2{font-size:30px}.device-stage{transform:scale(.68);min-height:240px}
     }
+    .legal-links{margin-top:70px;padding:34px 0 4px;border-top:1px solid rgba(137,180,231,.12)}
+    .legal-link-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .legal-link-card{display:flex;align-items:center;gap:12px;min-height:94px;padding:17px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(18,39,64,.94),rgba(9,23,40,.9));color:#eef5ff;text-decoration:none;transition:transform .2s,border-color .2s}
+    .legal-link-card:hover{transform:translateY(-3px);border-color:rgba(101,173,255,.42)}
+    .legal-link-card>span{display:grid;place-items:center;flex:0 0 40px;height:40px;border:1px solid rgba(101,173,255,.22);border-radius:13px;background:rgba(45,112,188,.16);color:#8dc4ff;font-size:20px}
+    .legal-link-card div{min-width:0;flex:1}.legal-link-card b{display:block;font-size:12px}.legal-link-card small{display:block;margin-top:5px;color:#9db1ca;font-size:10px;line-height:1.45}.legal-link-card i{font-style:normal;color:#82bdff}
+    .faq-item a,footer a{color:#8fc4ff;text-decoration:none}.faq-item a:hover,footer a:hover{text-decoration:underline}
+    /* More convincing premium smartphone hardware around the app preview. */
+    .device{width:224px;height:402px;padding:7px;border:1px solid #9aa8bc;border-radius:35px;background:linear-gradient(135deg,#7d8797 0%,#303a4a 10%,#080c14 26%,#202b3b 76%,#657286 100%);box-shadow:0 34px 80px #000c,0 0 0 2px #05080e, inset 0 0 0 1px #d5dfef35}
+    .device:before{top:9px;width:72px;height:17px;border-radius:0 0 13px 13px;background:linear-gradient(#02050a,#111a28);box-shadow:0 1px 0 #ffffff18}
+    .device:after{content:"";position:absolute;z-index:5;top:14px;left:calc(50% + 24px);width:5px;height:5px;border-radius:50%;background:#152d4c;box-shadow:0 0 0 1px #28394d,0 0 5px #2467b4}
+    .device-one:after{left:calc(50% + 24px)}.device-two:after{left:calc(50% + 24px)}
+    .device .screen{border:1px solid #000;border-radius:28px;background:linear-gradient(160deg,#111e31,#080e19 75%);box-shadow:inset 0 0 0 1px #ffffff08}
+    .device-one:before,.device-two:before{width:72px}
+    @media(max-width:560px){.legal-link-grid{grid-template-columns:1fr}.legal-links{margin-top:54px}}
     @media(prefers-reduced-motion:reduce){
       .feature,.detail-card,.top-nav a,.primary{transition:none!important}
       .feature:hover,.detail-card:hover{transform:none}
@@ -259,7 +274,7 @@
       <nav class="top-nav" aria-label="Nawigacja strony">
         <a href="#mozliwosci">Możliwości</a>
         <a href="#instalacja">Instalacja</a>
-        <a href="#pytania">FAQ</a>
+        <a href="#pytania">FAQ</a><a href="#dokumenty">Dokumenty</a>
       </nav>
     </header>
 
@@ -374,6 +389,15 @@
         <div><h2>Twoja prywatność ma znaczenie</h2><p>Używaj pseudonimu, udostępniaj tylko informacje, które chcesz pokazać innym, i nie publikuj danych takich jak adres, numer telefonu czy hasła. ZSPM Community jest niezależnym projektem społecznościowym, a nie oficjalnym kanałem komunikacji szkoły.</p></div>
       </section>
 
+      <section class="legal-links" id="dokumenty">
+        <div class="section-heading"><span class="section-kicker">JASNE ZASADY</span><h2>Informacje prawne i bezpieczeństwo</h2><p>Przeczytaj, jak działa niezależny projekt, jakie zasady obowiązują w społeczności i jak chronimy prywatność użytkowników.</p></div>
+        <div class="legal-link-grid">
+          <a class="legal-link-card" href="./nota-prawna.html"><span>§</span><div><b>Nota prawna</b><small>Charakter projektu i zastrzeżenia</small></div><i>↗</i></a>
+          <a class="legal-link-card" href="./polityka-prywatnosci.html"><span>◇</span><div><b>Polityka prywatności</b><small>Dane, konta i prawa użytkowników</small></div><i>↗</i></a>
+          <a class="legal-link-card" href="./polityka-bezpieczenstwa.html"><span>盾</span><div><b>Polityka bezpieczeństwa</b><small>Zasady bezpiecznego korzystania</small></div><i>↗</i></a>
+        </div>
+      </section>
+
       <section class="faq-section" id="pytania">
         <div class="section-heading">
           <span class="section-kicker">MASZ PYTANIA?</span>
@@ -384,8 +408,11 @@
         <details class="faq-item"><summary>Co zrobić, jeśli nie widzę przycisku instalacji?</summary><p>Otwórz menu przeglądarki i sprawdź, czy dostępna jest opcja „Zainstaluj aplikację” lub „Dodaj do ekranu głównego”. Możesz też po prostu korzystać ze strony przez przeglądarkę.</p></details>
         <details class="faq-item"><summary>Czy mogę korzystać z serwisu bez instalowania?</summary><p>Tak. Wybierz „Otwórz aplikację” — instalacja jest opcjonalna.</p></details>
       </section>
+        <details class="faq-item"><summary>Czy ZSPM Community jest oficjalną aplikacją szkoły?</summary><p>Nie. To niezależny projekt uczniowski, niepowiązany ze szkołą ani jej dyrekcją. Szczegóły znajdziesz w <a href="./nota-prawna.html">Nocie prawnej</a>.</p></details>
+        <details class="faq-item"><summary>Gdzie znajdę zasady prywatności i bezpieczeństwa?</summary><p>W dokumentach: <a href="./polityka-prywatnosci.html">Polityka prywatności</a> oraz <a href="./polityka-bezpieczenstwa.html">Polityka bezpieczeństwa</a>.</p></details>
+      </section>
     </main>
-    <footer>ZSPM Community · Nieoficjalny projekt społecznościowy</footer>
+    <footer>ZSPM Community · Nieoficjalny projekt społecznościowy · <a href="./nota-prawna.html">Nota prawna</a> · <a href="./polityka-prywatnosci.html">Prywatność</a> · <a href="./polityka-bezpieczenstwa.html">Bezpieczeństwo</a></footer>
   </div>
 
   <div class="install-overlay" id="installOverlay" hidden>
