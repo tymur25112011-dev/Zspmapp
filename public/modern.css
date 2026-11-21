@@ -6689,3 +6689,130 @@ body::after{
  body::before{inset:-10vh -24vw!important;filter:blur(32px) saturate(1.16)!important}
  body::after{opacity:.66!important}
 }
+
+
+/* iOS glass depth pass — layered aurora, translucent materials and soft inner highlights. */
+:root:not([data-theme="light"]) {
+  --glass-fill: rgba(20, 29, 58, .58);
+  --glass-fill-strong: rgba(17, 25, 51, .76);
+  --glass-line: rgba(220, 232, 255, .19);
+  --glass-shine: rgba(255, 255, 255, .12);
+  --glass-shadow: 0 22px 58px rgba(2, 5, 20, .34), 0 5px 18px rgba(22, 35, 82, .18);
+}
+html, body { background-color: #080d1d !important; }
+body {
+  background:
+    radial-gradient(ellipse 58% 42% at 12% 9%, rgba(111, 94, 255, .22), transparent 72%),
+    radial-gradient(ellipse 52% 44% at 92% 22%, rgba(53, 154, 255, .19), transparent 72%),
+    radial-gradient(ellipse 56% 48% at 76% 94%, rgba(55, 196, 194, .13), transparent 74%),
+    radial-gradient(ellipse 48% 40% at 12% 88%, rgba(169, 105, 235, .17), transparent 72%),
+    linear-gradient(145deg, #080d1d 0%, #101a38 43%, #17142f 72%, #080d1d 100%) !important;
+  background-attachment: fixed !important;
+}
+body::before {
+  inset: -12vh -12vw !important;
+  background:
+    radial-gradient(ellipse 34rem 27rem at 13% 16%, rgba(111, 96, 255, .44), transparent 72%),
+    radial-gradient(ellipse 32rem 28rem at 88% 18%, rgba(57, 151, 255, .34), transparent 73%),
+    radial-gradient(ellipse 38rem 30rem at 78% 82%, rgba(45, 190, 190, .24), transparent 74%),
+    radial-gradient(ellipse 34rem 28rem at 18% 88%, rgba(171, 111, 235, .27), transparent 74%),
+    radial-gradient(ellipse 25rem 22rem at 51% 48%, rgba(124, 145, 255, .12), transparent 76%),
+    repeating-linear-gradient(125deg, rgba(255,255,255,.012) 0 1px, transparent 1px 84px) !important;
+  filter: blur(42px) saturate(1.22) !important;
+}
+body::after {
+  background:
+    radial-gradient(ellipse 42rem 26rem at 50% -4%, rgba(255,255,255,.075), transparent 72%),
+    radial-gradient(ellipse 32rem 24rem at 100% 100%, rgba(118,157,255,.08), transparent 74%),
+    radial-gradient(ellipse at 50% 48%, transparent 28%, rgba(3,7,20,.28) 100%),
+    linear-gradient(180deg, rgba(7,12,28,.02), rgba(7,12,28,.22)) !important;
+  opacity: .9 !important;
+}
+:root:not([data-theme="light"]) .card,
+:root:not([data-theme="light"]) .page-content,
+:root:not([data-theme="light"]) .profile-card,
+:root:not([data-theme="light"]) .chat-head,
+:root:not([data-theme="light"]) .conv-item,
+:root:not([data-theme="light"]) .menu-item,
+:root:not([data-theme="light"]) .home-stats-card,
+:root:not([data-theme="light"]) .home-overview-section,
+:root:not([data-theme="light"]) .bottom-nav,
+:root:not([data-theme="light"]) .bell-btn {
+  background: linear-gradient(145deg, rgba(255,255,255,.105), rgba(255,255,255,.035) 42%, rgba(11,18,42,.48)), var(--glass-fill) !important;
+  border: 1px solid var(--glass-line) !important;
+  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(4,8,24,.20) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  backdrop-filter: blur(20px) saturate(145%);
+}
+:root:not([data-theme="light"]) .menu-item {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, background .22s ease;
+}
+:root:not([data-theme="light"]) .menu-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 80% 58% at 0% 0%, rgba(178,196,255,.13), transparent 70%),
+    linear-gradient(125deg, rgba(255,255,255,.075), transparent 38%);
+  opacity: .9;
+}
+:root:not([data-theme="light"]) .menu-item:hover {
+  transform: translateY(-4px);
+  border-color: rgba(185,207,255,.36) !important;
+  box-shadow: 0 26px 60px rgba(2,5,20,.42), inset 0 1px 0 rgba(255,255,255,.2) !important;
+}
+:root:not([data-theme="light"]) .menu-icon {
+  background: linear-gradient(145deg, rgba(130,157,255,.22), rgba(79,126,220,.09)) !important;
+  border: 1px solid rgba(194,211,255,.20) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.17), 0 8px 22px rgba(4,10,34,.18);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+:root:not([data-theme="light"]) .hero {
+  background:
+    radial-gradient(ellipse at 85% 0%, rgba(116,184,255,.28), transparent 54%),
+    linear-gradient(125deg, rgba(91,105,211,.76), rgba(35,69,132,.78) 58%, rgba(25,43,83,.82)) !important;
+  border: 1px solid rgba(205,220,255,.27) !important;
+  box-shadow: 0 24px 60px rgba(5,10,35,.32), inset 0 1px 0 rgba(255,255,255,.2) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  backdrop-filter: blur(24px) saturate(150%);
+}
+:root:not([data-theme="light"]) .bottom-nav {
+  background: linear-gradient(120deg, rgba(35,47,83,.78), rgba(16,25,53,.78)) !important;
+  border-color: rgba(215,228,255,.22) !important;
+  box-shadow: 0 18px 48px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.18) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(165%);
+  backdrop-filter: blur(26px) saturate(165%);
+}
+:root:not([data-theme="light"]) .field input,
+:root:not([data-theme="light"]) .field textarea,
+:root:not([data-theme="light"]) .chat-input {
+  background: rgba(5,11,28,.42) !important;
+  border-color: rgba(193,211,255,.18) !important;
+  box-shadow: inset 0 2px 9px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.045);
+}
+:root:not([data-theme="light"]) .profile-card,
+:root:not([data-theme="light"]) .conv-item,
+:root:not([data-theme="light"]) .page-content { border-radius: 22px; }
+@media (max-width: 760px) {
+  body::before { inset: -8vh -22vw !important; filter: blur(34px) saturate(1.18) !important; }
+  :root:not([data-theme="light"]) .card,
+  :root:not([data-theme="light"]) .page-content,
+  :root:not([data-theme="light"]) .profile-card,
+  :root:not([data-theme="light"]) .chat-head,
+  :root:not([data-theme="light"]) .conv-item,
+  :root:not([data-theme="light"]) .menu-item,
+  :root:not([data-theme="light"]) .bottom-nav {
+    -webkit-backdrop-filter: blur(15px) saturate(135%);
+    backdrop-filter: blur(15px) saturate(135%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-theme="light"]) .menu-item { transition: none !important; }
+}
