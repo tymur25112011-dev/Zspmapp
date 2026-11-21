@@ -6655,3 +6655,37 @@ body::after{
  body::before{inset:-9vh -24vw!important;filter:blur(28px) saturate(1.3)!important}
  body::after{opacity:.52!important}
 }
+
+
+/* ZSPM Community branded iOS-style abstract wallpaper: violet and blue lead,
+   with restrained turquoise and lilac light fields. */
+html,body{min-height:100%;background:#090d20!important}
+body{position:relative!important;isolation:isolate!important;background:#090d20!important;overflow-x:hidden}
+body::before{
+  content:""!important;display:block!important;position:fixed!important;inset:-16vh -14vw!important;
+  z-index:0!important;pointer-events:none!important;opacity:1!important;
+  background:
+    radial-gradient(ellipse 48% 60% at 12% 18%,rgba(111,91,235,.88) 0%,rgba(111,91,235,.42) 30%,transparent 72%),
+    radial-gradient(ellipse 46% 58% at 88% 14%,rgba(65,126,232,.76) 0%,rgba(65,126,232,.30) 34%,transparent 72%),
+    radial-gradient(ellipse 42% 54% at 78% 84%,rgba(72,177,190,.48) 0%,rgba(72,177,190,.18) 36%,transparent 74%),
+    radial-gradient(ellipse 48% 48% at 18% 88%,rgba(151,111,220,.58) 0%,rgba(151,111,220,.20) 36%,transparent 74%),
+    radial-gradient(ellipse 30% 34% at 52% 48%,rgba(91,117,210,.18),transparent 76%),
+    linear-gradient(145deg,#111b3d 0%,#101b37 38%,#171632 72%,#090d20 100%)!important;
+  filter:blur(38px) saturate(1.18)!important;transform:translateZ(0)!important;
+}
+body::after{
+  content:""!important;display:block!important;position:fixed!important;inset:0!important;
+  z-index:0!important;pointer-events:none!important;opacity:.72!important;
+  background:
+    radial-gradient(ellipse 42rem 30rem at 8% 8%,rgba(180,166,255,.10),transparent 72%),
+    radial-gradient(ellipse 36rem 30rem at 92% 72%,rgba(112,180,225,.09),transparent 72%),
+    linear-gradient(180deg,rgba(7,12,28,.02),rgba(7,12,28,.30))!important;
+  filter:none!important;animation:none!important;
+}
+#app.container,#auth.container,#app #other-page,#app #home-page,#app #page-content{
+  position:relative!important;z-index:1!important;background:transparent!important;
+}
+@media(max-width:760px){
+ body::before{inset:-10vh -24vw!important;filter:blur(32px) saturate(1.16)!important}
+ body::after{opacity:.66!important}
+}
