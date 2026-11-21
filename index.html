@@ -912,7 +912,7 @@ button { cursor: pointer; }
 @media(prefers-reduced-motion:reduce){#launch-splash,#launch-splash .launch-inner,#launch-splash img,#launch-splash .launch-line:after{animation:none}#launch-splash{opacity:0;visibility:hidden}}
 
 </style>
-<link rel="stylesheet" href="public/modern.css?v=101">
+<link rel="stylesheet" href="public/modern.css?v=102">
   <meta property="og:title" content="ZSPM Community — Twoja szkolna społeczność">
   <meta property="og:description" content="Poznawaj ludzi, rozmawiaj, sprawdzaj wydarzenia i organizuj naukę w jednym miejscu.">
   <meta property="og:type" content="website">
@@ -1264,20 +1264,34 @@ button { cursor: pointer; }
   </div>
 </div>
 
-  <div class="more-nav-menu hidden" id="more-nav-menu" role="menu" aria-label="Więcej sekcji">
-  <div class="more-nav-heading">Odkryj więcej</div>
-  <div class="more-nav-grid">
-    <button type="button" class="more-nav-link" data-page="profiles" role="menuitem"><span class="more-nav-icon">⌕</span><span>Poznaj ludzi</span></button>
-    <button type="button" class="more-nav-link" data-page="my-profile" role="menuitem"><span class="more-nav-icon">◉</span><span>Profil</span></button>
-    <button type="button" class="more-nav-link" data-page="friends" role="menuitem"><span class="more-nav-icon">♧</span><span>Znajomi</span></button>
-    <button type="button" class="more-nav-link" data-page="forum" role="menuitem"><span class="more-nav-icon">▤</span><span>Forum</span></button>
-    <button type="button" class="more-nav-link" data-page="polls" role="menuitem"><span class="more-nav-icon">◫</span><span>Ankiety</span></button>
-    <button type="button" class="more-nav-link" data-page="updates" role="menuitem"><span class="more-nav-icon">↗</span><span>Aktualizacje</span></button>
-    <button type="button" class="more-nav-link" data-page="bug-report" role="menuitem"><span class="more-nav-icon">!</span><span>Zgłoś błąd</span></button>
-    <button type="button" class="more-nav-link" data-page="settings" role="menuitem"><span class="more-nav-icon">⚙</span><span>Ustawienia</span></button>
-    <button type="button" class="more-nav-link" id="more-admin-link" data-page="admin" role="menuitem" hidden><span class="more-nav-icon">⬡</span><span>Panel administratora</span></button>
+  <div class="more-nav-menu hidden" id="more-nav-menu" aria-label="Menu boczne">
+    <button type="button" class="more-nav-backdrop" data-menu-close aria-label="Zamknij menu"></button>
+    <aside class="more-nav-drawer" role="dialog" aria-modal="true" aria-labelledby="more-nav-title">
+      <div class="more-nav-drawer-head">
+        <div><span class="more-nav-eyebrow">ZSPM COMMUNITY</span><h2 id="more-nav-title">Menu</h2></div>
+        <button type="button" class="more-nav-close" data-menu-close aria-label="Zamknij menu">×</button>
+      </div>
+      <div class="more-nav-primary">
+        <button type="button" class="more-nav-link featured" data-page="settings"><span class="more-nav-icon">⚙</span><span>Ustawienia</span><b>›</b></button>
+        <button type="button" class="more-nav-link featured" data-page="support-contact"><span class="more-nav-icon">✉</span><span>Pomoc techniczna</span><b>›</b></button>
+        <button type="button" class="more-nav-link featured" data-page="my-profile"><span class="more-nav-icon">◉</span><span>Profil</span><b>›</b></button>
+        <button type="button" class="more-nav-link featured" data-page="privacy"><span class="more-nav-icon">◇</span><span>Prywatność</span><b>›</b></button>
+        <button type="button" class="more-nav-link featured" data-page="support"><span class="more-nav-icon">♡</span><span>Wesprzyj twórcę</span><b>›</b></button>
+      </div>
+      <div class="more-nav-divider"></div>
+      <div class="more-nav-heading">Skróty społeczności</div>
+      <div class="more-nav-grid">
+        <button type="button" class="more-nav-link" data-page="profiles"><span class="more-nav-icon">⌕</span><span>Poznaj ludzi</span></button>
+        <button type="button" class="more-nav-link" data-page="friends"><span class="more-nav-icon">♧</span><span>Znajomi</span></button>
+        <button type="button" class="more-nav-link" data-page="forum"><span class="more-nav-icon">▤</span><span>Forum</span></button>
+        <button type="button" class="more-nav-link" data-page="polls"><span class="more-nav-icon">◫</span><span>Ankiety</span></button>
+        <button type="button" class="more-nav-link" data-page="updates"><span class="more-nav-icon">↗</span><span>Aktualizacje</span></button>
+        <button type="button" class="more-nav-link" data-page="bug-report"><span class="more-nav-icon">!</span><span>Zgłoś błąd</span></button>
+        <button type="button" class="more-nav-link" id="more-admin-link" data-page="admin" hidden><span class="more-nav-icon">⬡</span><span>Panel administracji</span></button>
+      </div>
+      <div class="more-nav-drawer-foot">Twoja szkolna przestrzeń · Kraków</div>
+    </aside>
   </div>
-</div>
 <nav class="bottom-nav" aria-label="Główna nawigacja">
   <button type="button" class="nav-item active" data-page="home" aria-label="Główna">
     <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg></span><span>Główna</span>
@@ -1295,7 +1309,7 @@ button { cursor: pointer; }
     <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.6.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.6-.9l-1.7.7-1.4-2.4 1.4-1.1a8 8 0 0 1 0-1.9l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.6-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.6.9l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1 0 1.9Z"/></svg></span><span>Ustawienia</span>
   </button>
   <button type="button" class="nav-item nav-more-toggle" id="more-nav-toggle" aria-expanded="false" aria-controls="more-nav-menu">
-    <span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></span><span>Więcej</span>
+    <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></span><span>Menu</span>
   </button>
 </nav>
 
@@ -1305,7 +1319,7 @@ button { cursor: pointer; }
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script defer src="./public/supabase-config.js"></script>
 <script defer src="./public/support-config.js?v=2"></script>
-<script defer src="./public/app.js?v=93"></script>
+<script defer src="./public/app.js?v=94"></script>
 
 <script>
 if ("serviceWorker" in navigator) {
