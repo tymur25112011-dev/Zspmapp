@@ -71,20 +71,31 @@
     @media(prefers-reduced-motion:reduce){.device-one,.device-two{animation:none}}
 
 
-    /* Match the official gryf to the navy/blue glass identity; hide the white canvas. */
-    .top img,.showcase-brand img,.screen-brand img,.app-icon{
-      mix-blend-mode:screen;
-      filter:invert(1) sepia(1) saturate(3.4) hue-rotate(166deg) brightness(1.08)
-        drop-shadow(0 0 11px rgba(77,166,255,.42));
-      background:rgba(8,24,44,.72);
+    /* Official school gryf styled to match the app's blue glass emblem. */
+    .top img,.showcase-brand img,.screen-brand img,.app-icon,.install-dialog-icon img{
+      display:block;
       object-fit:contain;
+      mix-blend-mode:screen;
+      filter:invert(1) sepia(1) saturate(4.2) hue-rotate(164deg) brightness(1.12)
+        drop-shadow(0 0 11px rgba(65,205,255,.5));
     }
-    .top img,.showcase-brand img,.screen-brand img{padding:3px;border:1px solid rgba(77,166,255,.28);border-radius:13px}
-\n  
-    /* The app icon is already composed with the ZSPM Community navy/blue identity. */
-    .top img,.showcase-brand img,.screen-brand img,.app-icon{
-      filter:none !important;mix-blend-mode:normal !important;background:transparent !important;
-      padding:0 !important;border:0 !important;object-fit:contain;
+    .top img,.showcase-brand img,.screen-brand img{
+      padding:4px;
+      border:1px solid rgba(76,205,255,.58);
+      border-radius:14px;
+      background:linear-gradient(145deg,rgba(11,55,83,.8),rgba(17,35,65,.78));
+      box-shadow:0 0 18px rgba(28,174,255,.2);
+    }
+    .app-icon{
+      padding:9px;
+      border:1px solid rgba(76,205,255,.58);
+      border-radius:25px;
+      background:linear-gradient(145deg,rgba(11,55,83,.8),rgba(17,35,65,.78));
+      box-shadow:0 0 28px rgba(28,174,255,.28),0 18px 48px rgba(30,105,210,.3);
+    }
+    .install-dialog-icon{
+      background:linear-gradient(145deg,rgba(11,55,83,.8),rgba(17,35,65,.78));
+      border-color:rgba(76,205,255,.58);
     }
 
     .install-overlay{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:rgba(2,8,18,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:installFade .2s ease}
