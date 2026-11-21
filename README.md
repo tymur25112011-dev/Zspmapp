@@ -38,21 +38,21 @@ W repozytorium znajduje się również początkowy szablon React/Vite w katalogu
 
 ## Backend i bezpieczeństwo
 
-Aplikacja korzysta z Supabase. W publicznym kodzie klienta może znajdować się wyłącznie publishable/anon key — nigdy `service_role`, secret key, hasła ani klucze приватных сервисов.
+Aplikacja korzysta z Supabase. W publicznym kodzie klienta może znajdować się wyłącznie klucz publishable/anon. Nigdy nie umieszczaj w kodzie publicznym klucza `service_role`, secret key, haseł ani prywatnych kluczy usług.
 
-- Dostęp do строк и действий должен ограничиваться RLS-политиками и проверками на стороне сервера.
-- Не полагайтесь на скрытие кнопок в интерфейсе как на защиту доступа.
-- Изменения схемы и политик базы данных нужно проверять на тестовых сценариях до публикации.
-- Не добавляйте в репозиторий секреты, экспорт пользовательских данных или приватные ключи.
+- Dostęp do danych i działań musi być ograniczony przez polityki RLS oraz kontrole po stronie serwera.
+- Nie traktuj ukrywania przycisków w interfejsie jako zabezpieczenia dostępu.
+- Zmiany schematu i polityk bazy danych sprawdzaj na odpowiednich scenariuszach przed publikacją.
+- Nie dodawaj do repozytorium sekretów, eksportów danych użytkowników ani kluczy prywatnych.
 
-## Разработка
+## Zasady pracy nad projektem
 
-Перед изменениями:
-1. Проверьте текущую реализацию и существующие пользовательские сценарии.
-2. Сохраните рабочие функции и совместимость с GitHub Pages.
-3. Проверьте мобильную версию и установку PWA.
-4. После изменений проверьте связанные функции и обновление Service Worker.
+Przed wprowadzeniem zmian:
+1. Sprawdź aktualną implementację i istniejące scenariusze użytkownika.
+2. Zachowaj działające funkcje i zgodność z GitHub Pages.
+3. Sprawdź wersję mobilną oraz instalację PWA.
+4. Po zmianach przetestuj powiązane funkcje i aktualizację Service Workera.
 
-## Статус
+## Status
 
-Проект развивается. Функции, доступность и документы могут меняться. Юридические страницы являются информационными материалами проекта и требуют проверки перед использованием в качестве окончательных юридических документов.
+Projekt jest rozwijany. Funkcje, dostępność i dokumenty mogą się zmieniać. Strony prawne mają charakter informacyjny i wymagają weryfikacji przed wykorzystaniem jako ostateczne dokumenty prawne.
