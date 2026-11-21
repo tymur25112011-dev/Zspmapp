@@ -7037,3 +7037,78 @@ body > #more-nav-menu .more-nav-grid .more-nav-link{background:rgba(220,234,255,
     border-radius:25px!important;
   }
 }
+
+
+/* Mobile performance + stable side drawer viewport. */
+@media (max-width: 760px) {
+  body {
+    animation: none !important;
+    background-attachment: scroll !important;
+  }
+  body::before,
+  body::after {
+    display: none !important;
+    animation: none !important;
+    filter: none !important;
+    transform: none !important;
+  }
+  .christmas-snowfall,
+  .christmas-garland i {
+    animation: none !important;
+  }
+  .christmas-snowfall {
+    display: none !important;
+  }
+  #app .hero,
+  #app .section-title,
+  #app .menu-item,
+  #app .page-content,
+  #app .profile-card,
+  #app .conv-item,
+  #auth .card {
+    animation: none !important;
+    translate: none !important;
+  }
+  #app .hero,
+  #app .page-content,
+  #app .profile-card,
+  #app .conv-item,
+  #app .menu-item,
+  #auth .card {
+    transform: none !important;
+  }
+  #app .bottom-nav,
+  #app .page-content,
+  #app .profile-card {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+body > #more-nav-menu {
+  position: fixed !important;
+  inset: 0 0 auto 0 !important;
+  width: 100vw !important;
+  height: var(--more-nav-viewport-height, 100svh) !important;
+  min-height: var(--more-nav-viewport-height, 100svh) !important;
+  max-height: var(--more-nav-viewport-height, 100svh) !important;
+  overflow: hidden !important;
+  contain: layout paint;
+}
+body > #more-nav-menu .more-nav-drawer {
+  top: max(8px, env(safe-area-inset-top)) !important;
+  bottom: max(8px, env(safe-area-inset-bottom)) !important;
+  max-height: none !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0);
+}
+body.drawer-open {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+@media (max-width: 480px) {
+  body > #more-nav-menu .more-nav-drawer {
+    top: max(7px, env(safe-area-inset-top)) !important;
+    bottom: max(7px, env(safe-area-inset-bottom)) !important;
+  }
+}
