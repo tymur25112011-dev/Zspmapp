@@ -262,7 +262,17 @@
       .feature:hover,.detail-card:hover{transform:none}
     }
 
-</style>
+
+    .screen.screen-photo{padding:0;background:#050b14;overflow:hidden}
+    .screen-photo img{display:block;width:100%;height:100%;object-fit:cover;object-position:top center;border-radius:25px}
+    .screenshot-gallery{margin:68px 0 0}
+    .screenshot-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .screenshot-card{overflow:hidden;padding:8px;border:1px solid rgba(137,180,231,.18);border-radius:18px;background:linear-gradient(145deg,rgba(18,39,64,.92),rgba(9,23,40,.88));box-shadow:0 16px 36px rgba(0,0,0,.16)}
+    .screenshot-card img{display:block;width:100%;aspect-ratio:9/16;object-fit:cover;object-position:top;border-radius:12px;background:#08111f}
+    .screenshot-card figcaption{padding:10px 5px 4px;color:#a9bfd9;font-size:11px;text-align:center}
+    @media(max-width:650px){.screenshot-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.screenshot-gallery{margin-top:52px}}
+
+  </style>
 </head>
 <body>
   <div class="wrap">
@@ -289,29 +299,10 @@
         </div>
         <div class="device-stage" aria-hidden="true">
           <div class="device device-one">
-            <div class="screen">
-              <div class="screen-status"><span>9:41</span><span>●●●  ▰</span></div>
-              <div class="screen-brand"><img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" referrerpolicy="no-referrer" loading="eager" decoding="async" alt=""> ZSPM Community</div>
-              <div class="screen-title">Cześć! 👋</div><div class="screen-sub">Twoja społeczność czeka na Ciebie</div>
-              <div class="mini-card"><div class="mini-label">Polecany profil</div><div class="mini-row"><div class="avatar-dot">🦊</div><div><div class="mini-name">SzybkiLis</div><div class="mini-muted">2B · Matematyka, szachy</div></div><span class="mini-action">Profil</span></div></div>
-              <div class="mini-tabs"><i>Odkrywaj</i><i>Znajomi</i><i>Aktywność</i></div>
-              <div class="mini-card"><div class="mini-label">Społeczność</div><div class="mini-row"><div class="avatar-dot">🐼</div><div><div class="mini-name">KreatywnaAnia</div><div class="mini-muted">Dołącz do rozmowy</div></div></div></div>
-              <div class="mini-card"><div class="mini-row"><div class="avatar-dot">🐺</div><div><div class="mini-name">WilkSportowy</div><div class="mini-muted">Sport · 1C</div></div></div></div>
-              <div class="screen-nav"><span>⌂</span><span>♙</span><span>✉</span><span>☆</span></div>
-            </div>
+            <div class="screen screen-photo"><img src="./photos/Screenshot_20261121-184052.Chrome.png" alt="Zrzut ekranu ZSPM Community — widok aplikacji" loading="eager" decoding="async"></div>
           </div>
           <div class="device device-two">
-            <div class="screen">
-              <div class="screen-status"><span>9:41</span><span>●●●  ▰</span></div>
-              <div class="screen-brand"><img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" referrerpolicy="no-referrer" loading="eager" decoding="async" alt=""> ZSPM Community</div>
-              <div class="screen-title">Wasze pomysły</div><div class="screen-sub">Twórzmy coś razem</div>
-              <div class="idea"><strong>🎨 Strefa kreatywna</strong><p>Może zorganizujemy konkurs na najlepszy projekt plakatu?</p><div class="idea-foot"><span>♡ 24 polubienia</span><span>Komentarze 8</span></div></div>
-              <div class="idea"><strong>🎮 Turniej po lekcjach</strong><p>Zbierzmy ekipę i zaplanujmy wspólną zabawę!</p><div class="idea-foot"><span>♡ 17 polubień</span><span>Komentarze 5</span></div></div>
-              <div class="screen-title" style="font-size:12px;margin-top:14px">Wiadomości</div>
-              <div class="chat-bubble">Hej! Masz ochotę dołączyć do naszego pomysłu?</div>
-              <div class="chat-bubble right">Jasne! Opowiedz więcej 😊</div>
-              <div class="screen-nav"><span>⌂</span><span>♙</span><span>✉</span><span>☆</span></div>
-            </div>
+            <div class="screen screen-photo"><img src="./photos/Screenshot_20261121-184117.Chrome.png" alt="Zrzut ekranu ZSPM Community — kolejny widok aplikacji" loading="eager" decoding="async"></div>
           </div>
         </div>
       </div>
@@ -330,6 +321,18 @@
         <article class="feature"><span class="ico">📲</span><div><b>Jak zwykła aplikacja</b><p>Ikona na ekranie głównym i osobne okno bez paska przeglądarki.</p></div></article>
         <article class="feature"><span class="ico">⚡</span><div><b>Szybki dostęp</b><p>Uruchamiaj społeczność jednym dotknięciem.</p></div></article>
         <article class="feature"><span class="ico">🆓</span><div><b>Bez APK</b><p>Instalacja bez pobierania instalatora i bez sklepu z aplikacjami.</p></div></article>
+      </section>
+
+      <section class="screenshot-gallery" aria-label="Zrzuty ekranu aplikacji">
+        <div class="section-heading"><span class="section-kicker">ZOBACZ APLIKACJĘ</span><h2>Tak wygląda <span>ZSPM Community.</span></h2><p>Prawdziwe zrzuty ekranu z aplikacji — bez przykładowych makiet interfejsu.</p></div>
+        <div class="screenshot-grid">
+          <figure class="screenshot-card"><img src="./photos/Screenshot_20261121-184135.Chrome.png" alt="Zrzut ekranu 3 z ZSPM Community" loading="lazy" decoding="async"><figcaption>Widok aplikacji 3</figcaption></figure>
+          <figure class="screenshot-card"><img src="./photos/Screenshot_20261121-184147.Chrome.png" alt="Zrzut ekranu 4 z ZSPM Community" loading="lazy" decoding="async"><figcaption>Widok aplikacji 4</figcaption></figure>
+          <figure class="screenshot-card"><img src="./photos/Screenshot_20261121-184211.Chrome.png" alt="Zrzut ekranu 5 z ZSPM Community" loading="lazy" decoding="async"><figcaption>Widok aplikacji 5</figcaption></figure>
+          <figure class="screenshot-card"><img src="./photos/Screenshot_20261121-184237.Chrome.png" alt="Zrzut ekranu 6 z ZSPM Community" loading="lazy" decoding="async"><figcaption>Widok aplikacji 6</figcaption></figure>
+          <figure class="screenshot-card"><img src="./photos/Screenshot_20261121-184249.Chrome.png" alt="Zrzut ekranu 7 z ZSPM Community" loading="lazy" decoding="async"><figcaption>Widok aplikacji 7</figcaption></figure>
+          <figure class="screenshot-card"><img src="./photos/Screenshot_20261121-184313.Chrome.png" alt="Zrzut ekranu 8 z ZSPM Community" loading="lazy" decoding="async"><figcaption>Widok aplikacji 8</figcaption></figure>
+        </div>
       </section>
       <section class="steps" id="manualSteps" hidden>
         <h2>Jak zainstalować ręcznie?</h2>
