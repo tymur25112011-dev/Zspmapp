@@ -767,10 +767,15 @@ async function enterApp() {
     .eq("user_id", currentUser.id)
     .is("revoked_at", null)
     .order("created_at", { ascending: false });
-  if (moderationError) throw moderationError;
-  const activeBan = (ownModeration || []).find(item => item.action === "ban" &&
+  // A failed client-side status lookup must not undo a successful Supabase login.
+  // Database-side chat permissions remain authoritative for active bans and mutes.
+  if (moderationError) {
+    console.warn("Moderation status lookup failed; continuing app startup:", moderationError);
+  }
+  const moderationRows = moderationError ? [] : (ownModeration || []);
+  const activeBan = moderationRows.find(item => item.action === "ban" &&
     (!item.expires_at || new Date(item.expires_at).getTime() > Date.now()));
-  currentMute = (ownModeration || []).find(item => item.action === "mute" &&
+  currentMute = moderationRows.find(item => item.action === "mute" &&
     (!item.expires_at || new Date(item.expires_at).getTime() > Date.now())) || null;
   isBanned = Boolean(activeBan && !isAdmin);
   if (isBanned) {
