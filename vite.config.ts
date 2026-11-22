@@ -43,5 +43,7 @@ function copyLegacyStaticFiles() {
 }
 
 export default defineConfig({
+  // Relative URLs keep assets, manifest and service worker working under /Zspmapp/.
+  base: './',
   plugins: [react(), copyLegacyStaticFiles()],
 })
