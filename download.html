@@ -525,6 +525,41 @@
       .top-nav a { font-size:10px;padding-inline:1px; }
     }
 
+
+    /* Performance and icon polish */
+    .feature-icon {
+      display:grid;
+      place-items:center;
+      flex:0 0 48px;
+      width:48px;
+      height:48px;
+      border:1px solid rgba(120,170,255,.25);
+      border-radius:15px;
+      color:#a995ff;
+      background:linear-gradient(145deg,rgba(124,92,231,.17),rgba(50,105,190,.12));
+      box-shadow:inset 0 1px rgba(255,255,255,.06),0 8px 20px rgba(0,0,0,.16);
+    }
+    .feature-icon svg {
+      width:25px;
+      height:25px;
+      stroke:currentColor;
+      stroke-width:1.8;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+    .feature { content-visibility:auto;contain-intrinsic-size:110px; }
+    .showcase,.feature,.detail-card,.app-carousel { -webkit-backface-visibility:hidden; }
+    @media(max-width:760px) {
+      body { background-attachment:scroll; }
+      body::before { position:absolute; }
+      .device-one,.device-two { animation-duration:9s; }
+      .feature { content-visibility:visible; }
+    }
+    @media(prefers-reduced-motion:reduce) {
+      .device-one,.device-two,.app-icon { animation:none!important; }
+      .btn,.feature,.detail-card,.legal-link-card { transition:none!important; }
+    }
+
 </style>
 </head>
 <body>
@@ -571,9 +606,18 @@
       </div>
       <p class="hint" id="installHint" role="status" aria-live="polite">Instalacja jest dostępna w obsługiwanych przeglądarkach, np. Chrome na Androidzie.</p>
       <section class="features" aria-label="Korzyści">
-        <article class="feature"><span class="ico">📲</span><div><b>Jak zwykła aplikacja</b><p>Ikona na ekranie głównym i osobne okno bez paska przeglądarki.</p></div></article>
-        <article class="feature"><span class="ico">⚡</span><div><b>Szybki dostęp</b><p>Uruchamiaj społeczność jednym dotknięciem.</p></div></article>
-        <article class="feature"><span class="ico">🆓</span><div><b>Bez APK</b><p>Instalacja bez pobierania instalatora i bez sklepu z aplikacjami.</p></div></article>
+        <article class="feature">
+          <span class="ico feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="2.75" width="14" height="18.5" rx="3"/><path d="M9 6h6M10 18h4M12 9v5m-2-2 2 2 2-2"/></svg></span>
+          <div><b>Jak zwykła aplikacja</b><p>Ikona na ekranie głównym i osobne okno bez paska przeglądarki.</p></div>
+        </article>
+        <article class="feature">
+          <span class="ico feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M13.2 2.8 5.7 13h5.1l-.8 8.2L18.3 10h-5.2l.1-7.2Z"/></svg></span>
+          <div><b>Szybki dostęp</b><p>Uruchamiaj społeczność jednym dotknięciem.</p></div>
+        </article>
+        <article class="feature">
+          <span class="ico feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3.5h7l4 4v13H7a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Z"/><path d="M14 3.8v4h4M8.5 13h7M8.5 16.5h5M3 7v12"/></svg></span>
+          <div><b>Bez APK</b><p>Instalacja bez pobierania instalatora i bez sklepu z aplikacjami.</p></div>
+        </article>
       </section>
 
       <section class="screenshot-gallery" aria-label="Jak wygląda aplikacja">
@@ -710,6 +754,9 @@
       let current = 0;
       let rotation = null;
       let touchStartX = 0;
+      let isInView = true;
+      let isHovered = false;
+      let isFocused = false;
       const show = (index) => {
         current = (index + slides.length) % slides.length;
         slides.forEach((slide, i) => {
@@ -727,15 +774,26 @@
       const stop = () => { if (rotation) window.clearInterval(rotation); rotation = null; };
       const start = () => {
         stop();
-        if (!reducedMotion && !document.hidden) rotation = window.setInterval(() => show(current + 1), 4000);
+        if (!reducedMotion && !document.hidden && isInView && !isHovered && !isFocused && slides.length > 1) {
+          rotation = window.setInterval(() => show(current + 1), 5000);
+        }
       };
       previous.addEventListener("click", () => { show(current - 1); start(); });
       next.addEventListener("click", () => { show(current + 1); start(); });
       dots.forEach((dot, i) => dot.addEventListener("click", () => { show(i); start(); }));
-      root.addEventListener("mouseenter", stop);
-      root.addEventListener("mouseleave", start);
-      root.addEventListener("focusin", stop);
-      root.addEventListener("focusout", event => { if (!root.contains(event.relatedTarget)) start(); });
+      root.addEventListener("mouseenter", () => { isHovered = true; stop(); });
+      root.addEventListener("mouseleave", () => { isHovered = false; start(); });
+      root.addEventListener("focusin", () => { isFocused = true; stop(); });
+      root.addEventListener("focusout", event => {
+        if (!root.contains(event.relatedTarget)) { isFocused = false; start(); }
+      });
+      if ("IntersectionObserver" in window) {
+        const observer = new IntersectionObserver(entries => {
+          isInView = entries[0].isIntersecting;
+          if (isInView) start(); else stop();
+        }, {threshold:0.12});
+        observer.observe(root);
+      }
       root.addEventListener("touchstart", event => { touchStartX = event.changedTouches[0].clientX; }, {passive:true});
       root.addEventListener("touchend", event => {
         const delta = event.changedTouches[0].clientX - touchStartX;
