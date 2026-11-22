@@ -8,8 +8,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#080f1d",
-  "theme_color": "#080f1d",
+  "background_color": "#100b1d",
+  "theme_color": "#111a35",
   "prefer_related_applications": false,
   "icons": [
     {
@@ -30,5 +30,14 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "categories": [
+    "education",
+    "social",
+    "communication"
   ]
 }
