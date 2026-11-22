@@ -1,4 +1,4 @@
-const CACHE_NAME = "zspm-community-shell-v178";
+const CACHE_NAME = "zspm-community-shell-v179";
 const APP_SHELL = [
   "./",
   "./index.html",
