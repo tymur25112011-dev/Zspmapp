@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#07111f">
+  <meta name="theme-color" content="#090b18">
   <meta name="description" content="Poznaj ZSPM Community — miejsce do poznawania uczniów, rozmów i szkolnych inspiracji. Zainstaluj PWA lub korzystaj w przeglądarce.">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./public/zspm-community-icon-192.png">
@@ -303,13 +303,178 @@
   
     body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.7;background:radial-gradient(ellipse at 24% 38%,rgba(91,105,255,.12),transparent 30rem),radial-gradient(ellipse at 78% 72%,rgba(30,190,220,.10),transparent 32rem),repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 1px,transparent 1px 68px)}
     .wrap{position:relative;z-index:1}
+
+    /* ZSPM Community — unified app visual system */
+    :root {
+      color-scheme: dark;
+      --bg:#090b18;
+      --panel:rgba(20,23,43,.88);
+      --panel-strong:#171b32;
+      --line:rgba(167,139,250,.20);
+      --text:#f5f3ff;
+      --muted:#a9abc7;
+      --accent:#9b7cf6;
+      --accent-2:#704fe0;
+      --blue:#59a8ff;
+      --shadow:0 18px 55px rgba(0,0,0,.28);
+    }
+    html { background:var(--bg); scroll-behavior:smooth; }
+    body {
+      color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(ellipse at 12% 0%,rgba(124,92,231,.22),transparent 36rem),
+        radial-gradient(ellipse at 92% 18%,rgba(65,92,180,.16),transparent 34rem),
+        linear-gradient(160deg,#0b0d1c 0%,#101329 52%,#0a0c19 100%);
+      background-attachment:fixed;
+    }
+    body::before {
+      opacity:.38;
+      background:radial-gradient(ellipse at 22% 34%,rgba(124,92,231,.16),transparent 28rem),
+        radial-gradient(ellipse at 82% 72%,rgba(65,145,255,.10),transparent 30rem),
+        repeating-linear-gradient(135deg,rgba(255,255,255,.018) 0 1px,transparent 1px 72px);
+    }
+    a { color:#c4b5fd; }
+    a:focus-visible,button:focus-visible,summary:focus-visible { outline:2px solid #c4b5fd;outline-offset:4px; }
+    .wrap { width:min(100%,1120px); }
+    .top {
+      position:sticky;top:12px;z-index:20;
+      width:100%;margin:10px auto 22px;padding:11px 16px;
+      border:1px solid var(--line);border-radius:19px;
+      background:rgba(15,18,36,.76);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+      box-shadow:0 12px 36px rgba(0,0,0,.22);
+    }
+    .top-brand img { border-radius:13px;box-shadow:0 8px 24px rgba(139,92,246,.24); }
+    .brand { color:var(--text);font-size:15px;letter-spacing:-.25px; }
+    .brand small { color:var(--muted); }
+    .top-nav { gap:6px; }
+    .top-nav a { padding:9px 12px;border-radius:11px;color:#c4c5df;font-size:12px;transition:background .18s,color .18s; }
+    .top-nav a:hover { background:rgba(155,124,246,.13);color:#fff; }
+    .showcase {
+      min-height:470px;margin:0 calc(50% - 50vw) 44px;padding:35px max(24px,calc((100vw - 1080px)/2)) 12px;
+      border:1px solid rgba(167,139,250,.14);border-left:0;border-right:0;border-radius:0;
+      background:
+        radial-gradient(ellipse at 72% 50%,rgba(112,79,224,.22),transparent 34rem),
+        linear-gradient(120deg,rgba(24,26,54,.96),rgba(13,17,36,.98) 62%,rgba(18,26,53,.96));
+      box-shadow:inset 0 1px rgba(255,255,255,.035),0 24px 70px rgba(0,0,0,.18);
+    }
+    .showcase-inner { width:min(100%,1080px);min-height:420px;gap:28px; }
+    .showcase-brand { font-size:clamp(25px,3.6vw,39px);letter-spacing:-1.5px; }
+    .showcase-brand img { border-radius:15px;box-shadow:0 10px 28px rgba(139,92,246,.3); }
+    .showcase-tag { color:#c4b5fd;letter-spacing:1.8px; }
+    .showcase-copy h2 { font-size:clamp(34px,5vw,54px);letter-spacing:-2px; }
+    .showcase-copy h2 span,.showcase-brand span { color:#a995ff; }
+    .showcase-copy p { color:#b8bad4;line-height:1.75; }
+    .showcase-points span { border-color:rgba(167,139,250,.22);background:rgba(139,92,246,.10);color:#ddd6fe; }
+    .device-stage { min-height:410px; }
+    .device { border-color:rgba(196,181,253,.42);box-shadow:0 30px 75px rgba(0,0,0,.56),0 0 0 1px rgba(167,139,250,.08); }
+    main { padding:8px 0 40px; }
+    .app-icon { border-radius:27px;box-shadow:0 18px 48px rgba(112,79,224,.32); }
+    .eyebrow,.section-kicker {
+      border-color:rgba(167,139,250,.24);color:#d5caff;background:rgba(139,92,246,.11);
+    }
+    h1 { color:var(--text);letter-spacing:-2px; }
+    h1 span { color:#a995ff; }
+    .lead { color:var(--muted); }
+    .actions { gap:11px; }
+    .btn { min-height:54px;border-radius:15px;transition:transform .18s,filter .18s,box-shadow .18s; }
+    .btn:hover { transform:translateY(-2px);filter:brightness(1.07); }
+    .primary { background:linear-gradient(120deg,#9b7cf6,#704fe0);box-shadow:0 10px 28px rgba(112,79,224,.28); }
+    .secondary { color:#e4e1ff;background:rgba(25,29,55,.78);border-color:var(--line); }
+    .hint { color:var(--muted); }
+    .feature,.detail-card,.steps,.install-section,.privacy-panel,.legal-link-card,.faq-item {
+      background:linear-gradient(155deg,rgba(26,29,54,.94),rgba(17,20,39,.94));
+      border:1px solid var(--line);box-shadow:var(--shadow);
+      backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    }
+    .feature { border-radius:19px;padding:20px 18px; }
+    .feature b,.detail-card h3,.install-timeline b,.privacy-panel h2,.legal-link-card b { color:var(--text); }
+    .feature p,.detail-card p,.install-copy p,.install-timeline p,.privacy-panel p,.legal-link-card small,.faq-item p { color:var(--muted); }
+    .ico,.detail-icon { filter:saturate(.9); }
+    .screenshot-gallery,.details-section,.install-section,.privacy-panel,.legal-links,.faq-section { margin-top:72px; }
+    .section-heading h2,.install-copy h2 { color:var(--text);letter-spacing:-1.1px; }
+    .section-heading h2 span,.install-copy h2 span { color:#a995ff; }
+    .section-heading p { color:var(--muted); }
+    .app-carousel { border:1px solid var(--line);border-radius:25px;background:rgba(16,19,39,.78);box-shadow:var(--shadow); }
+    .carousel-viewport { border-radius:20px; }
+    .carousel-slide figcaption { background:linear-gradient(180deg,rgba(11,13,28,.0),rgba(11,13,28,.97)); }
+    .carousel-slide figcaption span { color:#c4b5fd; }
+    .carousel-slide figcaption b { color:#fff; }
+    .carousel-slide figcaption small { color:#c0c1d8; }
+    .carousel-arrow,.carousel-dot { border-color:var(--line);background:rgba(24,27,52,.88);color:#fff; }
+    .carousel-dot.is-active { background:#9b7cf6;border-color:#9b7cf6; }
+    .carousel-hint { color:var(--muted); }
+    .detail-card { border-radius:21px;padding:24px; }
+    .detail-card:hover,.legal-link-card:hover { border-color:rgba(196,181,253,.42);transform:translateY(-3px); }
+    .detail-number { color:#c4b5fd; }
+    .install-section { border-radius:25px;padding:clamp(24px,4vw,38px); }
+    .install-timeline li>span { background:linear-gradient(135deg,#9b7cf6,#704fe0);box-shadow:0 8px 20px rgba(112,79,224,.25); }
+    .privacy-panel { border-radius:21px; }
+    .privacy-symbol { color:#c4b5fd; }
+    .legal-link-card { border-radius:17px; }
+    .legal-link-card>span { color:#c4b5fd;background:rgba(139,92,246,.13); }
+    .faq-item { border-radius:16px; }
+    .faq-item summary { color:#f1efff; }
+    .faq-item[open] { border-color:rgba(196,181,253,.38); }
+    footer { color:#9295b4;border-top:1px solid rgba(167,139,250,.13);margin-top:50px; }
+    footer a,.contact-email { color:#c4b5fd; }
+    .install-overlay { background:rgba(4,6,17,.76);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px); }
+    .install-dialog { background:linear-gradient(155deg,#1a1d36,#111427);border:1px solid var(--line);box-shadow:0 28px 90px rgba(0,0,0,.58);border-radius:26px; }
+    .install-dialog-tag { color:#c4b5fd; }
+    .install-dialog h2 { color:var(--text); }
+    .install-dialog-copy,.install-dialog-note { color:var(--muted); }
+    .install-benefits span { color:#e4e1ff; }
+    .install-benefits b { color:#c4b5fd; }
+    .install-close,.install-later { color:#c6c7df; }
+    @media(max-width:760px) {
+      .top { top:7px;margin:6px auto 16px;padding:10px 12px; }
+      .top-nav { gap:2px; }
+      .top-nav a { padding:8px 8px;font-size:11px; }
+      .showcase { min-height:auto;margin-bottom:34px;padding:30px 18px 12px; }
+      .showcase-inner { min-height:0;grid-template-columns:1fr;gap:0; }
+      .showcase-copy { padding:8px 0 0;text-align:center; }
+      .showcase-brand,.showcase-points { justify-content:center; }
+      .showcase-copy p { margin-left:auto;margin-right:auto; }
+      .device-stage { min-height:330px;width:min(100%,430px);margin:10px auto 0;transform:scale(.9);transform-origin:top center; }
+      .screenshot-gallery,.details-section,.install-section,.privacy-panel,.legal-links,.faq-section { margin-top:54px; }
+      .feature { min-height:100px; }
+    }
+    @media(max-width:560px) {
+      body { padding:12px; }
+      .top { flex-wrap:wrap;gap:8px; }
+      .top-nav { width:100%;justify-content:space-between;overflow-x:auto; }
+      .top-nav a { white-space:nowrap; }
+      .showcase { margin-left:-12px;margin-right:-12px;padding:26px 14px 0; }
+      .showcase-brand { font-size:26px; }
+      .showcase-copy h2 { font-size:36px; }
+      .showcase-points { gap:6px; }
+      .showcase-points span { font-size:10px;padding:7px 9px; }
+      .device-stage { min-height:285px;transform:scale(.78);margin-bottom:-55px; }
+      h1 { font-size:clamp(31px,9vw,42px); }
+      .features { margin-top:30px; }
+      .feature { padding:16px; }
+      .app-carousel { padding:10px; }
+      .install-section { gap:22px; }
+      .privacy-panel { align-items:flex-start; }
+    }
+    @media(max-width:380px) {
+      .top-nav a { font-size:10px;padding:7px 6px; }
+      .showcase-brand { font-size:23px; }
+      .showcase-copy h2 { font-size:32px; }
+      .device-stage { transform:scale(.69);margin-bottom:-85px; }
+    }
+    @media(prefers-reduced-motion:reduce) {
+      html { scroll-behavior:auto; }
+      *,*::before,*::after { animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important; }
+    }
+
 </style>
 </head>
 <body>
   <div class="wrap">
     <header class="top">
       <a class="top-brand" href="./download.html" aria-label="ZSPM Community — strona instalacji">
-        <img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" referrerpolicy="no-referrer" loading="eager" decoding="async" alt="" width="42" height="42">
+        <img src="./public/zspm-community-icon-192.png" referrerpolicy="no-referrer" loading="eager" decoding="async" alt="" width="42" height="42">
         <span class="brand">ZSPM Community<small>Społeczność uczniów</small></span>
       </a>
       <nav class="top-nav" aria-label="Nawigacja strony">
@@ -322,7 +487,7 @@
     <section class="showcase" aria-label="Poznaj ZSPM Community">
       <div class="showcase-inner">
         <div class="showcase-copy">
-          <div class="showcase-brand"><img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" referrerpolicy="no-referrer" loading="eager" decoding="async" alt=""><div>ZSPM <span>Community</span></div></div>
+          <div class="showcase-brand"><img src="./public/zspm-community-icon-192.png" referrerpolicy="no-referrer" loading="eager" decoding="async" alt=""><div>ZSPM <span>Community</span></div></div>
           <div class="showcase-tag">Twoja szkoła. Twoja społeczność.</div>
           <h2>Więcej niż<br><span>szkolna aplikacja.</span></h2>
           <p>Poznaj uczniów, rozmawiaj, dziel się pomysłami i bądź na bieżąco z tym, co dzieje się w naszej społeczności.</p>
@@ -339,7 +504,7 @@
       </div>
     </section>
     <main>
-      <img class="app-icon" src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" referrerpolicy="no-referrer" loading="eager" decoding="async" alt="Ikona ZSPM Community" width="104" height="104">
+      <img class="app-icon" src="./public/zspm-community-icon-192.png" referrerpolicy="no-referrer" loading="eager" decoding="async" alt="Ikona ZSPM Community" width="104" height="104">
       <div class="eyebrow"><span>✦</span> Aplikacja internetowa PWA</div>
       <h1>Twoja społeczność.<br><span>Zawsze pod ręką.</span></h1>
       <p class="lead">Zainstaluj ZSPM Community na swoim telefonie. Otwieraj aplikację z ekranu głównego — bez szukania jej w przeglądarce i bez pobierania pliku APK.</p>
@@ -461,7 +626,7 @@
   <div class="install-overlay" id="installOverlay" hidden>
     <section class="install-dialog" role="dialog" aria-modal="true" aria-labelledby="installTitle">
       <button class="install-close" id="installClose" type="button" aria-label="Zamknij">×</button>
-      <div class="install-dialog-icon"><img src="https://www.bip.krakow.pl/zalaczniki/dokumenty/n/337741" referrerpolicy="no-referrer" loading="eager" decoding="async" alt=""></div>
+      <div class="install-dialog-icon"><img src="./public/zspm-community-icon-192.png" referrerpolicy="no-referrer" loading="eager" decoding="async" alt=""></div>
       <div class="install-dialog-tag">ZSPM COMMUNITY</div>
       <h2 id="installTitle">Zainstaluj aplikację</h2>
       <p class="install-dialog-copy">Dodaj swoją szkolną społeczność do ekranu głównego i otwieraj ją jednym dotknięciem.</p>
