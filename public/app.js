@@ -783,10 +783,18 @@ async function enterApp() {
     $("other-page").classList.remove("hidden");
     $("page-title").textContent = "Konto zablokowane";
     $("page-subtitle").textContent = "Informacja o moderacji";
-    $("page-content").innerHTML = '<div class="page-content moderation-lock"><h3>Twoje konto jest tymczasowo zablokowane</h3><p>Powód: ' +
-      escapeHTML(activeBan.reason) + '</p><p>Termin: ' +
-      (activeBan.expires_at ? escapeHTML(new Date(activeBan.expires_at).toLocaleString("pl-PL")) : "Bezterminowo") +
-      '</p><p>Jeśli uważasz, że to pomyłka, skontaktuj się z administratorem.</p><button type="button" class="main-btn" id="ban-logout">Wyloguj się</button></div>';
+    const banExpiryLabel = activeBan.expires_at
+      ? new Date(activeBan.expires_at).toLocaleString("pl-PL")
+      : "Bezterminowo";
+    $("page-content").innerHTML = '<div class="page-content moderation-lock">' +
+      '<div class="moderation-lock-icon" aria-hidden="true">⛔</div>' +
+      '<span class="moderation-lock-label">ZSPM COMMUNITY · MODERACJA</span>' +
+      '<h3>Konto zablokowane</h3>' +
+      '<p class="moderation-lock-lead">' + (activeBan.expires_at ? "Twoje konto jest tymczasowo zablokowane." : "Dostęp do Twojego konta został zablokowany bezterminowo.") + '</p>' +
+      '<div class="moderation-lock-details"><span>Powód blokady</span><p>' + escapeHTML(activeBan.reason || "Nie podano powodu.") + '</p>' +
+      '<span>Blokada obowiązuje do</span><p>' + escapeHTML(banExpiryLabel) + '</p></div>' +
+      '<p class="moderation-lock-help">Jeśli uważasz, że to pomyłka, skontaktuj się z administratorem.</p>' +
+      '<button type="button" class="main-btn" id="ban-logout">Wyloguj się</button></div>';
     $("ban-logout").addEventListener("click", logout);
     return;
   }
@@ -1351,8 +1359,10 @@ async function renderAdminPage() {
       '"><option value="mute">Mute</option><option value="ban">Ban</option></select></label>' +
       '<label>Czas<select data-duration="' + profile.id +
       '"><option value="1h">1 godzina</option><option value="24h">24 godziny</option><option value="7d" selected>7 dni</option><option value="30d">30 dni</option><option value="permanent">Na zawsze</option></select></label>' +
-      '<label>Powód<select data-reason="' + profile.id +
+      '<label>Gotowy powód<select data-reason="' + profile.id +
       '"><option value="Spam">Spam</option><option value="Obraźliwe zachowanie">Obraźliwe zachowanie</option><option value="Nękanie lub dokuczanie">Nękanie lub dokuczanie</option><option value="Nieodpowiednie treści">Nieodpowiednie treści</option><option value="Inne naruszenie zasad">Inne naruszenie zasad</option></select></label>' +
+      '<label class="admin-custom-reason-label">Własny powód (opcjonalnie)<textarea data-custom-reason="' + profile.id +
+      '" rows="3" maxlength="500" placeholder="Wpisz własny powód blokady..."></textarea></label>' +
       '<button type="button" class="admin-action-btn" data-admin-action="apply" data-id="' + profile.id +
       '">Zastosuj karę</button>' +
       (profile.id === currentUser.id ? '' : '<button type="button" class="admin-premium-btn" data-admin-action="premium" data-id="' +
@@ -1487,7 +1497,11 @@ async function renderAdminPage() {
           if (id === currentUser.id) throw new Error("Nie możesz nałożyć kary na własne konto.");
           const kind = host.querySelector('[data-kind="' + id + '"]').value;
           const duration = host.querySelector('[data-duration="' + id + '"]').value;
-          const reason = host.querySelector('[data-reason="' + id + '"]').value;
+          const presetReason = host.querySelector('[data-reason="' + id + '"]').value;
+          const customReason = (host.querySelector('[data-custom-reason="' + id + '"]')?.value || "").trim();
+          const reason = customReason || presetReason;
+          if (!reason) throw new Error("Wpisz powód kary.");
+          if (reason.length > 500) throw new Error("Powód może mieć maksymalnie 500 znaków.");
           const expires = duration === "permanent" ? null : new Date(Date.now() + ({
             "1h":3600000,"24h":86400000,"7d":604800000,"30d":2592000000
           })[duration]).toISOString();
