@@ -1358,7 +1358,7 @@ async function renderAdminPage() {
       '<div class="admin-controls"><label>Rodzaj<select data-kind="' + profile.id +
       '"><option value="mute">Mute</option><option value="ban">Ban</option></select></label>' +
       '<label>Czas<select data-duration="' + profile.id +
-      '"><option value="1h">1 godzina</option><option value="24h">24 godziny</option><option value="7d" selected>7 dni</option><option value="30d">30 dni</option><option value="permanent">Na zawsze</option></select></label>' +
+      '"><option value="1h">1 godzina</option><option value="24h" selected>24 godziny</option><option value="7d">7 dni</option><option value="30d">30 dni</option><option value="permanent">Na zawsze</option></select></label>' +
       '<label>Gotowy powód<select data-reason="' + profile.id +
       '"><option value="Spam">Spam</option><option value="Obraźliwe zachowanie">Obraźliwe zachowanie</option><option value="Nękanie lub dokuczanie">Nękanie lub dokuczanie</option><option value="Nieodpowiednie treści">Nieodpowiednie treści</option><option value="Inne naruszenie zasad">Inne naruszenie zasad</option></select></label>' +
       '<label class="admin-custom-reason-label">Własny powód (opcjonalnie)<textarea data-custom-reason="' + profile.id +
