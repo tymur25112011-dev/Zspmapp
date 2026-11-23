@@ -309,23 +309,23 @@ const APP_UI_TEXT={
 const APP_UI_LANG_INDEX={pl:-1,en:0,ru:1,uk:2};
 const appUiOriginalText=new WeakMap();
 const appUiOriginalAttrs=new WeakMap();
+function translateVisibleTextNode(node,langIndex){
+  if(!node||langIndex<0)return;
+  const parent=node.parentElement;
+  if(!parent||parent.closest("script,style,textarea,[contenteditable='true'],[data-no-translate],.chat-message-body,.profile-bio,.forum-post-body,.user-generated"))return;
+  if(!appUiOriginalText.has(node))appUiOriginalText.set(node,node.nodeValue);
+  const raw=appUiOriginalText.get(node),trimmed=raw.trim();
+  if(!trimmed)return;
+  const translated=APP_UI_TEXT[trimmed];
+  const nextValue=translated?raw.replace(trimmed,translated[langIndex]):raw;
+  if(node.nodeValue!==nextValue)node.nodeValue=nextValue;
+}
 function translateVisibleUI(root=document.body){
   if(!root)return;
   const langIndex=APP_UI_LANG_INDEX[appLanguage]??-1;
   if(langIndex<0)return;
   const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
-  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
-  for(const node of nodes){
-    const parent=node.parentElement;
-    if(!parent||parent.closest("script,style,textarea,[contenteditable='true'],[data-no-translate],.chat-message-body,.profile-bio,.forum-post-body,.user-generated"))continue;
-    if(!appUiOriginalText.has(node))appUiOriginalText.set(node,node.nodeValue);
-    const raw=appUiOriginalText.get(node),trimmed=raw.trim();
-    if(!trimmed)continue;
-    const translated=APP_UI_TEXT[trimmed];
-    const nextValue=translated?raw.replace(trimmed,translated[langIndex]):raw;
-    // Avoid writing identical text: the MutationObserver watches characterData.
-    if(node.nodeValue!==nextValue)node.nodeValue=nextValue;
-  }
+  while(walker.nextNode())translateVisibleTextNode(walker.currentNode,langIndex);
   root.querySelectorAll?.("input[placeholder],textarea[placeholder],input[aria-label],button[aria-label],select[aria-label]").forEach(el=>{
     let originals=appUiOriginalAttrs.get(el);
     if(!originals){originals={};appUiOriginalAttrs.set(el,originals);}
@@ -340,10 +340,32 @@ function translateVisibleUI(root=document.body){
 }
 let appUiTranslationObserver=null;
 if(typeof MutationObserver!=="undefined"&&document.body){
+  const pendingElements=new Set();
+  const pendingTextNodes=new Set();
+  let translationFrame=0;
+  const flushTranslationQueue=()=>{
+    translationFrame=0;
+    const elements=[...pendingElements];
+    const textNodes=[...pendingTextNodes];
+    pendingElements.clear();
+    pendingTextNodes.clear();
+    elements.forEach(element=>translateVisibleUI(element));
+    const langIndex=APP_UI_LANG_INDEX[appLanguage]??-1;
+    if(langIndex>=0)textNodes.forEach(node=>translateVisibleTextNode(node,langIndex));
+  };
   appUiTranslationObserver=new MutationObserver(records=>{
     for(const record of records){
-      if(record.type==="childList")record.addedNodes.forEach(node=>{if(node.nodeType===Node.ELEMENT_NODE)translateVisibleUI(node);else if(node.nodeType===Node.TEXT_NODE)translateVisibleUI(node.parentElement);});
-      else if(record.type==="characterData")translateVisibleUI(record.target.parentElement);
+      if(record.type==="childList"){
+        record.addedNodes.forEach(node=>{
+          if(node.nodeType===Node.ELEMENT_NODE)pendingElements.add(node);
+          else if(node.nodeType===Node.TEXT_NODE)pendingTextNodes.add(node);
+        });
+      }else if(record.type==="characterData"){
+        pendingTextNodes.add(record.target);
+      }
+    }
+    if((pendingElements.size||pendingTextNodes.size)&&!translationFrame){
+      translationFrame=requestAnimationFrame(flushTranslationQueue);
     }
   });
   appUiTranslationObserver.observe(document.body,{childList:true,subtree:true,characterData:true});
