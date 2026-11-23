@@ -7309,3 +7309,41 @@ body::after {
   -webkit-user-select: text;
   opacity: 1;
 }
+
+
+/* Group chat composer: larger, readable text field on phones and desktop. */
+#app #page-content .community-group-chat .community-group-composer {
+  width: 100%;
+  min-width: 0;
+  gap: 10px;
+  align-items: center;
+}
+#app #page-content .community-group-chat .community-group-composer input {
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+  height: 54px;
+  min-height: 54px;
+  box-sizing: border-box;
+  padding: 0 15px;
+  font-family: inherit;
+  font-size: 16px !important;
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--zspm-text, #fff) !important;
+  caret-color: var(--zspm-blue, #65a8ff);
+  background: var(--zspm-input, rgba(120,130,160,.12)) !important;
+  border: 1px solid var(--zspm-border, rgba(130,150,190,.3)) !important;
+  border-radius: 14px;
+  -webkit-text-fill-color: var(--zspm-text, #fff);
+}
+#app #page-content .community-group-chat .community-group-composer input::placeholder {
+  font-size: 14px;
+  opacity: .85;
+  color: var(--zspm-muted, #aab4c5) !important;
+  -webkit-text-fill-color: var(--zspm-muted, #aab4c5);
+}
+#app #page-content .community-group-chat .community-group-composer input:focus {
+  outline: 2px solid var(--zspm-blue, #65a8ff);
+  outline-offset: 1px;
+}
