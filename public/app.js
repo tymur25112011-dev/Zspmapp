@@ -1880,7 +1880,12 @@ function getMyProfile() {
 async function mapDatabaseProfile(row) {
   if (!row) return null;
   let photoUrl = "";
-  if (row.photo_path) {
+  // Prefer the avatar uploaded in the community profile editor.
+  // Fall back to the legacy questionnaire photo for older accounts.
+  if (row.community_avatar_path) {
+    photoUrl = supabaseClient.storage.from("community-profile-assets")
+      .getPublicUrl(row.community_avatar_path).data?.publicUrl || "";
+  } else if (row.photo_path) {
     const { data, error } = await supabaseClient.storage
       .from("profile-photos")
       .createSignedUrl(row.photo_path, 604800);
@@ -1916,6 +1921,12 @@ async function loadMyProfileFromSupabase() {
     return null;
   }
 
+  if (data) {
+    const { data: communityAsset, error: communityAssetError } = await supabaseClient
+      .from("community_profiles").select("avatar_path").eq("user_id", currentUser.id).maybeSingle();
+    if (communityAssetError) console.warn("Own community avatar lookup failed:", communityAssetError);
+    data.community_avatar_path = communityAsset?.avatar_path || null;
+  }
   myProfileCache = await mapDatabaseProfile(data);
   if (myProfileCache) {
     myProfileCache.isAdmin = isAdmin;
@@ -2009,6 +2020,15 @@ async function loadPublicProfilesFromSupabase() {
 
   const visibleRows = (data || []).filter(row => row.id !== currentUser?.id);
   const ids = visibleRows.map(row => row.id);
+  // Community avatars live in a separate table/bucket from legacy questionnaire photos.
+  // Merge their paths before mapping so the same avatar appears across the whole app.
+  if (ids.length) {
+    const { data: communityAssets, error: communityAssetsError } = await supabaseClient
+      .from("community_profiles").select("user_id,avatar_path").in("user_id", ids);
+    if (communityAssetsError) console.warn("Community avatar lookup failed:", communityAssetsError);
+    const avatarPaths = new Map((communityAssets || []).map(item => [item.user_id, item.avatar_path]));
+    visibleRows.forEach(row => { row.community_avatar_path = avatarPaths.get(row.id) || null; });
+  }
   const adminIds = await loadAdminFlagsByIds(ids);
   let badgeMap = new Map();
   if (ids.length) {
@@ -3094,7 +3114,13 @@ async function loadProfilesByIds(ids) {
     console.error("Related profiles load error:", error);
     return [];
   }
-  const mapped = (await Promise.all((data || []).map(row => mapDatabaseProfile(row)))).filter(Boolean);
+  const profileRows = data || [];
+  const { data: communityAssets, error: communityAssetsError } = await supabaseClient
+    .from("community_profiles").select("user_id,avatar_path").in("user_id", uniqueIds);
+  if (communityAssetsError) console.warn("Related community avatar lookup failed:", communityAssetsError);
+  const avatarPaths = new Map((communityAssets || []).map(item => [item.user_id, item.avatar_path]));
+  profileRows.forEach(row => { row.community_avatar_path = avatarPaths.get(row.id) || null; });
+  const mapped = (await Promise.all(profileRows.map(row => mapDatabaseProfile(row)))).filter(Boolean);
   const adminIds = await loadAdminFlagsByIds(uniqueIds);
   const { data: badgeRows, error: badgeError } = await supabaseClient
     .from("user_badges").select("user_id,badge").in("user_id", uniqueIds);
